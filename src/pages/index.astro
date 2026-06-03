@@ -1,0 +1,130 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import Character from '../components/Character.astro';
+import GallerySection from '../components/GallerySection.astro';
+import FeedSection from '../components/FeedSection.astro';
+import FinalSection from '../components/FinalSection.astro';
+---
+
+<Layout title="凌巽的龙窝">
+    
+    <main id="fullpage-container">
+        <Hero />
+        <Character />
+        <GallerySection />
+        <FeedSection />
+		<FinalSection>
+    </main>
+</Layout>
+
+<style>
+    :global(body) {
+        overflow: hidden;
+        /* 防止鼠标拖拽翻页时，不小心把页面上的文字全涂蓝了 */
+        -webkit-user-select: none;
+        user-select: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sections = document.querySelectorAll('#fullpage-container > *');
+        if (sections.length === 0) return;
+        
+        let currentIndex = 0;
+        let isAnimating = false;
+
+        // 统一的翻页执行函数
+        const scrollToCurrent = () => {
+            isAnimating = true; 
+            sections[currentIndex].scrollIntoView({ behavior: 'smooth' });
+            
+            // 冷却时间保持 600ms，确保动画播完
+            setTimeout(() => {
+                isAnimating = false;
+            }, 600); 
+        };
+
+        // =====================================
+        // 【控制器 1：电脑鼠标滚轮 (零阈值，瞬发)】
+        // =====================================
+        window.addEventListener('wheel', (e) => {
+            e.preventDefault(); 
+            if (isAnimating) return; 
+
+            // 只要有滚动方向，立刻触发，毫不拖泥带水
+            if (e.deltaY > 0 && currentIndex < sections.length - 1) {
+                currentIndex++;
+                scrollToCurrent();
+            } else if (e.deltaY < 0 && currentIndex > 0) {
+                currentIndex--;
+                scrollToCurrent();
+            }
+        }, { passive: false });
+
+        // =====================================
+        // 【控制器 2：手机端触屏 (40px 阈值防误触)】
+        // =====================================
+        let touchStartY = 0;
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: false });
+
+        window.addEventListener('touchmove', (e) => {
+            e.preventDefault(); 
+        }, { passive: false });
+
+        window.addEventListener('touchend', (e) => {
+            if (isAnimating) return;
+            let touchEndY = e.changedTouches[0].clientY;
+            let deltaY = touchStartY - touchEndY;
+
+            if (deltaY > 40 && currentIndex < sections.length - 1) {
+                currentIndex++;
+                scrollToCurrent();
+            } else if (deltaY < -40 && currentIndex > 0) {
+                currentIndex--;
+                scrollToCurrent();
+            }
+        });
+
+        // =====================================
+        // 【控制器 3：电脑端鼠标拖拽 (50px 阈值抛掷)】
+        // =====================================
+        let mouseStartY = 0;
+        let isMouseDown = false;
+
+        window.addEventListener('mousedown', (e) => {
+            mouseStartY = e.clientY;
+            isMouseDown = true;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isMouseDown) {
+                e.preventDefault(); // 移动时阻止默认事件，强化沉浸感
+            }
+        }, { passive: false });
+
+        // 绑定在 window 上，防止鼠标拖出浏览器边缘时失灵
+        window.addEventListener('mouseup', (e) => {
+            if (!isMouseDown) return;
+            isMouseDown = false;
+            if (isAnimating) return;
+
+            let mouseEndY = e.clientY;
+            let deltaY = mouseStartY - mouseEndY;
+
+            // 拖拽距离超过 50px 才算翻页，避免与点击按钮冲突
+            if (deltaY > 50 && currentIndex < sections.length - 1) {
+                currentIndex++;
+                scrollToCurrent();
+            } else if (deltaY < -50 && currentIndex > 0) {
+                currentIndex--;
+                scrollToCurrent();
+            }
+        });
+    });
+</script>

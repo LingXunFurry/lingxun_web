@@ -1,0 +1,156 @@
+---
+// src/pages/gallery.astro
+import Layout from '../layouts/Layout.astro';
+
+// ==========================================
+// 1. 导入本地相册资产
+// ==========================================
+import photo1 from '../assets/photo1.jpg';
+import photo2 from '../assets/photo2.PNG';
+import photo3 from '../assets/photo3.PNG';
+import photo4 from '../assets/photo4.PNG';
+
+// ==========================================
+// 2. 重新打乱这 4 张 16:9 的图，分配给 4 条独立传送带
+// ==========================================
+const col1 = [photo1, photo2, photo3];
+const col2 = [photo4, photo1, photo2];
+const col3 = [photo3, photo4, photo1];
+const col4 = [photo2, photo3, photo4];
+---
+
+<Layout title="视觉画廊 | 凌巽的龙宫">
+    
+    <main style="padding-top: 140px;" class="relative min-h-screen bg-[#050b14] overflow-hidden z-0 flex flex-col pb-12">
+        
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)] pointer-events-none z-0"></div>
+        
+        <div class="absolute top-[20%] left-1/2 -translate-x-1/2 w-[80vw] h-[800px] bg-blue-600/[0.04] rounded-full blur-[150px] pointer-events-none z-0"></div>
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[30vw] h-full bg-amber-500/[0.02] blur-[120px] pointer-events-none z-0"></div>
+
+        <div class="absolute top-24 left-6 md:left-12 w-16 h-16 border-t-2 border-l-2 border-slate-700/60 pointer-events-none z-0"></div>
+        <div class="absolute top-24 right-6 md:right-12 w-16 h-16 border-t-2 border-r-2 border-slate-700/60 pointer-events-none z-0"></div>
+        <div class="absolute bottom-12 left-6 md:left-12 w-16 h-16 border-b-2 border-l-2 border-slate-700/60 pointer-events-none z-0"></div>
+        <div class="absolute bottom-12 right-6 md:right-12 w-16 h-16 border-b-2 border-r-2 border-slate-700/60 pointer-events-none z-0"></div>
+
+        <div class="absolute top-28 left-28 text-[10px] font-mono text-slate-600/70 tracking-widest pointer-events-none z-0 hidden lg:block leading-relaxed">
+            <span class="text-amber-500/70 animate-pulse">● REC</span> // ARCHIVE_MODE<br>
+            ISO_800 // F/2.8 // 24mm
+        </div>
+        <div class="absolute bottom-16 right-28 text-[10px] font-mono text-slate-600/70 tracking-widest pointer-events-none z-0 hidden lg:block text-right">
+            LENS_ALIGNMENT: OPTIMAL<br>
+            SYS.DAT.SYNC
+        </div>
+        
+        <div class="container mx-auto px-6 max-w-7xl relative z-10 flex flex-col h-full">
+            
+            <div class="mb-10 text-center flex flex-col items-center flex-shrink-0">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="w-8 h-[2px] bg-amber-500"></span>
+                    <span class="text-slate-400 font-mono text-xs tracking-widest uppercase bg-slate-900 px-3 py-1 border border-slate-800 shadow-[0_0_15px_rgba(251,191,36,0.15)]">Visual Archive</span>
+                    <span class="w-8 h-[2px] bg-amber-500"></span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-white tracking-wider mb-6 drop-shadow-lg">
+                    视觉 <span class="text-slate-500 font-light">画廊</span>
+                </h1>
+                <p class="text-slate-400 font-light max-w-xl text-xs md:text-sm leading-relaxed tracking-wide">
+                    在这里，时间被切片，记忆被定格为像素。所有的旅途碎片，都在这条数据传送带上无尽循环。
+                </p>
+            </div>
+
+            <div class="relative w-full flex-shrink-0 z-20 mb-8">
+                <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-80"></div>
+                <div class="absolute top-0 left-0 w-full h-[10px] bg-gradient-to-b from-amber-500/20 to-transparent pointer-events-none"></div>
+            </div>
+
+            <div class="w-full h-[55vh] lg:h-[65vh] relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_90%,transparent_100%)]">
+                
+                <div class="absolute inset-0 grid grid-cols-2 lg:grid-cols-4 gap-6 px-2">
+                    
+                    <div class="group h-full relative overflow-hidden">
+                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 25s;">
+                            {col1.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                            {col1.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div class="group h-full relative overflow-hidden">
+                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 35s; transform: translateY(-15%);">
+                            {col2.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                            {col2.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div class="group h-full relative overflow-hidden hidden lg:block">
+                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 40s;">
+                            {col3.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                            {col3.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div class="group h-full relative overflow-hidden hidden lg:block">
+                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 22s; transform: translateY(-10%);">
+                            {col4.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                            {col4.map((img) => (
+                                <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-amber-400 hover:shadow-[0_0_30px_rgba(251,191,36,0.3)] hover:z-50 aspect-video">
+                                    <img src={img.src} alt="Archive Image" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-center z-20">
+                <a href="/#" class="group flex items-center gap-2 text-slate-500 hover:text-amber-400 transition-colors font-mono tracking-widest text-xs">
+                    <span class="transform rotate-180 inline-block group-hover:-translate-x-1 transition-transform">&gt;</span>
+                    RETURN_TO_MAIN_TERMINAL
+                </a>
+            </div>
+
+        </div>
+    </main>
+</Layout>
+
+<style>
+    @keyframes conveyor {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-50%); }
+    }
+    .animate-conveyor {
+        animation: conveyor linear infinite;
+        will-change: transform;
+    }
+    .group:hover .animate-conveyor {
+        animation-play-state: paused;
+    }
+</style>

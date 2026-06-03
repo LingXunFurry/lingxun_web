@@ -1,0 +1,199 @@
+---
+// Hero.astro 首屏组件
+
+import { Image } from 'astro:assets'; // 导入 Astro 官方的图像处理引擎
+
+// 将 assets 里的图片导入进来 (注意大小写要和你的文件名完全一致！)
+import photo1 from '../assets/photo1.jpg';
+import photo2 from '../assets/photo2.PNG';
+import photo3 from '../assets/photo3.PNG';
+import photo4 from '../assets/photo4.PNG';
+---
+
+<section class="snap-start relative w-full h-screen overflow-hidden">
+    
+<div id="bg-carousel" class="absolute inset-0 w-full h-full z-0 bg-slate-950">
+        <Image 
+            src={photo1} 
+            alt="龙设照片1" 
+            width={1920} 
+            format="webp" 
+            quality={80} 
+            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-100 transition-opacity duration-1000 ease-in-out" 
+        />
+        <Image 
+            src={photo2} 
+            alt="龙设照片2" 
+            width={1920} 
+            format="webp" 
+            quality={80} 
+            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out" 
+        />
+        <Image 
+            src={photo3} 
+            alt="龙设照片3" 
+            width={1920} 
+            format="webp" 
+            quality={80} 
+            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out" 
+        />
+        <Image 
+            src={photo4} 
+            alt="龙设照片4" 
+            width={1920} 
+            format="webp" 
+            quality={80} 
+            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out" 
+        />
+    </div>
+
+    <div class="absolute inset-0 w-full h-full bg-slate-950/65 z-10"></div>
+
+    <canvas id="particle-canvas" class="absolute top-0 left-0 w-full h-full z-20"></canvas>
+
+    <div class="absolute bottom-32 left-8 md:left-24 z-30 text-left pointer-events-none">
+        <h1 class="text-5xl md:text-7xl font-bold text-white tracking-wider mb-4 drop-shadow-lg">
+            凌巽的<span class="text-amber-400">龙窝</span>
+        </h1>
+        <p class="text-lg md:text-xl text-slate-300 tracking-wide font-light">
+            向下滚动,探索更多
+        </p>
+    </div>
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 animate-bounce text-white/70 pointer-events-none">
+        <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+    </div>
+</section>
+
+<script>
+    // 动画核心逻辑
+    document.addEventListener('DOMContentLoaded', () => {
+        // 背景轮播图算法
+        const images = document.querySelectorAll('.carousel-img');
+        let currentIndex = 0;
+
+        if (images.length > 0) {
+            // 每5秒执行一次切换
+            setInterval(() => {
+                // 把当前显示的图片透明度设为 0
+                images[currentIndex].classList.remove('opacity-100');
+                images[currentIndex].classList.add('opacity-0');
+                
+                // 计算下一张图片的索引（取余保证最后一张之后是第一张，形成循环）
+                currentIndex = (currentIndex + 1) % images.length;
+                
+                // 把下一张图片的透明度设为 1
+                images[currentIndex].classList.remove('opacity-0');
+                images[currentIndex].classList.add('opacity-100');
+            }, 5000); 
+        }
+
+        // 粒子流动算法
+        const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
+        if(!ctx) return;
+
+        // 画布尺寸适应浏览器窗口尺寸
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+    
+        // 记录鼠标位置,初始情况在屏幕外
+        let mouse = { x: -1000, y: -1000 };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        window.addEventListener('mouseout', () => {
+            mouse.x = -1000;
+            mouse.y = -1000;
+        });
+
+        // 升级版：流体粒子类
+        class Particle {
+            x: number;
+            y: number;
+            size: number;
+            vx: number; // 水平流速
+            vy: number; // 垂直流速
+
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = (Math.random() * 2) + 1;
+                // 赋予每个粒子随机的流动速度 (-0.5 到 0.5 之间)
+                this.vx = (Math.random() - 0.5) * 1;
+                this.vy = (Math.random() - 0.5) * 1;
+            }
+
+            // 计算下一帧状态
+            update() {
+                // 按照流速自然移动
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 粒子跑出屏幕边缘后，从对面重新出现，从而不会导致屏幕粒子数量变少
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+
+                // 鼠标交互
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                // 鼠标的作用范围是150像素
+                let maxDistance = 150;
+
+                if (distance < maxDistance) {
+                    // 计算推开的方向
+                    let forceDirectionX = dx / distance;
+                    let forceDirectionY = dy / distance;
+                    // 距离越近，推力越强
+                    let force = (maxDistance - distance) / maxDistance;
+
+                    // 增加一个平滑系数（数字越大推得越远，数字小则显得柔和）
+                    let pushX = forceDirectionX * force * 5;
+                    let pushY = forceDirectionY * force * 5;
+
+                    // 将推力施加在坐标上，形成遇到鼠标绕开的效果
+                    this.x -= pushX;
+                    this.y -= pushY;
+                }
+            }
+
+            // 画出粒子
+            draw() {
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+                ctx?.beginPath();
+                ctx?.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx?.closePath();
+                ctx?.fill();
+            }
+        }
+
+        // 生成350个粒子
+        let particleArray: Particle[] = [];
+        for (let i = 0; i < 350; i++) {
+            particleArray.push(new Particle());
+        }
+
+        // 动画主循环
+        function animate() {
+            ctx?.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < particleArray.length; i++) {
+                particleArray[i].update();
+                particleArray[i].draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        // 启动程序
+        animate();
+    });
+</script>

@@ -1,0 +1,31 @@
+---
+import '../styles/global.css'
+import Navbar from '../components/Navbar.astro'
+---
+
+<!doctype html>
+<html lang="zh" class="scroll-smooth">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/png" href="/logo.png" />
+		<meta name="generator" content={Astro.generator} />
+		<title>凌巽的龙窝</title>
+
+		<meta name="description" content="欢迎来到凌巽的个人网站,这里展示了我的设定背景,日常动态还有精美照片,以及更多未发现的东西?">
+	</head>
+	<body>
+		<Navbar />
+
+		<slot />
+	</body>
+</html>
+
+<style>
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+	}
+</style>

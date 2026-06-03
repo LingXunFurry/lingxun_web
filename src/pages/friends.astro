@@ -1,0 +1,145 @@
+---
+// src/pages/friends.astro
+import Layout from '../layouts/Layout.astro';
+
+const friendsData = [
+    {
+        id: "寒曜",
+        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Cyber",
+        url: "https://hanyao.me/",
+        comment: "站主的对象，一只银白色的小狼"
+    },
+    {
+        id: "lolpzili",
+        avatar: "https://www.lolpzili.com/img/avatar.webp",
+        url: "https://www.lolpzili.com",
+        comment: "一个年（都不一定）更的博主x"
+    },
+    {
+        id: "Fox_Terminal",
+        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Fox",
+        url: "https://example.com",
+        comment: "沉迷于硬件底层的狐狸，经常在深夜一起打游戏吐槽需求。"
+    },
+    {
+        id: "Dragon_Heart",
+        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Dragon",
+        url: "https://example.com",
+        comment: "同为龙族的伙伴，文笔细腻，他的世界观设定集堪称一绝。"
+    },
+    {
+        id: "Mecha_Bear",
+        avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=Bear",
+        url: "https://example.com",
+        comment: "做 3D 建模的大佬，也是经常在线下聚会面基的好兄弟。"
+    }
+];
+---
+
+<Layout title="通讯节点 | 凌巽的龙窝">
+    
+    <main style="padding-top: 160px;" class="relative min-h-screen bg-[#050b14] overflow-x-hidden z-0 pb-32">
+        
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[600px] bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.12),transparent_70%)] pointer-events-none z-0"></div>
+        
+        <div class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000,transparent)] pointer-events-none z-0"></div>
+        
+        <div class="absolute bottom-0 left-0 w-full h-[60vh] [perspective:1000px] pointer-events-none z-0">
+            <div class="absolute bottom-[-10%] left-[-50%] w-[200%] h-[150%] bg-[linear-gradient(rgba(59,130,246,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.2)_1px,transparent_1px)] bg-[size:4rem_4rem] [transform:rotateX(75deg)] [transform-origin:bottom_center] opacity-40 [mask-image:linear-gradient(to_top,#000_10%,transparent_70%)]"></div>
+        </div>
+        
+        <div class="container mx-auto px-6 max-w-5xl relative z-10 flex flex-col gap-12 lg:gap-16">
+            
+            <div class="text-center flex flex-col items-center">
+                <div class="flex items-center gap-4 mb-4">
+                    <span class="w-8 h-[2px] bg-blue-500"></span>
+                    <span class="text-slate-400 font-mono text-xs tracking-widest uppercase bg-slate-900 px-3 py-1 border border-slate-800 shadow-[0_0_15px_rgba(59,130,246,0.2)]">Connection Hub</span>
+                    <span class="w-8 h-[2px] bg-blue-500"></span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-white tracking-wider mb-6 drop-shadow-lg">
+                    通讯 <span class="text-slate-500 font-light">节点</span>
+                </h1>
+                <p class="text-slate-400 font-light max-w-xl text-xs md:text-sm leading-relaxed tracking-wide">
+                    在冒险路途中，小龙遇到了很多同频的好友<br>以下是凌巽收集的频率，欢迎跃迁。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                
+                {friendsData.map((friend, index) => {
+                    // 保留一点点错落感，让中间列稍微下沉
+                    const staggerClass = index % 3 === 1 ? "lg:translate-y-8" : "";
+                    
+                    return (
+                        <a 
+                            href={friend.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class={`group relative block w-full p-6 bg-[#091121]/80 backdrop-blur-lg border border-slate-700/60 rounded-xl transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/50 hover:shadow-[0_10px_30px_rgba(251,191,36,0.15)] overflow-hidden ${staggerClass}`}
+                        >
+                            
+                            <span class="absolute top-0 left-0 w-[200%] h-full z-0 block -skew-x-12 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent -translate-x-[150%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none"></span>
+                            
+                            <div class="absolute top-0 left-0 w-0 h-[2px] bg-amber-400 transition-all duration-500 group-hover:w-full"></div>
+                            
+                            <div class="flex items-start gap-4 relative z-10">
+                                
+                                <div style="width: 52px; height: 52px;" class="relative flex-shrink-0">
+                                    <div class="absolute -inset-1 border border-dashed border-slate-600 rounded-lg group-hover:animate-spin-slow group-hover:border-amber-500/50 transition-colors opacity-0 group-hover:opacity-100"></div>
+                                    <div class="w-full h-full rounded-lg overflow-hidden border border-slate-600 bg-[#050b14] relative z-10 group-hover:border-amber-400/50 transition-colors flex items-center justify-center shadow-lg">
+                                        <img src={friend.avatar} alt={friend.id} class="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" />
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 min-w-0 mt-0.5">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <h3 class="text-base md:text-lg font-bold text-white tracking-wide truncate group-hover:text-amber-400 transition-colors duration-300">
+                                            {friend.id}
+                                        </h3>
+                                        <svg class="w-4 h-4 text-slate-500 group-hover:text-amber-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                        </svg>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-1.5 mb-3">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span class="text-[9px] text-slate-400 font-mono tracking-widest uppercase">Node_Online</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-[#02050a] border border-slate-800/80 rounded-lg relative z-10 group-hover:border-slate-700 transition-colors shadow-inner">
+                                <div class="text-[9px] text-slate-500 font-mono mb-1 select-none">
+                                    // 档案批注_
+                                </div>
+                                <p class="text-xs text-slate-300 font-light leading-relaxed line-clamp-3 group-hover:text-amber-100/90 transition-colors">
+                                    {friend.comment}
+                                </p>
+                            </div>
+                            
+                        </a>
+                    );
+                })}
+
+            </div>
+
+            <div class="mt-12 flex justify-center">
+                <a href="/#" class="group flex items-center gap-2 text-slate-500 hover:text-amber-400 transition-colors font-mono tracking-widest text-xs">
+                    <span class="transform rotate-180 inline-block group-hover:-translate-x-1 transition-transform">&gt;</span>
+                    RETURN_TO_MAIN_TERMINAL
+                </a>
+            </div>
+
+        </div>
+    </main>
+</Layout>
+
+<style>
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+        animation: spin-slow 12s linear infinite;
+    }
+</style>

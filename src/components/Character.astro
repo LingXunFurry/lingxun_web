@@ -1,0 +1,93 @@
+---
+// src/components/Character.astro
+import { Image } from 'astro:assets';
+import dragonImg from '../assets/character.png'; 
+---
+
+<section class="snap-start relative w-full min-h-screen bg-[#050b14] flex items-center justify-center py-24 overflow-hidden z-0">
+    
+    <div class="absolute top-0 left-0 w-[60vw] h-[60vw] md:w-[800px] md:h-[800px] bg-blue-600/30 rounded-full blur-[120px] md:blur-[150px] animate-pulse mix-blend-screen -z-10" style="animation-duration: 4s;"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] md:w-[600px] md:h-[600px] bg-amber-500/20 rounded-full blur-[100px] md:blur-[150px] animate-pulse mix-blend-screen -z-10" style="animation-duration: 7s;"></div>
+
+    <div class="container mx-auto px-6 relative z-10">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-20">
+
+            <div class="w-full lg:w-5/12 [perspective:1200px] relative group py-8">
+                
+                <div class="relative w-full max-w-[500px] mx-auto aspect-square transition-all duration-1000 ease-out [transform-style:preserve-3d] [transform:rotateY(-12deg)_rotateX(6deg)] group-hover:[transform:rotateY(-4deg)_rotateX(2deg)]">
+                    
+                    <div class="absolute -inset-4 border border-slate-700/40 transition-all duration-700 group-hover:border-amber-500/40 pointer-events-none [transform:translateZ(40px)]"></div>
+                    <div class="absolute -inset-4 border-l-2 border-t-2 border-amber-400 w-8 h-8 -translate-x-1 -translate-y-1 pointer-events-none [transform:translateZ(45px)]"></div>
+                    <div class="absolute -inset-4 border-r-2 border-b-2 border-blue-500 w-8 h-8 right-0 bottom-0 translate-x-1 translate-y-1 pointer-events-none [transform:translateZ(45px)]"></div>
+                    <div class="absolute bottom-6 left-2 font-mono text-amber-400/80 text-xs tracking-widest uppercase pointer-events-none [transform:translateZ(50px)]">
+                        // Character_Profile
+                    </div>
+
+                    <div class="absolute inset-0 w-full h-full overflow-hidden shadow-[2px_10px_30px_rgba(0,0,0,0.7)] bg-slate-900 [transform:translateZ(0px)]">
+                        <Image 
+                            src={dragonImg} 
+                            alt="凌巽" 
+                            class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000 ease-out" 
+                        />
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#050b14] via-transparent to-transparent opacity-90"></div>
+                    </div>
+
+                    <div class="absolute -inset-2 bg-blue-600/5 blur-2xl rounded-full [transform:translateZ(-20px)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
+
+                </div>
+            </div>
+
+            <div class="w-full lg:w-7/12 relative">
+                
+                <div class="absolute top-0 left-0 -translate-y-12 -translate-x-8 md:-translate-x-20 text-[6rem] md:text-[10rem] font-black text-slate-800/30 select-none z-0 pointer-events-none tracking-tighter leading-none">
+                    LINGXUN
+                </div>
+
+                <div class="relative z-10">
+                    <div class="flex items-center gap-4 mb-6">
+                        <span class="w-10 h-[2px] bg-amber-400"></span>
+                        <span class="text-slate-400 font-mono text-sm tracking-widest uppercase">Character Profile</span>
+                    </div>
+
+                    <h2 class="text-5xl md:text-6xl font-bold text-white mb-2 tracking-wider flex items-end gap-4 drop-shadow-lg">
+                        凌巽
+                        <span class="text-2xl text-slate-500 font-light pb-1 border-l border-slate-700 pl-4">LingXun</span>
+                    </h2>
+
+                    <p class="text-lg md:text-xl text-blue-400 font-medium mb-10 tracking-widest border-l-4 border-blue-500 pl-4">
+                        世间的冒险者
+                    </p>
+
+                    <div class="space-y-6 text-slate-300 leading-relaxed font-light text-base md:text-lg max-w-2xl">
+                        <p>
+                            曾经的风族长子。毛发如同深邃的夜空，而角与眼瞳中拥有着火焰般的红色光芒，那是心中永不熄灭的力量。
+                        </p>
+                        <p>
+                            平日里性格沉稳，喜欢独处与观察。以接取冒险者公会的委托维生，喜欢去酒馆喝酒。
+                        </p>
+                    </div>
+
+                    <div class="mt-12 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
+                        <div class="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden group hover:border-amber-400/50 transition-colors backdrop-blur-sm">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-800 group-hover:bg-amber-400 transition-colors"></div>
+                            <div class="text-[10px] text-slate-500 font-mono mb-1 tracking-wider uppercase">物种 //</div>
+                            <div class="text-white font-medium tracking-wide">龙族</div>
+                        </div>
+                        <div class="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden group hover:border-blue-500/50 transition-colors backdrop-blur-sm">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-800 group-hover:bg-blue-500 transition-colors"></div>
+                            <div class="text-[10px] text-slate-500 font-mono mb-1 tracking-wider uppercase">属性 //</div>
+                            <div class="text-white font-medium tracking-wide">风属性</div>
+                        </div>
+                        <div class="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden group hover:border-purple-500/50 transition-colors backdrop-blur-sm">
+                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-800 group-hover:bg-purple-500 transition-colors"></div>
+                            <div class="text-[10px] text-slate-500 font-mono mb-1 tracking-wider uppercase">特质 //</div>
+                            <div class="text-white font-medium tracking-wide">可靠 外冷内热</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
