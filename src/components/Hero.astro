@@ -1,68 +1,68 @@
 ---
 // Hero.astro 首屏组件
+import { Image } from 'astro:assets'; 
 
-import { Image } from 'astro:assets'; // 导入 Astro 官方的图像处理引擎
+// =================================================================
+// 1. 全自动读取画廊文件夹
+// =================================================================
+const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/gallery/*.{jpeg,jpg,png,PNG,webp}');
+const imagePaths = Object.values(images);
 
-// 将 assets 里的图片导入进来 (注意大小写要和你的文件名完全一致！)
-import photo1 from '../assets/photo1.jpg';
-import photo2 from '../assets/photo2.PNG';
-import photo3 from '../assets/photo3.PNG';
-import photo4 from '../assets/photo4.PNG';
+const allGalleryImages = await Promise.all(imagePaths.map(async (img) => {
+    const data = await img();
+    return data.default;
+}));
+
+// =================================================================
+// 2. 性能截断：只取画廊文件夹里的前 4 张图作为首屏轮播，防止 DOM 过载
+// =================================================================
+const heroImages = allGalleryImages.slice(0, 4);
 ---
 
 <section class="snap-start relative w-full h-screen overflow-hidden">
     
-<div id="bg-carousel" class="absolute inset-0 w-full h-full z-0 bg-slate-950">
-        <Image 
-            src={photo1} 
-            alt="龙设照片1" 
-            width={1920} 
-            format="webp" 
-            quality={80} 
-            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-100 transition-opacity duration-1000 ease-in-out" 
-        />
-        <Image 
-            src={photo2} 
-            alt="龙设照片2" 
-            width={1920} 
-            format="webp" 
-            quality={80} 
-            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out" 
-        />
-        <Image 
-            src={photo3} 
-            alt="龙设照片3" 
-            width={1920} 
-            format="webp" 
-            quality={80} 
-            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out" 
-        />
-        <Image 
-            src={photo4} 
-            alt="龙设照片4" 
-            width={1920} 
-            format="webp" 
-            quality={80} 
-            class="carousel-img absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000 ease-in-out" 
-        />
+    <div id="bg-carousel" class="absolute inset-0 w-full h-full z-0 bg-slate-950">
+        {/* 利用遍历动态生成图片标签：
+            如果是第一张图 (index === 0)，默认显示 (opacity-100)
+            如果是其他图，默认隐藏 (opacity-0)，等待 JS 轮播接管
+        */}
+        {heroImages.map((img, index) => (
+            <Image 
+                src={img} 
+                alt={`龙宫档案首屏_${index + 1}`} 
+                width={1920} 
+                format="webp" 
+                quality={80} 
+                class={`carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === 0 ? 'opacity-100' : 'opacity-0'}`} 
+            />
+        ))}
     </div>
 
     <div class="absolute inset-0 w-full h-full bg-slate-950/65 z-10"></div>
 
     <canvas id="particle-canvas" class="absolute top-0 left-0 w-full h-full z-20"></canvas>
 
+    {/* ================================================================= */}
+    {/* 文字区域：注入动能显影动画类 (animate-hero-xxx) */}
+    {/* ================================================================= */}
     <div class="absolute bottom-32 left-8 md:left-24 z-30 text-left pointer-events-none">
-        <h1 class="text-5xl md:text-7xl font-bold text-white tracking-wider mb-4 drop-shadow-lg">
+        {/* 标题 */}
+        <h1 class="text-5xl md:text-7xl font-bold text-white tracking-wider mb-4 drop-shadow-lg opacity-0 animate-hero-title">
             凌巽的<span class="text-amber-400">龙窝</span>
         </h1>
-        <p class="text-lg md:text-xl text-slate-300 tracking-wide font-light">
+        {/* 副标题 */}
+        <p class="text-lg md:text-xl text-slate-300 tracking-wide font-light opacity-0 animate-hero-subtitle">
             向下滚动,探索更多
         </p>
     </div>
-    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 animate-bounce text-white/70 pointer-events-none">
-        <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-        </svg>
+    
+    {/* 向下指引箭头：为了防止 transform 冲突，多包裹一层 div 来施加出场动画 */}
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 text-white/70 pointer-events-none">
+        <div class="opacity-0 animate-hero-arrow">
+            <svg class="w-8 h-8 md:w-10 md:h-10 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+        </div>
     </div>
 </section>
 
@@ -197,3 +197,40 @@ import photo4 from '../assets/photo4.PNG';
         animate();
     });
 </script>
+
+<style>
+    /* ================================================================= */
+    /* 专属电影级起步出场动画 */
+    /* ================================================================= */
+    @keyframes momentumReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(40px) skewY(3deg);
+            filter: blur(10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) skewY(0deg);
+            filter: blur(0);
+        }
+    }
+
+    .animate-hero-title {
+        /* forwards 确保动画结束后保持在 100% 的状态 */
+        animation: momentumReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.2s; /* 给网页渲染留一点点呼吸空间 */
+        will-change: transform, opacity, filter;
+    }
+
+    .animate-hero-subtitle {
+        animation: momentumReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 0.5s; /* 比标题晚 0.3 秒，形成视觉下沉 */
+        will-change: transform, opacity, filter;
+    }
+
+    .animate-hero-arrow {
+        animation: momentumReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: 1.2s; /* 最晚出现，提示用户看完了标题该往下滚了 */
+        will-change: transform, opacity, filter;
+    }
+</style>

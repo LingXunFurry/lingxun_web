@@ -1,7 +1,7 @@
 ---
 // src/components/FinalSection.astro
 
-// 模拟兽聚行程数据 (包含过去、现在、未来)
+// 模拟兽聚行程数据
 const schedules = [
     {
         id: "con-01",
@@ -31,50 +31,25 @@ const schedules = [
 
 // 联系方式数据
 const socials = [
-    { 
-        name: "QQ", 
-        icon: "QQ", 
-        desc: "日常交流 / 扩列", 
-        link: "https://qm.qq.com/q/v6P80LZUdM",
-        number: "1651388504" 
-    },
-    { 
-        name: "X (Twitter)", 
-        icon: "X", 
-        desc: "动态 / 日常", 
-        link: "https://x.com/furrylingxun" 
-    },
-    { 
-        name: "BiliBili", 
-        icon: "B", 
-        desc: "视频 Vlog / 短视频", 
-        link: "https://space.bilibili.com/362846640" 
-    },
-    { 
-        name: "抖音", 
-        icon: "D", 
-        desc: "短视频 / 日常掉落", 
-        link: "https://v.douyin.com/LsGqWRTDUKc/" 
-    },
-    { 
-        name: "小红书", 
-        icon: "R", 
-        desc: "动态 / 日常", 
-        link: "https://www.xiaohongshu.com/user/profile/69c665ea0000000034019dd1" 
-    }
+    { name: "QQ", icon: "QQ", desc: "日常交流 / 扩列", link: "https://qm.qq.com/q/v6P80LZUdM", number: "1651388504" },
+    { name: "X (Twitter)", icon: "X", desc: "动态 / 日常", link: "https://x.com/furrylingxun" },
+    { name: "BiliBili", icon: "B", desc: "视频 Vlog / 短视频", link: "https://space.bilibili.com/362846640" },
+    { name: "抖音", icon: "D", desc: "短视频 / 日常掉落", link: "https://v.douyin.com/LsGqWRTDUKc/" },
+    { name: "小红书", icon: "R", desc: "动态 / 日常", link: "https://www.xiaohongshu.com/user/profile/69c665ea0000000034019dd1" }
 ];
 ---
 
-<section class="snap-start relative w-full h-screen bg-[#050b14] flex flex-col justify-between overflow-hidden z-0 pt-20">
+<section id="final-section" class="snap-start relative w-full h-auto min-h-full lg:h-screen bg-[#050b14] flex flex-col justify-between overflow-hidden z-0 pt-24 lg:pt-20">
     
     <div class="absolute inset-0 bg-[radial-gradient(rgba(71,85,105,0.3)_1.5px,transparent_1.5px)] bg-[size:1.5rem_1.5rem] pointer-events-none z-0"></div>
     <div class="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
     <div class="absolute bottom-[-5%] right-[5%] w-[500px] h-[300px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none z-0 animate-pulse" style="animation-duration: 8s;"></div>
 
-    <div class="container mx-auto px-6 max-w-7xl relative z-10 flex-grow flex flex-col lg:flex-row items-stretch gap-12 lg:gap-0 overflow-hidden h-full pb-8">
+    <div class="container mx-auto px-6 max-w-7xl relative z-10 flex-grow flex flex-col lg:flex-row items-stretch gap-10 lg:gap-0 lg:h-full lg:min-h-0 pb-12 lg:pb-6">
         
-        <div class="w-full lg:w-[45%] flex flex-col h-full max-h-[50vh] lg:max-h-none justify-center">
-            <div class="mb-8">
+        {/* 左侧区域：行程面板 */}
+        <div class="w-full lg:w-[45%] flex flex-col h-auto lg:h-full lg:min-h-0 py-2 lg:py-4">
+            <div class="mb-6 lg:mb-8 flex-shrink-0">
                 <div class="flex items-center gap-4 mb-2">
                     <span class="w-8 h-[2px] bg-amber-500"></span>
                     <span class="text-slate-400 font-mono text-sm tracking-widest uppercase">Convention Log</span>
@@ -84,36 +59,35 @@ const socials = [
                 </h2>
             </div>
 
-            <div class="schedule-container flex-1 overflow-y-auto pr-4 space-y-4 scrollbar-hide pb-20">
+            <div class="schedule-container w-full space-y-4 pb-4 lg:flex-1 lg:overflow-y-auto lg:min-h-0 lg:pr-4 scrollbar-hide">
                 {schedules.map((event) => (
-                    <div 
-                        class="schedule-card relative p-6 border bg-slate-900/40 backdrop-blur-sm transition-all duration-500"
-                        data-start={event.startDate}
-                        data-end={event.endDate}
-                    >
-                        <div class="status-badge absolute top-6 right-6 font-mono text-[10px] tracking-widest uppercase px-2 py-1 border"></div>
-                        
-                        <div class="text-sm font-mono tracking-widest mb-2 date-text">
-                            {event.startDate} // {event.endDate}
+                    <div class="schedule-card relative p-6 border bg-slate-900/40 backdrop-blur-sm transition-all duration-300 rounded-lg group" data-start={event.startDate} data-end={event.endDate}>
+                        <div class="flex flex-wrap justify-between items-start gap-x-4 gap-y-3 mb-3">
+                            <div class="text-xs sm:text-sm font-mono tracking-widest date-text mt-0.5 transition-colors">
+                                {event.startDate} <span class="hidden sm:inline">//</span><br class="sm:hidden" /> {event.endDate}
+                            </div>
+                            <div class="status-badge font-mono text-[10px] tracking-widest uppercase px-2 py-1 border flex-shrink-0 transition-colors"></div>
                         </div>
-                        <h3 class="text-xl font-bold text-white mb-1 title-text">{event.name}</h3>
-                        <p class="text-sm text-slate-400 mb-3 location-text flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            {event.location}
+
+                        <h3 class="text-xl font-bold text-white mb-1 title-text transition-colors">{event.name}</h3>
+                        <p class="text-sm text-slate-400 mb-3 location-text flex items-center gap-1 transition-colors">
+                            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span class="break-words">{event.location}</span>
                         </p>
-                        <p class="text-sm font-light text-slate-500 desc-text">{event.description}</p>
+                        <p class="text-sm font-light text-slate-500 desc-text transition-colors">{event.description}</p>
                     </div>
                 ))}
             </div>
         </div>
 
+        {/* 电脑端纵向分割线 */}
         <div class="hidden lg:flex w-[10%] justify-center items-center self-stretch">
             <div class="w-[1px] h-[70%] bg-gradient-to-b from-transparent via-slate-500 to-transparent opacity-50"></div>
         </div>
 
-        <div class="w-full lg:w-[45%] flex flex-col justify-center h-full max-h-[50vh] lg:max-h-none">
-            
-            <div class="mb-10">
+        {/* 右侧区域：建立连接 */}
+        <div class="w-full lg:w-[45%] flex flex-col h-auto lg:h-full lg:min-h-0 py-2 lg:py-4">
+            <div class="mb-6 lg:mb-10 flex-shrink-0">
                 <div class="flex items-center gap-4 mb-2">
                     <span class="w-8 h-[2px] bg-blue-500"></span>
                     <span class="text-slate-400 font-mono text-sm tracking-widest uppercase">Communication</span>
@@ -123,135 +97,189 @@ const socials = [
                 </h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-                {socials.map((social) => {
-                    const Element = social.link ? 'a' : 'div';
-                    return (
-                        <Element 
-                            href={social.link} 
-                            target={social.link ? "_blank" : undefined}
-                            rel={social.link ? "noopener noreferrer" : undefined}
-                            class={`group flex items-center gap-4 p-4 border border-slate-800 bg-slate-900/40 transition-all duration-300 ${
-                                social.link 
-                                ? 'hover:border-amber-500/50 hover:bg-slate-800/40 cursor-pointer' 
-                                : 'cursor-default'
-                            }`}
-                        >
-                            <div class={`w-10 h-10 flex items-center justify-center bg-[#050b14] border border-slate-700 text-slate-300 font-black font-mono transition-colors ${
-                                social.link ? 'group-hover:text-amber-400 group-hover:border-amber-500' : ''
-                            }`}>
-                                {social.icon}
-                            </div>
-                            <div>
-                                <div class={`font-bold tracking-wide transition-colors ${
-                                    social.link ? 'text-white group-hover:text-amber-300' : 'text-slate-300'
-                                }`}>
-                                    {social.name}
+            <div class="w-full lg:flex-1 lg:overflow-y-auto lg:min-h-0 lg:pr-4 scrollbar-hide flex flex-col">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    {socials.map((social) => {
+                        const Element = social.link ? 'a' : 'div';
+                        return (
+                            <Element href={social.link} target={social.link ? "_blank" : undefined} rel={social.link ? "noopener noreferrer" : undefined} class={`group flex items-center gap-4 p-4 border border-slate-800 bg-slate-900/40 rounded-lg transition-all duration-300 ${social.link ? 'hover:border-amber-500/50 hover:bg-slate-800/40 hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(0,0,0,0.4)] cursor-pointer' : 'cursor-default'}`}>
+                                <div class={`w-10 h-10 flex-shrink-0 flex items-center justify-center bg-[#050b14] border border-slate-700 text-slate-300 font-black font-mono transition-colors ${social.link ? 'group-hover:text-amber-400 group-hover:border-amber-500' : ''}`}>
+                                    {social.icon}
                                 </div>
-                                <div class="text-xs text-slate-500 tracking-wider mt-0.5">{social.desc}</div>
-                                
-                                {social.number && (
-                                    <div class="mt-2 flex items-center gap-2">
-                                        <span class="text-[10px] font-mono text-amber-500/70 border border-amber-500/30 bg-amber-500/10 px-1 py-0.5">
-                                            ID
-                                        </span>
-                                        <span class="text-sm font-mono text-amber-400 select-all cursor-text">
-                                            {social.number}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        </Element>
-                    );
-                })}
+                                <div class="min-w-0 flex-1">
+                                    <div class={`font-bold tracking-wide transition-colors truncate ${social.link ? 'text-white group-hover:text-amber-300' : 'text-slate-300'}`}>{social.name}</div>
+                                    <div class="text-xs text-slate-500 tracking-wider mt-0.5 truncate">{social.desc}</div>
+                                    {social.number && (
+                                        <div class="mt-2 flex items-center gap-2" onclick="event.stopPropagation();">
+                                            <span class="text-[10px] font-mono text-amber-500/70 border border-amber-500/30 bg-amber-500/10 px-1 py-0.5">ID</span>
+                                            <span class="text-sm font-mono text-amber-400 select-all cursor-text truncate">{social.number}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </Element>
+                        );
+                    })}
+                </div>
+
+                <a href="/friends" class="group relative inline-flex flex-shrink-0 items-center justify-center w-full py-4 font-medium text-amber-400 border border-amber-400/50 rounded-lg overflow-hidden transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(251,191,36,0.2)] bg-amber-400/5 mt-auto">
+                    <span class="absolute top-0 w-[150%] h-full z-0 block -skew-x-12 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none"></span>
+                    <span class="relative flex items-center gap-3 tracking-widest uppercase font-bold z-10">&gt; 访问友链 &lt;</span>
+                </a>
             </div>
-
-            <a href="/friends" class="group relative inline-flex items-center justify-center w-full py-4 font-medium text-amber-400 border border-amber-400/50 overflow-hidden transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(251,191,36,0.2)] bg-amber-400/5">
-                
-                <span class="absolute top-0 w-[150%] h-full z-0 block -skew-x-12 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none"></span>
-                
-                <span class="relative flex items-center gap-3 tracking-widest uppercase font-bold z-10">
-                    &gt; 访问友链 &lt;
-                </span>
-            </a>
-
         </div>
-
     </div>
 
-    <footer class="w-full border-t border-slate-800/50 bg-[#02050a] py-6 relative z-20">
-        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+    {/* ================================================================= */}
+    {/* 页脚核心控制区 */}
+    {/* ================================================================= */}
+    <footer class="w-full border-t border-slate-800/50 bg-[#02050a] py-6 relative z-20 mt-auto flex-shrink-0">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 relative">
+            
             <div class="text-slate-500 text-xs font-mono tracking-widest">
                 © {new Date().getFullYear()} LINGXUN TERMINAL. ALL RIGHTS RESERVED.
             </div>
-            <div class="flex gap-6 text-xs text-slate-600 font-mono">
-                <span class="hover:text-slate-400 cursor-pointer transition-colors">Privacy Policy</span>
-                <span class="hover:text-slate-400 cursor-pointer transition-colors">System Log</span>
+            
+            <div id="footer-hud-feedback" class="absolute -top-6 right-6 font-mono text-[10px] text-red-500 opacity-0 transition-all duration-300 pointer-events-none tracking-widest select-none">
+                CRITICAL_ERROR: ACCESS_DENIED
             </div>
+
+            <div class="flex gap-6 text-xs text-slate-600 font-mono relative">
+                <span id="entry-trigger" class="hover:text-amber-500/80 cursor-pointer transition-colors select-none active:scale-95 duration-150">Unknown Entry</span>
+                <span id="system-log-btn" class="hover:text-slate-500 cursor-default transition-colors select-none">System Log</span>
+            </div>
+
         </div>
     </footer>
 </section>
 
 <style>
-    .scrollbar-hide::-webkit-scrollbar {
-        display: none;
+    :global(html), :global(body) {
+        background-color: #050b14 !important;
     }
-    .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // -------------------------------------------------------------
+        // 1. 行程状态计算逻辑 (完美保留悬浮和亮色逻辑)
+        // -------------------------------------------------------------
         const today = new Date();
         const currentDate = today.toISOString().split('T')[0];
-
         const cards = document.querySelectorAll('.schedule-card');
 
         cards.forEach(card => {
             const startDate = card.getAttribute('data-start');
             const endDate = card.getAttribute('data-end');
             const badge = card.querySelector('.status-badge');
-            
             const dateText = card.querySelector('.date-text');
             const titleText = card.querySelector('.title-text');
             const locationText = card.querySelector('.location-text');
             const descText = card.querySelector('.desc-text');
 
+            if (!startDate || !endDate || !badge) return;
+
             if (currentDate < startDate) {
-                card.classList.add('border-slate-600', 'hover:border-slate-400');
+                card.classList.add('border-slate-600', 'hover:border-amber-500/50', 'hover:-translate-y-1.5', 'hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]', 'cursor-pointer');
                 badge.textContent = 'UPCOMING';
-                badge.classList.add('border-slate-500', 'text-slate-400');
-                dateText.classList.add('text-slate-400');
-                
+                badge.classList.add('border-slate-400', 'text-slate-200');
+                dateText?.classList.add('text-slate-300');
+                titleText?.classList.add('text-white');
+                locationText?.classList.add('text-slate-400');
+                descText?.classList.add('text-slate-500');
             } else if (currentDate >= startDate && currentDate <= endDate) {
-                card.classList.add('border-amber-400/60', 'bg-amber-900/10', 'shadow-[0_0_20px_rgba(251,191,36,0.15)]');
+                card.classList.add('border-amber-400/60', 'bg-amber-900/10', 'shadow-[0_0_20px_rgba(251,191,36,0.15)]', 'hover:-translate-y-1.5', 'hover:shadow-[0_10px_30px_rgba(251,191,36,0.3)]', 'cursor-pointer');
                 badge.textContent = 'ONGOING';
                 badge.classList.add('border-amber-400', 'text-amber-400', 'bg-amber-400/10', 'animate-pulse');
-                dateText.classList.add('text-amber-400/80');
-                titleText.classList.replace('text-white', 'text-amber-300');
-                locationText.classList.replace('text-slate-400', 'text-amber-400/70');
-                descText.classList.replace('text-slate-500', 'text-slate-300');
-                
+                dateText?.classList.add('text-amber-400/80');
+                titleText?.classList.replace('text-white', 'text-amber-300');
+                locationText?.classList.replace('text-slate-400', 'text-amber-400/70');
+                descText?.classList.replace('text-slate-500', 'text-slate-300');
             } else {
                 card.classList.add('border-slate-800', 'opacity-60', 'grayscale');
                 badge.textContent = 'COMPLETED';
                 badge.classList.add('border-slate-700', 'text-slate-600');
-                dateText.classList.add('text-slate-600');
-                titleText.classList.replace('text-white', 'text-slate-400');
+                dateText?.classList.add('text-slate-600');
+                titleText?.classList.replace('text-white', 'text-slate-400');
             }
         });
 
-        const scheduleContainer = document.querySelector('.schedule-container');
-        if(scheduleContainer) {
-            scheduleContainer.addEventListener('wheel', (e) => {
-                e.stopPropagation();
-            }, { passive: false });
+        // 大屏滚轮事件拦截保护
+        const scrollContainers = document.querySelectorAll('.schedule-container, .scrollbar-hide.flex-col');
+        const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
 
-            scheduleContainer.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: false });
-            scheduleContainer.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: false });
-            scheduleContainer.addEventListener('touchend', (e) => e.stopPropagation(), { passive: false });
-        }
+        scrollContainers.forEach(container => {
+            container.addEventListener('wheel', (e) => {
+                if (isDesktop()) e.stopPropagation();
+            }, { passive: false });
+            container.addEventListener('touchstart', (e) => { if (isDesktop()) e.stopPropagation(); }, { passive: false });
+            container.addEventListener('touchmove', (e) => { if (isDesktop()) e.stopPropagation(); }, { passive: false });
+            container.addEventListener('touchend', (e) => { if (isDesktop()) e.stopPropagation(); }, { passive: false });
+        });
+
+        // -------------------------------------------------------------
+        // 2. 三击密码逻辑：只负责打开 index.astro 里的隐藏菜单
+        // -------------------------------------------------------------
+        const trigger = document.getElementById('entry-trigger');
+        const feedback = document.getElementById('footer-hud-feedback');
+        const systemLogBtn = document.getElementById('system-log-btn');
+
+        let clickCount = 0;
+        let lastClickTime = 0;
+        let feedbackTimeout: number;
+
+        systemLogBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        const showFeedback = (text: string, isSuccess = false) => {
+            if (!feedback) return;
+            clearTimeout(feedbackTimeout);
+            feedback.textContent = text;
+            feedback.classList.remove('text-red-500', 'text-amber-400', 'text-emerald-400', 'opacity-0');
+            
+            if (isSuccess) feedback.classList.add('text-emerald-400');
+            else if (clickCount === 2) feedback.classList.add('text-amber-400');
+            else feedback.classList.add('text-red-500');
+
+            feedback.classList.add('opacity-100');
+            feedbackTimeout = window.setTimeout(() => {
+                feedback.classList.remove('opacity-100');
+                feedback.classList.add('opacity-0');
+            }, 1500);
+        };
+
+        trigger?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const currentTime = Date.now();
+            
+            if (currentTime - lastClickTime > 1200) {
+                clickCount = 0;
+            }
+            
+            clickCount++;
+            lastClickTime = currentTime;
+
+            if (clickCount === 1) {
+                showFeedback("WARNING: SECURE_ENTRY_REQUIRED // [1/3]");
+            } else if (clickCount === 2) {
+                showFeedback("OVERRIDE_ING: INITIATING_BYPASS // [2/3]");
+            } else if (clickCount === 3) {
+                showFeedback("SUCCESS: ACCESS_GRANTED // NAVIGATING...", true);
+                clickCount = 0; 
+                
+                // 📡 跨组件通信：通过 DOM 直接解锁藏在 index.astro 里的彩蛋组件并滚下去
+                const eggSection = document.getElementById('easter-egg-section');
+                if (eggSection) {
+                    eggSection.classList.remove('hidden');
+                    eggSection.classList.add('flex');
+                    setTimeout(() => {
+                        eggSection.scrollIntoView({ behavior: 'smooth' });
+                    }, 50);
+                }
+            }
+        });
     });
 </script>

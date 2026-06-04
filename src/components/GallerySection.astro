@@ -1,34 +1,80 @@
 ---
 // src/components/GallerySection.astro
 import { Image } from 'astro:assets';
-// 导入你的设子照片 (可以使用之前压缩好的图片)
-import photo1 from '../assets/photo1.jpg';
-import photo2 from '../assets/photo2.PNG';
-import photo3 from '../assets/photo3.PNG';
-import photo4 from '../assets/photo4.PNG';
+
+// =================================================================
+// 【全自动引擎】：自动扫描 src/assets/gallery 目录下的所有图片
+// =================================================================
+const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/gallery/*.{jpeg,jpg,png,PNG,webp}');
+const imagePaths = Object.values(images);
+
+const galleryImages = await Promise.all(imagePaths.map(async (img) => {
+    const data = await img();
+    return data.default;
+}));
+// =================================================================
 ---
 
 <section id="gallery-section" class="relative w-full py-32 bg-[#050b14] overflow-hidden z-0">
     <div class="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
         
-        <div class="w-full lg:w-1/3 flex flex-col justify-center z-20">
+        {/* ========================================================= */}
+        {/* 【全新解构设计】：无边框全息数据轴，彻底解决图片遮挡问题 */}
+        {/* ========================================================= */}
+        <div class="w-full lg:w-1/3 flex flex-col justify-center z-20 relative pl-6 lg:pl-10">
+            
+            {/* 1. 空间巨型暗纹水印：用极低的透明度填补空间，增加景深 */}
+            <div class="absolute top-1/2 left-0 -translate-y-1/2 text-[10rem] lg:text-[14rem] font-black text-white/[0.02] -z-10 pointer-events-none select-none tracking-tighter leading-none">
+                0X
+            </div>
+
+            {/* 2. 垂直光剑数据轴：取代边框，作为视觉锚点 */}
+            <div class="absolute left-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-amber-500/30 to-transparent">
+                {/* 轴线上的高亮数据节点 */}
+                <div class="absolute top-[20%] -left-[2px] w-[5px] h-[5px] bg-amber-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
+                <div class="absolute top-[50%] -left-[1.5px] w-[4px] h-[20px] bg-amber-500/60"></div>
+                <div class="absolute bottom-[30%] -left-[2px] w-[5px] h-[5px] bg-slate-500 rounded-full"></div>
+            </div>
+
             <div class="flex items-center gap-4 mb-6">
                 <span class="w-10 h-[2px] bg-amber-400"></span>
-                <span class="text-slate-400 font-mono text-sm tracking-widest uppercase">Visual Archive</span>
+                <span class="text-slate-400 font-mono text-sm tracking-widest uppercase flex items-center gap-2">
+                    Visual Archive
+                </span>
             </div>
             
-            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 tracking-wider leading-tight">
-                定格 <br> 
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 tracking-wider leading-tight relative">
+                {/* 增加闪烁光标，模拟正在输入的终端指令 */}
+                <span class="absolute -top-6 left-0 font-mono text-xl text-slate-600 font-light select-none tracking-tighter flex items-center">
+                    > SYS_STREAM <span class="w-2 h-4 bg-amber-500/70 ml-2 animate-pulse"></span>
+                </span>
+                定格 <br /> 
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
                     瞬间的光影
                 </span>
             </h2>
+
+            {/* 3. 保留高质感的 monospace 档案元数据 */}
+            <div class="font-mono text-xs text-slate-500 mb-4 ml-1 tracking-wider space-y-1.5 border-l border-slate-800/50 pl-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-500/80">[Status:]</span>
+                    <span>LOCKED // ARCHIVAL_GRADE</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-500/80">[Format:]</span>
+                    <span>RAW, WEBP (Lossless)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-500/80">[Limit:]</span>
+                    <span class="text-slate-600">HIGHEST AUTHORITY</span>
+                </div>
+            </div>
             
             <p class="text-slate-400 leading-relaxed font-light mb-10 max-w-md">
-                这里收录了凌巽在不同维度的影像档案。
+                这里收录了凌巽在不同维度的影像档案。每一张图片都是时间的切片，被定格在这一特定的数据流中，等待被再次读取。
             </p>
             
-            <a href="/gallery" class="group relative inline-flex items-center justify-center px-8 py-3 w-max font-medium text-amber-400 border border-amber-400/50 rounded-full overflow-hidden transition-all duration-300 hover:border-amber-400">
+            <a href="/gallery" class="group relative inline-flex items-center justify-center px-8 py-3 w-max font-medium text-amber-400 border border-amber-400/30 rounded-full overflow-hidden transition-all duration-300 hover:border-amber-400 bg-slate-900/40">
                 <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-amber-400 pointer-events-none group-hover:translate-y-[-100%] transition-transform duration-500 ease-in-out"></span>
                 <span class="relative flex items-center gap-2">
                     进入完整画廊
@@ -38,39 +84,28 @@ import photo4 from '../assets/photo4.PNG';
                 </span>
             </a>
         </div>
+        {/* ========================================================= */}
 
+        {/* ========================================================= */}
+        {/* 右侧图片部分 (严格保持原样，没有任何修改！) */}
+        {/* ========================================================= */}
         <div class="w-full lg:w-2/3 overflow-hidden mask-edges relative -rotate-6 scale-110 mt-12 lg:mt-0">
             
             <div id="filmstrip-track" class="flex w-max gap-6 opacity-0 hover:[animation-play-state:paused]">
                 
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group">
-                    <Image src={photo1} alt="画廊展示1" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group translate-y-8">
-                    <Image src={photo2} alt="画廊展示2" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group">
-                    <Image src={photo3} alt="画廊展示3" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group translate-y-8">
-                    <Image src={photo4} alt="画廊展示4" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group">
-                    <Image src={photo1} alt="画廊展示1克隆" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group translate-y-8">
-                    <Image src={photo2} alt="画廊展示2克隆" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group">
-                    <Image src={photo3} alt="画廊展示3克隆" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
-                <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group translate-y-8">
-                    <Image src={photo4} alt="画廊展示4克隆" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" />
-                </div>
+                {[...galleryImages, ...galleryImages].map((img, index) => (
+                    <div class={`w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group ${index % 2 !== 0 ? 'translate-y-8' : ''}`}>
+                        <Image 
+                            src={img} 
+                            alt={`画廊展示_${index}`} 
+                            class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
+                        />
+                    </div>
+                ))}
 
             </div>
         </div>
+        {/* ========================================================= */}
     </div>
 </section>
 
@@ -84,13 +119,9 @@ import photo4 from '../assets/photo4.PNG';
         // 1. 架设雷达 (Intersection Observer)
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                // 当画廊模块露出屏幕 20% 时触发
                 if (entry.isIntersecting) {
-                    // 点火！启动一级火箭（入场冲刺）
                     track.classList.add('animate-intro');
-                    track.classList.remove('opacity-0'); // 现身
-                    
-                    // 触发一次后立刻拆除雷达，防止上下滚动反复触发
+                    track.classList.remove('opacity-0');
                     observer.unobserve(section);
                 }
             });
@@ -100,11 +131,8 @@ import photo4 from '../assets/photo4.PNG';
 
         // 2. 监听交接棒时刻
         track.addEventListener('animationend', (e) => {
-            // 当一级火箭（fastSlideIn）燃烧完毕
             if (e.animationName === 'fastSlideIn') {
-                // 卸载一级火箭
                 track.classList.remove('animate-intro');
-                // 点火二级火箭（匀速巡航）
                 track.classList.add('animate-filmstrip'); 
             }
         });
@@ -116,17 +144,10 @@ import photo4 from '../assets/photo4.PNG';
     /* 一级火箭：冲刺动画 (从极右侧飞入，并伴随透明度渐现) */
     /* ========================================== */
     @keyframes fastSlideIn {
-        0% { 
-            transform: translateX(50vw); 
-            opacity: 0; 
-        }
-        100% { 
-            transform: translateX(0); 
-            opacity: 1; 
-        }
+        0% { transform: translateX(50vw); opacity: 0; }
+        100% { transform: translateX(0); opacity: 1; }
     }
 
-    /* 赋予其极具质感的数学刹车曲线 */
     .animate-intro {
         animation: fastSlideIn 1.8s cubic-bezier(0.1, 1, 0.2, 1) forwards;
     }

@@ -1,0 +1,401 @@
+---
+// src/components/EasterEgg.astro
+---
+
+<section id="easter-egg-section" class="snap-start hidden relative w-full min-h-[100dvh] lg:h-screen bg-[#020306] flex-col items-center justify-start overflow-y-auto lg:overflow-hidden">
+    
+    {/* ========================================================= */}
+    {/* 1. 宏大深空视差背景：核心修复！使用 Absolute + Sticky 物理绑定 */}
+    {/* ========================================================= */}
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div class="sticky top-0 w-full h-[100dvh] overflow-hidden">
+            {/* 背景极光渐变 */}
+            <div class="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-teal-900/10 rounded-full blur-[140px] mix-blend-screen animate-aurora"></div>
+            <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-indigo-900/10 rounded-full blur-[160px] mix-blend-screen animate-aurora-reverse"></div>
+            
+            {/* 轨道环 */}
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw] border-[1px] border-cyan-900/20 rounded-full animate-[spin_60s_linear_infinite]"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] border-[2px] border-dashed border-amber-900/10 rounded-full animate-[spin_40s_linear_infinite_reverse]"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] border-[1px] border-rose-900/10 rounded-full animate-[spin_20s_linear_infinite]"></div>
+
+            {/* 高精度扫描网格 & 星尘流 */}
+            <div class="absolute inset-0 bg-cyber-grid opacity-20"></div>
+            <div class="absolute inset-0 bg-starfield opacity-60 animate-starflow"></div>
+            <div class="absolute inset-0 bg-starfield opacity-40 animate-starflow-slow" style="background-size: 300px 300px; transform: rotate(180deg);"></div>
+        </div>
+    </div>
+
+    {/* ========================================================= */}
+    {/* 2. 启动蒙版层 (Warp Sequence)：同样修复为 Absolute + Sticky */}
+    {/* ========================================================= */}
+    <div id="egg-loader" class="absolute inset-0 z-50 transition-opacity duration-700">
+        <div class="sticky top-0 w-full h-[100dvh] bg-[#020306] flex flex-col items-center justify-center">
+            <div class="w-72 text-center relative">
+                <div class="absolute -inset-4 bg-amber-500/10 blur-xl rounded-full"></div>
+                <div class="text-amber-500 font-mono text-sm tracking-widest mb-4 animate-pulse relative z-10">
+                    &gt; SYSTEM_OVERRIDE_INITIATED_
+                </div>
+                <div class="w-full h-1.5 border border-amber-900/50 bg-slate-950 rounded-full overflow-hidden relative z-10">
+                    <div id="boot-progress-bar" class="h-full bg-amber-400 w-0 transition-all duration-[50ms] shadow-[0_0_15px_rgba(251,191,36,1)]"></div>
+                </div>
+                <div class="flex justify-between mt-3 font-mono text-[10px] text-slate-500 tracking-widest relative z-10">
+                    <span class="animate-pulse">DECRYPTING_CORE...</span>
+                    <span id="boot-progress-text" class="text-amber-400 font-bold">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {/* ========================================================= */}
+    {/* 3. 重装飞船主控室UI */}
+    {/* ========================================================= */}
+    <div id="egg-dashboard" class="w-full max-w-[1400px] mx-auto px-4 md:px-8 pb-8 pt-24 lg:pt-32 opacity-0 pointer-events-none transition-opacity duration-1000 flex flex-col relative z-20 h-auto lg:h-full">
+        
+        {/* 顶部军工级状态栏 */}
+        <div class="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-8 flex-shrink-0 relative">
+            <div class="absolute bottom-0 left-0 w-32 h-[2px] bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
+            <div>
+                <h1 class="text-3xl md:text-5xl font-black text-white tracking-widest uppercase italic">BONUS<span class="text-cyan-400"> PAGE</span></h1>
+                <div class="text-slate-400 font-mono text-[10px] md:text-xs tracking-widest mt-2 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-500 rounded-sm animate-pulse"></span>
+                    UNAUTHORIZED_ACCESS_DETECTED
+                </div>
+            </div>
+            <div class="text-right hidden sm:block font-mono">
+                <div class="text-cyan-400 text-sm tracking-widest mb-1">STATION_ORBIT: STABLE</div>
+                <div class="text-slate-600 text-[10px] tracking-widest">LAT:29.56N / LON:106.46E</div>
+            </div>
+        </div>
+
+        {/* 核心数据网格 */}
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-none lg:flex-1 lg:min-h-0">
+            
+            {/* 🔴 [左翼] 访客终端反向侦测雷达 */}
+            <div class="lg:col-span-3 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.5)]">
+                <div class="bg-slate-900/50 border-b border-cyan-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-cyan-400"># 获取本地数据中...</div>
+                
+                <div class="p-6 flex flex-col gap-5 h-full justify-center relative font-mono text-xs z-10">
+                    <div class="absolute right-[-20%] top-1/2 -translate-y-1/2 w-48 h-48 border border-cyan-500/10 rounded-full flex items-center justify-center -z-10">
+                        <div class="w-[80%] h-[80%] border border-cyan-500/20 rounded-full"></div>
+                        <div class="absolute w-full h-full bg-[conic-gradient(from_0deg,transparent_70%,rgba(6,182,212,0.15)_100%)] rounded-full animate-[spin_4s_linear_infinite]"></div>
+                    </div>
+
+                    <div>
+                        <div class="text-slate-500 text-[9px] mb-1 flex items-center gap-2"><span class="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span> CLIENT_SYSTEM</div>
+                        <div id="telemetry-os" class="text-cyan-300 font-bold tracking-wider">SCANNING...</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-500 text-[9px] mb-1">SCREEN_RESOLUTION</div>
+                        <div id="telemetry-res" class="text-cyan-300 tracking-wider">SCANNING...</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-500 text-[9px] mb-1">TIMEZONE_SYNC</div>
+                        <div id="telemetry-tz" class="text-cyan-300 tracking-wider">SCANNING...</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-500 text-[9px] mb-1">LOCAL_MEMORY_HEAP</div>
+                        <div id="telemetry-mem" class="text-cyan-300 tracking-wider">SCANNING...</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 🟡 [中枢] 独立卡片化矩阵 + 修复的精准呼吸辉光 */}
+            <div class="lg:col-span-6 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5)]">
+                <div class="bg-slate-900/50 border-b border-slate-800 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-amber-400 flex justify-between">
+                    <span># 值得纪念的日子...</span>
+                    <span class="animate-pulse">持续追踪...</span>
+                </div>
+                
+                <div class="flex-1 p-6 sm:p-8 flex flex-col justify-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 w-full">
+                        {[
+                            { id: 'days-birth', title: 'BIRTHDAY', desc: '诞生之日', color: '#fbbf24' }, 
+                            { id: 'days-love', title: 'FALL_IN_LOVE', desc: '和小狼恋爱', color: '#f43f5e' },  
+                            { id: 'days-site', title: 'WEBSITE_BIRTH', desc: '网站上线', color: '#06b6d4' },  
+                            { id: 'days-unknown', title: 'FUTURE_X', desc: '观测未定', color: '#10b981' } 
+                        ].map((item) => (
+                            <div 
+                                class="group relative flex flex-col p-5 rounded-xl border border-slate-800/80 bg-slate-900/40 transition-transform duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden"
+                                style={`--hover-color: ${item.color};`}
+                            >
+                                {/* 核心修复：纯 Tailwind 任意值的呼吸动画，确保只有悬停时才工作 */}
+                                <div class="absolute inset-0 rounded-xl pointer-events-none border border-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:animate-[cardBreath_2s_ease-in-out_infinite_alternate] z-0"></div>
+                                
+                                <div class="relative z-10 flex flex-row items-center justify-between w-full">
+                                    <div class="flex flex-col gap-1">
+                                        <div class="text-[10px] text-slate-500 font-mono tracking-widest flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 rounded-full transition-shadow duration-300 group-hover:shadow-[0_0_8px_var(--hover-color)]" style="background-color: var(--hover-color);"></span>
+                                            {item.title}
+                                        </div>
+                                        <div class="text-xs text-slate-400 font-sans transition-colors duration-300 group-hover:text-white">{item.desc}</div>
+                                    </div>
+                                    
+                                    <div class="flex items-baseline gap-1 text-right">
+                                        <span 
+                                            id={item.id} 
+                                            class="text-3xl lg:text-4xl font-black font-mono text-white transition-colors duration-300 group-hover:text-[var(--hover-color)] group-hover:animate-[textBreath_2s_ease-in-out_infinite_alternate]"
+                                        >--</span>
+                                        <span class="text-slate-600 font-mono text-[10px]">D</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* 🟢 [右翼] 访客专属加密留言墙 */}
+            <div class="lg:col-span-3 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.5)]">
+                <div class="bg-slate-900/50 border-b border-emerald-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-emerald-400"># 加密信息...</div>
+                <div class="p-5 min-h-[250px] lg:min-h-0 h-full relative overflow-y-auto scrollbar-hide font-mono text-xs text-emerald-500 flex flex-col gap-2">
+                    <div class="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.05)_50%,transparent_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
+                    <div id="typewriter-container" class="relative z-0 leading-relaxed whitespace-pre-wrap opacity-90"></div>
+                    <span id="typewriter-cursor" class="inline-block w-2 h-4 bg-emerald-500 animate-pulse hidden relative z-0"></span>
+                </div>
+            </div>
+        </div>
+
+        {/* 底部退出指引 */}
+        <div class="text-center mt-6 mb-12 lg:mb-0 flex-shrink-0">
+            <div class="inline-flex items-center gap-3 px-6 py-2 border border-slate-700 bg-slate-900/50 rounded-full text-slate-400 font-mono text-xs tracking-widest animate-bounce cursor-default">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                SCROLL UP TO DISCONNECT
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* 1. 扫描网格 */
+    .bg-cyber-grid {
+        background-size: 40px 40px;
+        background-image:
+            linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+        animation: gridMove 20s linear infinite;
+        transform-origin: center;
+    }
+    @keyframes gridMove {
+        0% { transform: translateY(-40px); }
+        100% { transform: translateY(0); }
+    }
+
+    /* 2. 深空星尘数据流 */
+    .bg-starfield {
+        background-image: 
+            radial-gradient(1.5px 1.5px at 20px 30px, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 90px 40px, rgba(6,182,212,0.8), rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 160px 120px, rgba(251,191,36,0.5), rgba(0,0,0,0)),
+            radial-gradient(1px 1px at 250px 90px, #fff, rgba(0,0,0,0));
+        background-repeat: repeat;
+        background-size: 300px 300px;
+    }
+    .animate-starflow { animation: starflowAnim 60s linear infinite; }
+    .animate-starflow-slow { animation: starflowAnim 90s linear infinite; }
+    @keyframes starflowAnim {
+        0% { background-position: 0 0; }
+        100% { background-position: 0 -1000px; } 
+    }
+
+    /* 3. 背景基础动画 */
+    @keyframes aurora { 0% { transform: scale(1) translate(0, 0); } 50% { transform: scale(1.1) translate(50px, 20px); } 100% { transform: scale(1) translate(0, 0); } }
+    .animate-aurora { animation: aurora 20s ease-in-out infinite; }
+    .animate-aurora-reverse { animation: aurora 20s ease-in-out infinite reverse; }
+    .animate-spin-slow { animation: spin 15s linear infinite; }
+    .animate-spin-slow-reverse { animation: spin 20s linear infinite reverse; }
+    .animate-spin-fast { animation: spin 2s linear infinite; }
+
+    /* ========================================== */
+    /* 4. 定义脱离作用域污染的全局呼吸 Keyframes  */
+    /* ========================================== */
+    @keyframes cardBreath {
+        0% { box-shadow: 0 0 5px var(--hover-color), inset 0 0 2px var(--hover-color); border-color: transparent; }
+        100% { box-shadow: 0 0 20px var(--hover-color), inset 0 0 10px var(--hover-color); border-color: var(--hover-color); }
+    }
+
+    @keyframes textBreath {
+        0% { filter: drop-shadow(0 0 2px var(--hover-color)); }
+        100% { filter: drop-shadow(0 0 15px var(--hover-color)); }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const eggSection = document.getElementById('easter-egg-section');
+        const eggLoader = document.getElementById('egg-loader');
+        const eggDashboard = document.getElementById('egg-dashboard');
+        const progressBar = document.getElementById('boot-progress-bar');
+        const progressText = document.getElementById('boot-progress-text');
+        
+        let hasBooted = false;
+        let typewriterDone = false; 
+
+        function calculateDates() {
+            const now = new Date();
+            const dates = {
+                birth: new Date('2005-12-13'),     
+                love: new Date('2026-06-01'),      
+                site: new Date('2026-06-04'),      
+                unknown: new Date('2026-12-31')    
+            };
+            const msPerDay = 1000 * 60 * 60 * 24;
+            
+            const fillDate = (elementId: string, targetDate: Date) => {
+                const el = document.getElementById(elementId);
+                if (el) {
+                    const diff = Math.floor((now.getTime() - targetDate.getTime()) / msPerDay);
+                    el.innerText = diff > 0 ? diff.toString() : '0';
+                }
+            };
+            fillDate('days-birth', dates.birth);
+            fillDate('days-love', dates.love);
+            fillDate('days-site', dates.site);
+            fillDate('days-unknown', dates.unknown);
+        }
+
+        function scanLocalTelemetry() {
+            const resEl = document.getElementById('telemetry-res');
+            if (resEl) resEl.innerText = `${window.innerWidth} x ${window.innerHeight} PX`;
+
+            const tzEl = document.getElementById('telemetry-tz');
+            if (tzEl) tzEl.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone.toUpperCase();
+
+            const osEl = document.getElementById('telemetry-os');
+            if (osEl) {
+                const ua = navigator.userAgent;
+                let osName = "UNKNOWN_NODE";
+                if (ua.indexOf("Win") !== -1) osName = "WINDOWS_NT_STATION";
+                if (ua.indexOf("Mac") !== -1) osName = "MACOS_TERMINAL";
+                if (ua.indexOf("Linux") !== -1) osName = "LINUX_KERNEL_NODE";
+                if (ua.indexOf("Android") !== -1) osName = "ANDROID_MOBILE_SYS";
+                if (ua.indexOf("like Mac") !== -1) osName = "IOS_MOBILE_DEVICE";
+                osEl.innerText = osName;
+            }
+
+            const memEl = document.getElementById('telemetry-mem');
+            if (memEl) {
+                const performanceMemory = (performance as any).memory;
+                if (performanceMemory) {
+                    const usedMB = Math.round(performanceMemory.usedJSHeapSize / 1024 / 1024);
+                    memEl.innerText = `${usedMB} MB / ${Math.round(performanceMemory.jsHeapSizeLimit / 1024 / 1024)} MB`;
+                } else {
+                    memEl.innerText = "ACCESS_RESTRICTED";
+                }
+            }
+        }
+
+        function runTypewriter() {
+            if (typewriterDone) return;
+            const container = document.getElementById('typewriter-container');
+            const cursor = document.getElementById('typewriter-cursor');
+            if (!container || !cursor) return;
+
+            const message = "致充满好奇心的你：\n\n你能破解系统指令来到这个本不应该进入的这里，说明你拥有罕见的探索欲。\n\n这里是凌巽的一片净土，没有喧嚣的社交，只有值得纪念的日子以及这段留言。\n\n感谢你的到访。\n愿你在人生的旅途中，也能寻找到自己的意义。\n\n-- LINGXUN";
+            
+            let index = 0;
+            container.innerHTML = '';
+            cursor.classList.remove('hidden');
+
+            const typeInterval = setInterval(() => {
+                if (index < message.length) {
+                    if (message.charAt(index) === '\n') {
+                        container.innerHTML += '<br>';
+                    } else {
+                        container.innerHTML += message.charAt(index);
+                    }
+                    index++;
+                } else {
+                    clearInterval(typeInterval);
+                    typewriterDone = true;
+                }
+            }, 60); 
+        }
+
+        function runBootSequence() {
+            if (!eggLoader || !eggDashboard || !progressBar || !progressText) return;
+
+            if (hasBooted) {
+                eggLoader.classList.add('opacity-0', 'pointer-events-none');
+                calculateDates();
+                scanLocalTelemetry(); 
+                eggDashboard.classList.remove('opacity-0', 'pointer-events-none');
+                runTypewriter(); 
+                return;
+            }
+
+            hasBooted = true; 
+            eggLoader.classList.remove('opacity-0', 'pointer-events-none');
+            eggDashboard.classList.add('opacity-0', 'pointer-events-none');
+            progressBar.style.width = '0%';
+            progressText.innerText = '0%';
+
+            let progress = 0;
+            const bootInterval = setInterval(() => {
+                progress += Math.random() * 15 + 5; 
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(bootInterval);
+                    setTimeout(() => {
+                        eggLoader.classList.add('opacity-0', 'pointer-events-none');
+                        calculateDates();
+                        scanLocalTelemetry(); 
+                        eggDashboard.classList.remove('opacity-0', 'pointer-events-none');
+                        setTimeout(runTypewriter, 500); 
+                    }, 400); 
+                }
+                progressBar.style.width = `${progress}%`;
+                progressText.innerText = `${Math.floor(progress)}%`;
+            }, 50); 
+        }
+
+        if (eggSection) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !eggSection.classList.contains('hidden')) {
+                        runBootSequence();
+                    }
+                });
+            }, { threshold: 0.3 });
+            observer.observe(eggSection);
+        }
+
+        if (eggSection) {
+            const lockEgg = () => {
+                const finalSection = document.getElementById('final-section');
+                finalSection?.scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => {
+                    eggSection.classList.add('hidden');
+                    eggSection.classList.remove('flex');
+                }, 800); 
+            };
+
+            eggSection.addEventListener('wheel', (e: any) => {
+                e.preventDefault(); 
+                e.stopPropagation();
+                if (e.deltaY < 0) lockEgg();
+            }, { passive: false });
+
+            let touchStartY = 0;
+            eggSection.addEventListener('touchstart', (e: any) => {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            eggSection.addEventListener('touchmove', (e) => {
+                if (window.innerWidth >= 1024) {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                }
+            }, { passive: false });
+
+            eggSection.addEventListener('touchend', (e: any) => {
+                const touchEndY = e.changedTouches[0].clientY;
+                // 核心修复：更严谨的触屏返回检测，确保你向下拉确实是在页面最顶端
+                const rect = eggSection.getBoundingClientRect();
+                if (touchEndY - touchStartY > 60 && rect.top >= -5) {
+                    lockEgg();
+                }
+            }, { passive: true });
+        }
+    });
+</script>

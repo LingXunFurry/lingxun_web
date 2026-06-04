@@ -5,19 +5,31 @@
 <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 bg-transparent text-white py-4">
     <div class="container mx-auto px-6 flex justify-between items-center relative">
         
-        <a href="/" class="flex items-center gap-3 text-xl font-bold tracking-widest hover:scale-105 transition-transform z-20">
+        {/* 1. 左侧 Logo：注入 animate-nav-reveal，0.1s 率先降落 */}
+        <a href="/" class="group flex items-center gap-3 text-xl font-bold tracking-widest hover:scale-105 transition-all duration-300 z-20 animate-nav-reveal" style="animation-delay: 0.1s;">
             <img src="/logo.png" alt="logo" class="w-10 h-10 rounded-full" />
-            <span>凌巽的龙窝</span>
+            <span class="group-hover:text-amber-400 transition-colors duration-300">凌巽的龙窝</span>
         </a>
 
-        <div class="hidden md:flex gap-8 font-medium">
-            <a href="/" class="hover:text-amber-400 transition-colors">首 页</a>
-            <a href="/gallery" class="hover:text-amber-400 transition-colors">画 廊</a>
-            <a href="/posts" class="hover:text-amber-400 transition-colors">动 态</a>
-            <a href="/friends" class="hover:text-amber-400 transition-colors">友 链</a>
+        {/* 2. 右侧按钮：作为整体包裹层注入 animate-nav-reveal，0.3s 随后降落 */}
+        <div class="hidden md:flex items-center gap-6 font-medium animate-nav-reveal" style="animation-delay: 0.3s;">
+            <a href="/" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">首 页</a>
+            
+            <span class="text-slate-400/70 font-mono font-bold transform -skew-x-12 select-none text-sm pointer-events-none mx-1">//</span>
+            
+            <a href="/gallery" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">画 廊</a>
+            
+            <span class="text-slate-400/70 font-mono font-bold transform -skew-x-12 select-none text-sm pointer-events-none mx-1">//</span>
+            
+            <a href="/posts" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">动 态</a>
+            
+            <span class="text-slate-400/70 font-mono font-bold transform -skew-x-12 select-none text-sm pointer-events-none mx-1">//</span>
+            
+            <a href="/friends" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">友 链</a>
         </div>
 
-        <button id="mobile-menu-btn" class="md:hidden flex items-center justify-center p-2 z-20 focus:outline-none text-white hover:text-amber-400">
+        {/* 3. 手机端菜单按钮：同步降落动画，0.3s 出现 */}
+        <button id="mobile-menu-btn" class="md:hidden flex items-center justify-center p-2 z-20 focus:outline-none text-white hover:text-amber-400 animate-nav-reveal" style="animation-delay: 0.3s;">
             <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
@@ -32,49 +44,103 @@
     </div>
 </nav>
 
+<style>
+    .magnetic-item {
+        display: inline-block;
+        transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), color 0.2s;
+        will-change: transform;
+    }
+
+    /* -------------------------------------------------------------
+       新增：导航栏“天幕降临”专属加载动画
+       ------------------------------------------------------------- */
+    @keyframes navReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(-20px); /* 初始状态藏在上方 20px 处 */
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0); /* 稳稳落位 */
+        }
+    }
+    
+    .animate-nav-reveal {
+        opacity: 0; /* 强制初始隐身，等待 delay 结束 */
+        /* 使用和首屏标题一模一样的阻尼贝塞尔曲线，保证物理质感统一 */
+        animation: navReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        will-change: transform, opacity;
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', ()=>{
         const navbar = document.getElementById('navbar');
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         
-        // 菜单开关状态
+        // 磁吸按钮算法 (Magnetic Hover)
+        const magneticItems = document.querySelectorAll('.magnetic-item');
+        
+        magneticItems.forEach(item => {
+            item.addEventListener('mousemove', (e) => {
+                const el = e.currentTarget as HTMLElement;
+                const rect = el.getBoundingClientRect();
+                
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const deltaX = e.clientX - centerX;
+                const deltaY = e.clientY - centerY;
+                
+                const forceX = deltaX * 0.2;
+                const forceY = deltaY * 0.2;
+                
+                el.style.transform = `translate(${forceX}px, ${forceY}px)`;
+            });
+
+            item.addEventListener('mouseleave', (e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = `translate(0px, 0px)`;
+            });
+        });
+
+        // 导航栏滚动与手机菜单逻辑
         let isMenuOpen = false;
 
-        // 滚动监听逻辑（如果菜单是开着的，强制保持深色背景防止字看不清）
-        window.addEventListener('scroll', ()=>{
-            if (window.scrollY > 50 || isMenuOpen) {
+        const checkScroll = () => {
+            const container = document.getElementById('fullpage-container');
+            const scrollPos = Math.max(window.scrollY || 0, container ? container.scrollTop : 0);
+
+            if (scrollPos > 50 || isMenuOpen) {
                 navbar?.classList.remove('bg-transparent', 'py-4');
                 navbar?.classList.add('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
             } else {
                 navbar?.classList.remove('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
                 navbar?.classList.add('bg-transparent', 'py-4');
             }
-        });
+        };
 
-        // 汉堡拉手点击逻辑
+        window.addEventListener('scroll', checkScroll, { passive: true });
+        
+        const fullpageContainer = document.getElementById('fullpage-container');
+        if (fullpageContainer) {
+            fullpageContainer.addEventListener('scroll', checkScroll, { passive: true });
+        }
+
         mobileMenuBtn?.addEventListener('click', () => {
-            // 每次点击切换状态
             isMenuOpen = !isMenuOpen;
             
             if (isMenuOpen) {
-                // 打开菜单：移除推到屏幕外的属性，换上回归原位的属性，并设为不透明
                 mobileMenu?.classList.remove('-translate-y-[150%]', 'opacity-0', '-z-10');
                 mobileMenu?.classList.add('translate-y-0', 'opacity-100', 'z-10');
                 
-                // 强制把导航栏底色变成磨砂深蓝
                 navbar?.classList.remove('bg-transparent', 'py-4');
                 navbar?.classList.add('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
             } else {
-                // 关上菜单：塞回屏幕外面去
                 mobileMenu?.classList.remove('translate-y-0', 'opacity-100', 'z-10');
                 mobileMenu?.classList.add('-translate-y-[150%]', 'opacity-0', '-z-10');
-                
-                // 如果关上菜单时网页还在最顶部，把导航栏恢复成全透明
-                if (window.scrollY <= 50) {
-                    navbar?.classList.remove('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
-                    navbar?.classList.add('bg-transparent', 'py-4');
-                }
+                checkScroll();
             }
         });
     });

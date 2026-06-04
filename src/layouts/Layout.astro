@@ -5,27 +5,36 @@ import Navbar from '../components/Navbar.astro'
 
 <!doctype html>
 <html lang="zh" class="scroll-smooth">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/png" href="/logo.png" />
-		<meta name="generator" content={Astro.generator} />
-		<title>凌巽的龙窝</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/png" href="/logo.png" />
+        <meta name="generator" content={Astro.generator} />
+        <title>凌巽的龙窝</title>
 
-		<meta name="description" content="欢迎来到凌巽的个人网站,这里展示了我的设定背景,日常动态还有精美照片,以及更多未发现的东西?">
-	</head>
-	<body>
-		<Navbar />
+        <meta name="description" content="欢迎来到凌巽的个人网站,这里展示了我的设定背景,日常动态还有精美照片,以及更多未发现的东西?">
+    </head>
+    <body>
+        <Navbar />
 
-		<slot />
-	</body>
+        <slot />
+    </body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
+<style is:global>
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        /* 【核心修复点】去掉死板的 height: 100%，改为最低高度满屏，允许无限向下生长 */
+        min-height: 100vh;
+        /* 隐藏左右方向的滚动条，防止有些特效溢出导致页面能左右晃动 */
+        overflow-x: hidden;
+    }
+    
+    body {
+        /* 强制让内部内容自然溢出给浏览器接管，杜绝内层双滚动条 */
+        overflow-y: visible;
+    }
 </style>

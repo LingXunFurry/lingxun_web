@@ -7,55 +7,90 @@ import Character from '../components/Character.astro';
 import GallerySection from '../components/GallerySection.astro';
 import FeedSection from '../components/FeedSection.astro';
 import FinalSection from '../components/FinalSection.astro';
+
+// 【新增】：引入彩蛋组件
+import EasterEgg from '../components/EasterEgg.astro';
 ---
 
 <Layout title="凌巽的龙窝">
     
-    <main id="fullpage-container">
-        <Hero />
-        <Character />
-        <GallerySection />
-        <FeedSection />
-		<FinalSection>
+    <main id="fullpage-container" class="h-[100dvh] w-full overflow-y-auto overflow-x-hidden snap-y snap-mandatory scroll-smooth md:overflow-hidden md:snap-none">
+        
+        {/* 【改动】：给前 5 个常规套娃舱加上 'scroll-page' 类名，作为主引擎扫描的专属信标 */}
+        <div class="scroll-page w-full h-[100dvh] snap-start overflow-y-auto overflow-x-hidden md:h-auto md:overflow-visible">
+            <Hero />
+        </div>
+        
+        <div class="scroll-page w-full h-[100dvh] snap-start overflow-y-auto overflow-x-hidden md:h-auto md:overflow-visible">
+            <Character />
+        </div>
+        
+        <div class="scroll-page w-full h-[100dvh] snap-start overflow-y-auto overflow-x-hidden md:h-auto md:overflow-visible">
+            <GallerySection />
+        </div>
+        
+        <div class="scroll-page w-full h-[100dvh] snap-start overflow-y-auto overflow-x-hidden md:h-auto md:overflow-visible">
+            <FeedSection />
+        </div>
+        
+        <div class="scroll-page w-full h-[100dvh] snap-start overflow-y-auto overflow-x-hidden md:h-auto md:overflow-visible">
+            <FinalSection />
+        </div>
+
+        {/* 【新增】：将彩蛋组件挂载在最底部。它自带 hidden，不会破坏上面的排版 */}
+        <EasterEgg />
+
     </main>
 </Layout>
 
 <style>
-    :global(body) {
-        overflow: hidden;
-        /* 防止鼠标拖拽翻页时，不小心把页面上的文字全涂蓝了 */
-        -webkit-user-select: none;
-        user-select: none;
+    /* 【响应式锁死】：仅在屏幕宽度大于 768px (电脑端) 时，完全切断外层滚动条与文本选择 */
+    @media (min-width: 768px) {
+        :global(body) {
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
     }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const sections = document.querySelectorAll('#fullpage-container > *');
+        // 【改动 1】：只抓取带有 'scroll-page' 标记的容器，彻底把 EasterEgg 排除在数组之外
+        const sections = document.querySelectorAll('.scroll-page');
+        const eggSection = document.getElementById('easter-egg-section');
+
         if (sections.length === 0) return;
         
         let currentIndex = 0;
         let isAnimating = false;
 
-        // 统一的翻页执行函数
+        const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
+
+        // 【新增离合器函数】：判断彩蛋舱当前是否打开
+        const isEggActive = () => eggSection && !eggSection.classList.contains('hidden');
+
         const scrollToCurrent = () => {
             isAnimating = true; 
             sections[currentIndex].scrollIntoView({ behavior: 'smooth' });
             
-            // 冷却时间保持 600ms，确保动画播完
             setTimeout(() => {
                 isAnimating = false;
             }, 600); 
         };
 
         // =====================================
-        // 【控制器 1：电脑鼠标滚轮 (零阈值，瞬发)】
+        // 【控制器 1：电脑鼠标滚轮 (仅大屏生效)】
         // =====================================
         window.addEventListener('wheel', (e) => {
+            if (!isDesktop()) return; 
+            
+            // 【引擎离合】：如果彩蛋舱开启，立刻切断主页滚动逻辑，交由彩蛋自己的 JS 处理
+            if (isEggActive()) return;
+
             e.preventDefault(); 
             if (isAnimating) return; 
 
-            // 只要有滚动方向，立刻触发，毫不拖泥带水
             if (e.deltaY > 0 && currentIndex < sections.length - 1) {
                 currentIndex++;
                 scrollToCurrent();
@@ -66,19 +101,22 @@ import FinalSection from '../components/FinalSection.astro';
         }, { passive: false });
 
         // =====================================
-        // 【控制器 2：手机端触屏 (40px 阈值防误触)】
+        // 【控制器 2：手机端触屏 (仅大屏拖拽模拟生效)】
         // =====================================
         let touchStartY = 0;
         window.addEventListener('touchstart', (e) => {
+            if (!isDesktop() || isEggActive()) return;
             touchStartY = e.touches[0].clientY;
         }, { passive: false });
 
         window.addEventListener('touchmove', (e) => {
+            if (!isDesktop() || isEggActive()) return; 
             e.preventDefault(); 
         }, { passive: false });
 
         window.addEventListener('touchend', (e) => {
-            if (isAnimating) return;
+            if (!isDesktop() || isEggActive() || isAnimating) return;
+            
             let touchEndY = e.changedTouches[0].clientY;
             let deltaY = touchStartY - touchEndY;
 
@@ -92,32 +130,34 @@ import FinalSection from '../components/FinalSection.astro';
         });
 
         // =====================================
-        // 【控制器 3：电脑端鼠标拖拽 (50px 阈值抛掷)】
+        // 【控制器 3：电脑端鼠标拖拽 (仅大屏生效)】
         // =====================================
         let mouseStartY = 0;
         let isMouseDown = false;
 
         window.addEventListener('mousedown', (e) => {
+            if (!isDesktop() || isEggActive()) return;
             mouseStartY = e.clientY;
             isMouseDown = true;
         });
 
         window.addEventListener('mousemove', (e) => {
-            if (isMouseDown) {
-                e.preventDefault(); // 移动时阻止默认事件，强化沉浸感
-            }
+            if (!isDesktop() || !isMouseDown || isEggActive()) return;
+            e.preventDefault(); 
         }, { passive: false });
 
-        // 绑定在 window 上，防止鼠标拖出浏览器边缘时失灵
         window.addEventListener('mouseup', (e) => {
-            if (!isMouseDown) return;
+            if (!isDesktop() || !isMouseDown || isEggActive()) {
+                isMouseDown = false;
+                return;
+            }
+            
             isMouseDown = false;
             if (isAnimating) return;
 
             let mouseEndY = e.clientY;
             let deltaY = mouseStartY - mouseEndY;
 
-            // 拖拽距离超过 50px 才算翻页，避免与点击按钮冲突
             if (deltaY > 50 && currentIndex < sections.length - 1) {
                 currentIndex++;
                 scrollToCurrent();
