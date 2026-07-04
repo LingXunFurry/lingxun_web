@@ -11,6 +11,13 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    expires_in: int = 1800
+
+
+class PasswordChangeRequest(BaseModel):
+    username: str = Field(..., min_length=1)
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=6)
 
 
 class GalleryPhotoOut(BaseModel):
@@ -93,9 +100,13 @@ class PostCommentPatch(BaseModel):
 
 class BonusContentIn(BaseModel):
     typewriter_message: str = Field(..., min_length=1)
+    birthday_title: str = "BIRTHDAY"
     birthday_date: str = "2005-12-13"
+    love_title: str = "FALL_IN_LOVE"
     love_date: str = "2026-06-01"
+    site_title: str = "WEBSITE_BIRTH"
     site_date: str = "2026-06-04"
+    future_title: str = "FUTURE_X"
     future_date: str = "2026-12-31"
 
 

@@ -548,6 +548,7 @@
                 <button class="nav-btn" data-tab="bonus">✦ Bonus</button>
                 <button class="nav-btn" data-tab="final">⌁ 行程 / 联系</button>
                 <button class="nav-btn" data-tab="friends">◇ 友链</button>
+                <button class="nav-btn" data-tab="security">⚙ 安全</button>
                 <button class="nav-btn" id="logoutBtn">↩ 退出</button>
             </nav>
         </aside>
@@ -616,11 +617,19 @@
                     <h3>Bonus Page</h3>
                     <textarea name="typewriter_message" style="min-height:260px"></textarea>
                     <div class="two">
+                        <label>生日标题 <input name="birthday_title" maxlength="80" placeholder="BIRTHDAY" /></label>
                         <label>生日日期 <input name="birthday_date" type="date" /></label>
+                    </div>
+                    <div class="two">
+                        <label>恋爱标题 <input name="love_title" maxlength="80" placeholder="FALL_IN_LOVE" /></label>
                         <label>恋爱日期 <input name="love_date" type="date" /></label>
                     </div>
                     <div class="two">
+                        <label>网站标题 <input name="site_title" maxlength="80" placeholder="WEBSITE_BIRTH" /></label>
                         <label>网站上线 <input name="site_date" type="date" /></label>
+                    </div>
+                    <div class="two">
+                        <label>未来标题 <input name="future_title" maxlength="80" placeholder="FUTURE_X" /></label>
                         <label>未来节点 <input name="future_date" type="date" /></label>
                     </div>
                     <button class="btn" type="submit">✦ 保存 Bonus</button>
@@ -726,6 +735,19 @@
                     </div>
                 </div>
             </section>
+
+            <section id="securityTab" class="tab-view hidden">
+                <form id="passwordForm" class="panel form-grid">
+                    <h3>修改后台密码</h3>
+                    <label>用户名 <input name="username" autocomplete="username" value="lingxun" required /></label>
+                    <label>旧密码 <input name="current_password" type="password" autocomplete="current-password" required /></label>
+                    <div class="two">
+                        <label>新密码 <input name="new_password" type="password" autocomplete="new-password" minlength="6" required /></label>
+                        <label>确认新密码 <input name="confirm_password" type="password" autocomplete="new-password" minlength="6" required /></label>
+                    </div>
+                    <button class="btn" type="submit">◆ 更新密码</button>
+                </form>
+            </section>
         </main>
     </section>
 
@@ -733,20 +755,108 @@
 
     <script>
         const API = window.location.origin;
-        const TOKEN_KEY = "lingxun_admin_token";
+        const TOKEN_KEY = "lingxun_admin_session";
+        const LEGACY_TOKEN_KEY = "lingxun_admin_token";
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        const REFRESH_WINDOW_MS = 10 * 60 * 1000;
         const state = { tab: "gallery", gallery: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
+        let sessionTimer = 0;
+        let refreshPromise = null;
 
         const $ = (selector) => document.querySelector(selector);
         const loginView = $("#loginView");
         const appView = $("#appView");
         const statusBox = $("#status");
 
+        function readSession() {
+            localStorage.removeItem(LEGACY_TOKEN_KEY);
+            try {
+                const raw = localStorage.getItem(TOKEN_KEY);
+                if (!raw) return null;
+                const session = JSON.parse(raw);
+                if (!session?.accessToken || !session?.expiresAt) return null;
+                return session;
+            } catch {
+                clearSession();
+                return null;
+            }
+        }
+
+        function saveSession(accessToken, expiresIn = 1800) {
+            const maxAge = Math.min(Number(expiresIn || 1800) * 1000, SESSION_TIMEOUT_MS);
+            localStorage.setItem(TOKEN_KEY, JSON.stringify({
+                accessToken,
+                expiresAt: Date.now() + maxAge,
+            }));
+            localStorage.removeItem(LEGACY_TOKEN_KEY);
+            scheduleSessionExpiry();
+        }
+
+        function clearSession() {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(LEGACY_TOKEN_KEY);
+            window.clearTimeout(sessionTimer);
+        }
+
         function token() {
-            return localStorage.getItem(TOKEN_KEY);
+            const session = readSession();
+            if (!session) return "";
+            if (Date.now() >= session.expiresAt) {
+                clearSession();
+                showLogin();
+                showStatus("登录已超过 30 分钟，请重新登录。", true);
+                return "";
+            }
+            return session.accessToken;
         }
 
         function authHeaders(extra = {}) {
             return { ...extra, Authorization: `Bearer ${token()}` };
+        }
+
+        function scheduleSessionExpiry() {
+            window.clearTimeout(sessionTimer);
+            const session = readSession();
+            if (!session) return;
+            const delay = Math.max(0, session.expiresAt - Date.now());
+            sessionTimer = window.setTimeout(() => {
+                clearSession();
+                showLogin();
+                showStatus("登录已超过 30 分钟，请重新登录。", true);
+            }, delay);
+        }
+
+        function shouldRefreshSession(path) {
+            return path.startsWith("/api/admin/")
+                && path !== "/api/admin/login"
+                && path !== "/api/admin/change-password"
+                && path !== "/api/admin/session/refresh";
+        }
+
+        async function refreshSessionIfNeeded() {
+            const session = readSession();
+            if (!session || session.expiresAt - Date.now() > REFRESH_WINDOW_MS) return;
+            if (refreshPromise) return refreshPromise;
+
+            refreshPromise = fetch(`${API}/api/admin/session/refresh`, {
+                method: "POST",
+                headers: authHeaders({ Accept: "application/json" }),
+            })
+                .then(async (response) => {
+                    if (!response.ok) throw new Error("登录状态已失效");
+                    const data = await response.json();
+                    saveSession(data.access_token, data.expires_in);
+                })
+                .catch((error) => {
+                    clearSession();
+                    showLogin();
+                    showStatus(error.message, true);
+                })
+                .finally(() => {
+                    refreshPromise = null;
+                });
+
+            return refreshPromise;
         }
 
         function showStatus(message, isError = false) {
@@ -760,16 +870,27 @@
         async function request(path, options = {}) {
             const response = await fetch(`${API}${path}`, options);
             if (response.status === 401) {
-                localStorage.removeItem(TOKEN_KEY);
+                clearSession();
                 showLogin();
                 throw new Error("登录状态已失效");
             }
             const contentType = response.headers.get("content-type") || "";
             const data = contentType.includes("application/json") ? await response.json() : await response.text();
             if (!response.ok) {
-                throw new Error(data.detail || "请求失败");
+                throw new Error(readErrorMessage(data));
+            }
+            if (shouldRefreshSession(path)) {
+                scheduleSessionExpiry();
+                refreshSessionIfNeeded();
             }
             return data;
+        }
+
+        function readErrorMessage(data) {
+            if (Array.isArray(data?.detail)) {
+                return data.detail.map((item) => item.msg || item.detail || "请求失败").join("；");
+            }
+            return data?.detail || "请求失败";
         }
 
         function absoluteUrl(url) {
@@ -790,6 +911,7 @@
 
         async function boot() {
             if (!token()) return showLogin();
+            scheduleSessionExpiry();
             try {
                 await request("/api/admin/me", { headers: authHeaders() });
                 showApp();
@@ -822,6 +944,7 @@
                 bonus: "Bonus<span>文案</span>",
                 final: "行程<span>联系</span>",
                 friends: "友链<span>管理</span>",
+                security: "安全<span>设置</span>",
             };
             $("#pageTitle").innerHTML = titles[tab] || titles.gallery;
             loadAll().catch((error) => showStatus(error.message, true));
@@ -1160,7 +1283,7 @@
                         password: $("#loginPassword").value,
                     }),
                 });
-                localStorage.setItem(TOKEN_KEY, data.access_token);
+                saveSession(data.access_token, data.expires_in);
                 showApp();
                 showStatus("登录成功");
                 await loadAll();
@@ -1170,7 +1293,7 @@
         });
 
         $("#logoutBtn").addEventListener("click", () => {
-            localStorage.removeItem(TOKEN_KEY);
+            clearSession();
             showLogin();
         });
 
@@ -1347,9 +1470,13 @@
             const form = event.currentTarget;
             const payload = {
                 typewriter_message: form.elements.typewriter_message.value,
+                birthday_title: form.elements.birthday_title.value || "BIRTHDAY",
                 birthday_date: form.elements.birthday_date.value,
+                love_title: form.elements.love_title.value || "FALL_IN_LOVE",
                 love_date: form.elements.love_date.value,
+                site_title: form.elements.site_title.value || "WEBSITE_BIRTH",
                 site_date: form.elements.site_date.value,
+                future_title: form.elements.future_title.value || "FUTURE_X",
                 future_date: form.elements.future_date.value,
             };
             try {
@@ -1359,6 +1486,38 @@
                     body: JSON.stringify(payload),
                 });
                 showStatus("Bonus 已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#passwordForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const newPassword = form.elements.new_password.value;
+            const confirmPassword = form.elements.confirm_password.value;
+            if (newPassword !== confirmPassword) {
+                showStatus("两次输入的新密码不一致", true);
+                return;
+            }
+
+            const payload = {
+                username: form.elements.username.value,
+                current_password: form.elements.current_password.value,
+                new_password: newPassword,
+            };
+            try {
+                await request("/api/admin/change-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                form.reset();
+                form.elements.username.value = $("#loginUsername").value || "lingxun";
+                clearSession();
+                showLogin();
+                $("#loginPassword").value = "";
+                showStatus("密码已更新，请重新登录");
             } catch (error) {
                 showStatus(error.message, true);
             }

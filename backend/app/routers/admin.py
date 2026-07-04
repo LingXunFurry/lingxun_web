@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..auth import authenticate_admin, create_access_token, require_admin
+from ..auth import authenticate_admin, change_admin_password, create_access_token, require_admin
+from ..config import settings
 from ..database import get_db
-from ..models import BonusContent, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SocialLink
+from ..models import AdminAccount, BonusContent, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SocialLink
 from ..schemas import (
     BonusContentIn,
     BonusContentOut,
@@ -14,6 +15,7 @@ from ..schemas import (
     GalleryPhotoOut,
     GalleryPhotoUpdate,
     LoginRequest,
+    PasswordChangeRequest,
     PostCommentOut,
     PostCommentPatch,
     PostIn,
@@ -33,6 +35,13 @@ from ..utils import save_image_upload, slugify
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
 
+def make_token_response(account: AdminAccount) -> TokenResponse:
+    return TokenResponse(
+        access_token=create_access_token(account),
+        expires_in=settings.jwt_expire_minutes * 60,
+    )
+
+
 def unique_slug(db: Session, value: str, current_id: int | None = None) -> str:
     base = slugify(value)
     slug = base
@@ -49,10 +58,27 @@ def unique_slug(db: Session, value: str, current_id: int | None = None) -> str:
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest):
-    if not authenticate_admin(payload.username, payload.password):
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    account = authenticate_admin(db, payload.username, payload.password)
+    if not account:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或密码不正确。")
-    return TokenResponse(access_token=create_access_token(payload.username))
+    return make_token_response(account)
+
+
+@router.post("/session/refresh", response_model=TokenResponse)
+def refresh_session(admin: str = Depends(require_admin), db: Session = Depends(get_db)):
+    account = db.scalar(select(AdminAccount).where(AdminAccount.username == admin))
+    if not account:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="登录状态已失效，请重新登录。")
+    return make_token_response(account)
+
+
+@router.post("/change-password")
+def change_password(payload: PasswordChangeRequest, db: Session = Depends(get_db)):
+    account = change_admin_password(db, payload.username, payload.current_password, payload.new_password)
+    if not account:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="用户名或旧密码不正确。")
+    return {"ok": True}
 
 
 @router.get("/me")

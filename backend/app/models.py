@@ -49,14 +49,29 @@ class PostComment(Base):
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class AdminAccount(Base):
+    __tablename__ = "admin_accounts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    token_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
 class BonusContent(Base):
     __tablename__ = "bonus_content"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
     typewriter_message: Mapped[str] = mapped_column(Text, nullable=False)
+    birthday_title: Mapped[str] = mapped_column(String(80), default="BIRTHDAY", nullable=False)
     birthday_date: Mapped[str] = mapped_column(String(32), default="2005-12-13")
+    love_title: Mapped[str] = mapped_column(String(80), default="FALL_IN_LOVE", nullable=False)
     love_date: Mapped[str] = mapped_column(String(32), default="2026-06-01")
+    site_title: Mapped[str] = mapped_column(String(80), default="WEBSITE_BIRTH", nullable=False)
     site_date: Mapped[str] = mapped_column(String(32), default="2026-06-04")
+    future_title: Mapped[str] = mapped_column(String(80), default="FUTURE_X", nullable=False)
     future_date: Mapped[str] = mapped_column(String(32), default="2026-12-31")
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

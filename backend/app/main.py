@@ -6,10 +6,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
+from sqlalchemy import inspect, select, text
 
 from .config import settings
 from .database import Base, SessionLocal, engine
+from .auth import ensure_admin_account
 from .models import BonusContent, FriendLink, GalleryPhoto, Post, ScheduleItem, SiteStats, SocialLink
 from .routers import admin, public
 from .routers.admin import DEFAULT_BONUS_MESSAGE
@@ -36,7 +37,9 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def startup() -> None:
         Base.metadata.create_all(bind=engine)
+        ensure_database_schema()
         with SessionLocal() as db:
+            ensure_admin_account(db)
             if not db.get(BonusContent, 1):
                 db.add(BonusContent(id=1, typewriter_message=DEFAULT_BONUS_MESSAGE))
                 db.commit()
@@ -80,6 +83,30 @@ def create_app() -> FastAPI:
         return serve_static_site(full_path)
 
     return app
+
+
+def ensure_database_schema() -> None:
+    inspector = inspect(engine)
+    if "bonus_content" not in inspector.get_table_names():
+        return
+
+    bonus_columns = {column["name"] for column in inspector.get_columns("bonus_content")}
+    bonus_title_columns = {
+        "birthday_title": "BIRTHDAY",
+        "love_title": "FALL_IN_LOVE",
+        "site_title": "WEBSITE_BIRTH",
+        "future_title": "FUTURE_X",
+    }
+
+    with engine.begin() as connection:
+        for column_name, default_value in bonus_title_columns.items():
+            if column_name not in bonus_columns:
+                connection.execute(
+                    text(
+                        f"ALTER TABLE bonus_content "
+                        f"ADD COLUMN {column_name} VARCHAR(80) NOT NULL DEFAULT '{default_value}'"
+                    )
+                )
 
 
 def serve_static_site(full_path: str):

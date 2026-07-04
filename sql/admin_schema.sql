@@ -52,12 +52,26 @@ CREATE TABLE IF NOT EXISTS post_comments (
   CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS admin_accounts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(80) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  token_version INT NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_admin_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS bonus_content (
   id INT PRIMARY KEY DEFAULT 1,
   typewriter_message TEXT NOT NULL,
+  birthday_title VARCHAR(80) NOT NULL DEFAULT 'BIRTHDAY',
   birthday_date VARCHAR(32) NOT NULL DEFAULT '2005-12-13',
+  love_title VARCHAR(80) NOT NULL DEFAULT 'FALL_IN_LOVE',
   love_date VARCHAR(32) NOT NULL DEFAULT '2026-06-01',
+  site_title VARCHAR(80) NOT NULL DEFAULT 'WEBSITE_BIRTH',
   site_date VARCHAR(32) NOT NULL DEFAULT '2026-06-04',
+  future_title VARCHAR(80) NOT NULL DEFAULT 'FUTURE_X',
   future_date VARCHAR(32) NOT NULL DEFAULT '2026-12-31',
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -65,16 +79,24 @@ CREATE TABLE IF NOT EXISTS bonus_content (
 INSERT INTO bonus_content (
   id,
   typewriter_message,
+  birthday_title,
   birthday_date,
+  love_title,
   love_date,
+  site_title,
   site_date,
+  future_title,
   future_date
 ) VALUES (
   1,
   '致充满好奇心的你：\n\n你能破解系统指令来到这个本不应该进入的这里，说明你拥有罕见的探索欲。\n\n这里是凌巽的一片净土，没有喧嚣的社交，只有值得纪念的日子以及这段留言。\n\n感谢你的到访。\n愿你在人生的旅途中，也能寻找到自己的意义。\n\n-- LINGXUN',
+  'BIRTHDAY',
   '2005-12-13',
+  'FALL_IN_LOVE',
   '2026-06-01',
+  'WEBSITE_BIRTH',
   '2026-06-04',
+  'FUTURE_X',
   '2026-12-31'
 ) ON DUPLICATE KEY UPDATE id = id;
 
