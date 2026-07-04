@@ -180,12 +180,14 @@ for (let i = 0; i < totalNeeded; i++) {
 </Layout>
 
 <script>
+    import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+
     document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('lightbox-modal');
         const modalImg = document.getElementById('modal-img') as HTMLImageElement;
         const closeBtn = document.getElementById('modal-close');
         const downloadBtn = document.getElementById('modal-download');
-        const triggers = document.querySelectorAll('.gallery-trigger');
+        appendBackendGalleryColumns();
         
         // -------------------------------------------------------------
         // 按需渲染粒子系统
@@ -235,9 +237,9 @@ for (let i = 0; i < totalNeeded; i++) {
 
         if (modal && modalImg) {
             // 打开模态框
-            triggers.forEach(trigger => {
-                trigger.addEventListener('click', (e) => {
-                    const target = e.target as HTMLImageElement;
+            document.addEventListener('click', (e) => {
+                    const target = (e.target as HTMLElement).closest('.gallery-trigger') as HTMLImageElement | null;
+                    if (!target) return;
                     modalImg.src = target.src;
                     
                     // 解除隐藏
@@ -250,7 +252,6 @@ for (let i = 0; i < totalNeeded; i++) {
                     // 点火：启动粒子系统
                     initParticles();
                     animateParticles();
-                });
             });
 
             // =========================================================
@@ -334,6 +335,39 @@ for (let i = 0; i < totalNeeded; i++) {
             });
         }
     });
+
+    async function appendBackendGalleryColumns() {
+        const photos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
+        if (!photos?.length) return;
+
+        const columns = Array.from(document.querySelectorAll('.animate-conveyor')) as HTMLElement[];
+        if (!columns.length) return;
+
+        columns.forEach((column) => {
+            column.innerHTML = '';
+        });
+
+        const totalNeeded = Math.max(photos.length, 20);
+        for (let index = 0; index < totalNeeded; index++) {
+            const photo = photos[index % photos.length];
+            const column = columns[index % columns.length];
+            const item = renderBackendPhoto(photo, index);
+            column.insertAdjacentHTML('beforeend', item);
+        }
+
+        columns.forEach((column) => {
+            column.insertAdjacentHTML('beforeend', column.innerHTML);
+        });
+    }
+
+    function renderBackendPhoto(photo: GalleryPhoto, index: number) {
+        const alt = escapeHtml(photo.title || photo.original_filename || `Backend_Archive_${index + 1}`);
+        return `
+            <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video">
+                <img src="${toApiUrl(photo.file_url)}" alt="${alt}" class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+            </div>
+        `;
+    }
 </script>
 
 <style>

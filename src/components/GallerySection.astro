@@ -110,11 +110,15 @@ const galleryImages = await Promise.all(imagePaths.map(async (img) => {
 </section>
 
 <script>
+    import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+
     document.addEventListener('DOMContentLoaded', () => {
         const track = document.getElementById('filmstrip-track');
         const section = document.getElementById('gallery-section');
 
         if (!track || !section) return;
+
+        appendBackendGallery(track);
 
         // 1. 架设雷达 (Intersection Observer)
         const observer = new IntersectionObserver((entries) => {
@@ -137,6 +141,22 @@ const galleryImages = await Promise.all(imagePaths.map(async (img) => {
             }
         });
     });
+
+    async function appendBackendGallery(track: HTMLElement) {
+        const photos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
+        if (!photos?.length) return;
+
+        track.innerHTML = [...photos, ...photos].map((photo, index) => `
+            <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group ${index % 2 !== 0 ? 'translate-y-8' : ''}">
+                <img
+                    src="${toApiUrl(photo.file_url)}"
+                    alt="${escapeHtml(photo.title || photo.original_filename || `后台画廊_${index + 1}`)}"
+                    class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+                    loading="lazy"
+                />
+            </div>
+        `).join('');
+    }
 </script>
 
 <style>

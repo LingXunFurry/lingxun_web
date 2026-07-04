@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar.astro'
 ---
 
 <!doctype html>
-<html lang="zh" class="scroll-smooth">
+<html lang="zh" class="scroll-smooth" data-api-base={import.meta.env.PUBLIC_API_BASE ?? ''}>
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width" />

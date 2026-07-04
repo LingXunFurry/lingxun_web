@@ -1,0 +1,1283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lingxun Admin Console</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #020306;
+            --panel: rgba(8, 15, 28, 0.78);
+            --panel-strong: rgba(12, 22, 39, 0.92);
+            --line: rgba(148, 163, 184, 0.18);
+            --line-hot: rgba(251, 191, 36, 0.45);
+            --text: #e5edf7;
+            --muted: #7d8ba1;
+            --amber: #fbbf24;
+            --cyan: #06b6d4;
+            --green: #10b981;
+            --red: #f43f5e;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(6, 182, 212, 0.13), transparent 32rem),
+                radial-gradient(circle at 78% 8%, rgba(251, 191, 36, 0.10), transparent 28rem),
+                linear-gradient(135deg, #020306 0%, #050b14 48%, #020306 100%);
+            color: var(--text);
+            font-family: Inter, "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+            letter-spacing: 0;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(to right, rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(circle at center, black, transparent 78%);
+        }
+
+        button, input, textarea, select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        .hidden { display: none !important; }
+
+        .login-shell {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .login-panel,
+        .panel {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48), inset 0 0 40px rgba(255, 255, 255, 0.02);
+        }
+
+        .login-panel {
+            width: min(440px, 100%);
+            padding: 34px;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-panel::after,
+        .panel::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 96px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--amber), transparent);
+        }
+
+        .eyebrow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--amber);
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 12px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 26px;
+            height: 2px;
+            background: var(--amber);
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.75);
+        }
+
+        h1, h2, h3 {
+            margin: 0;
+            letter-spacing: .03em;
+        }
+
+        .login-title {
+            margin-top: 16px;
+            font-size: clamp(34px, 8vw, 54px);
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .login-title span { color: var(--cyan); }
+
+        .login-form {
+            display: grid;
+            gap: 16px;
+            margin-top: 28px;
+        }
+
+        label {
+            display: grid;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            color: var(--text);
+            background: rgba(2, 6, 23, 0.76);
+            outline: none;
+            padding: 12px 13px;
+        }
+
+        textarea {
+            min-height: 180px;
+            resize: vertical;
+            line-height: 1.65;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--line-hot);
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.08);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 42px;
+            padding: 0 16px;
+            border-radius: 6px;
+            color: #06111d;
+            background: var(--amber);
+            font-weight: 800;
+            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 22px rgba(251, 191, 36, 0.26);
+        }
+
+        .btn.secondary {
+            color: var(--text);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--line);
+        }
+
+        .btn.danger {
+            color: #fff;
+            background: rgba(244, 63, 94, 0.88);
+        }
+
+        .btn.ghost {
+            color: var(--muted);
+            background: transparent;
+            border: 1px solid var(--line);
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+        }
+
+        aside {
+            min-height: 100vh;
+            padding: 28px 20px;
+            border-right: 1px solid var(--line);
+            background: rgba(2, 6, 23, 0.52);
+            backdrop-filter: blur(18px);
+            position: sticky;
+            top: 0;
+        }
+
+        .brand {
+            padding: 8px 8px 28px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .brand-title {
+            margin-top: 12px;
+            font-size: 28px;
+            font-weight: 900;
+        }
+
+        nav {
+            display: grid;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .nav-btn {
+            justify-content: flex-start;
+            width: 100%;
+            color: var(--muted);
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            padding: 13px 12px;
+        }
+
+        .nav-btn.active,
+        .nav-btn:hover {
+            color: var(--text);
+            border-color: var(--line-hot);
+            background: rgba(251, 191, 36, 0.07);
+        }
+
+        main {
+            padding: 34px;
+            min-width: 0;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 900;
+            line-height: 1.05;
+        }
+
+        .page-title span {
+            color: var(--amber);
+        }
+
+        .panel {
+            position: relative;
+            border-radius: 8px;
+            padding: 22px;
+            overflow: hidden;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 13px;
+            margin: 2px 0 4px;
+        }
+
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+        }
+
+        th, td {
+            padding: 13px 10px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+
+        th {
+            color: var(--amber);
+            font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+            font-size: 11px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        td {
+            color: #cbd5e1;
+        }
+
+        .thumb {
+            width: 74px;
+            height: 54px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            background: #020306;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .mini {
+            min-height: 32px;
+            padding: 0 10px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+
+        .status {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            max-width: min(420px, calc(100vw - 44px));
+            padding: 13px 15px;
+            border: 1px solid var(--line);
+            border-left-color: var(--amber);
+            background: rgba(2, 6, 23, 0.92);
+            color: var(--text);
+            border-radius: 6px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
+            transform: translateY(120%);
+            transition: transform .25s ease;
+            z-index: 20;
+        }
+
+        .status.show {
+            transform: translateY(0);
+        }
+
+        .empty {
+            padding: 30px;
+            color: var(--muted);
+            text-align: center;
+            border: 1px dashed var(--line);
+            border-radius: 6px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        @media (max-width: 960px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            aside {
+                min-height: 0;
+                position: static;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+
+            nav {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            main {
+                padding: 22px;
+            }
+
+            .panel-grid,
+            .two {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section id="loginView" class="login-shell">
+        <div class="login-panel">
+            <div class="eyebrow">LX Admin</div>
+            <h1 class="login-title">CONTROL<span> CORE</span></h1>
+            <form id="loginForm" class="login-form">
+                <label>
+                    Username
+                    <input id="loginUsername" autocomplete="username" value="lingxun" />
+                </label>
+                <label>
+                    Password
+                    <input id="loginPassword" type="password" autocomplete="current-password" />
+                </label>
+                <button class="btn" type="submit">⏎ 登录</button>
+            </form>
+        </div>
+    </section>
+
+    <section id="appView" class="app-shell hidden">
+        <aside>
+            <div class="brand">
+                <div class="eyebrow">Lingxun</div>
+                <div class="brand-title">后台终端</div>
+                <div class="muted" style="margin-top:8px;font-size:12px;font-family:ui-monospace,monospace;">MYSQL / FASTAPI</div>
+            </div>
+            <nav>
+                <button class="nav-btn active" data-tab="gallery">▣ 画廊</button>
+                <button class="nav-btn" data-tab="posts">▤ 动态</button>
+                <button class="nav-btn" data-tab="bonus">✦ Bonus</button>
+                <button class="nav-btn" data-tab="final">⌁ 行程 / 联系</button>
+                <button class="nav-btn" data-tab="friends">◇ 友链</button>
+                <button class="nav-btn" id="logoutBtn">↩ 退出</button>
+            </nav>
+        </aside>
+
+        <main>
+            <div class="topbar">
+                <div>
+                    <div class="eyebrow">Dashboard</div>
+                    <h2 class="page-title" id="pageTitle">画廊<span>管理</span></h2>
+                </div>
+                <button class="btn secondary" id="refreshBtn">⟳ 刷新</button>
+            </div>
+
+            <section id="galleryTab" class="tab-view">
+                <div class="panel-grid">
+                    <form id="galleryForm" class="panel form-grid">
+                        <h3>上传照片</h3>
+                        <label>标题 <input name="title" placeholder="Archive title" /></label>
+                        <label>描述 <textarea name="description" style="min-height:96px" placeholder="照片备注"></textarea></label>
+                        <div class="two">
+                            <label>排序 <input name="sort_order" type="number" value="0" /></label>
+                            <label>图片 <input name="file" type="file" accept="image/*" required /></label>
+                        </div>
+                        <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
+                        <button class="btn" type="submit">＋ 上传</button>
+                    </form>
+                    <div class="panel">
+                        <h3>照片列表</h3>
+                        <div id="galleryList" class="table-wrap" style="margin-top:16px"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="postsTab" class="tab-view hidden">
+                <div class="panel-grid">
+                    <form id="postForm" class="panel form-grid">
+                        <h3 id="postFormTitle">新建动态</h3>
+                        <input type="hidden" name="id" />
+                        <label>标题 <input name="title" required /></label>
+                        <div class="two">
+                            <label>日期 <input name="date" placeholder="2026.07.04" required /></label>
+                            <label>标签 <input name="tag" value="UPDATE" /></label>
+                        </div>
+                        <label>链接名 <input name="slug" placeholder="自动生成，可留空" /></label>
+                        <label>摘要 <textarea name="desc" style="min-height:96px"></textarea></label>
+                        <label>正文 <textarea name="content" placeholder="支持基础 Markdown"></textarea></label>
+                        <div class="two">
+                            <label>封面地址 <input name="cover_url" placeholder="/uploads/post_covers/..." /></label>
+                            <label>上传封面 <input id="coverFile" type="file" accept="image/*" /></label>
+                        </div>
+                        <label class="checkbox-row"><input name="is_published" type="checkbox" checked /> 发布到前台</label>
+                        <div class="actions">
+                            <button class="btn" type="submit">◆ 保存</button>
+                            <button class="btn ghost" type="button" id="resetPostBtn">清空</button>
+                        </div>
+                    </form>
+                    <div class="panel">
+                        <h3>动态列表</h3>
+                        <div id="postList" class="table-wrap" style="margin-top:16px"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="bonusTab" class="tab-view hidden">
+                <form id="bonusForm" class="panel form-grid">
+                    <h3>Bonus Page</h3>
+                    <textarea name="typewriter_message" style="min-height:260px"></textarea>
+                    <div class="two">
+                        <label>生日日期 <input name="birthday_date" type="date" /></label>
+                        <label>恋爱日期 <input name="love_date" type="date" /></label>
+                    </div>
+                    <div class="two">
+                        <label>网站上线 <input name="site_date" type="date" /></label>
+                        <label>未来节点 <input name="future_date" type="date" /></label>
+                    </div>
+                    <button class="btn" type="submit">✦ 保存 Bonus</button>
+                </form>
+            </section>
+
+            <section id="finalTab" class="tab-view hidden">
+                <div class="panel-grid">
+                    <div class="panel form-grid">
+                        <form id="scheduleForm" class="form-grid">
+                            <h3 id="scheduleFormTitle">新建行程</h3>
+                            <input type="hidden" name="id" />
+                            <div class="two">
+                                <label>编号 <input name="code" placeholder="con-01" /></label>
+                                <label>排序 <input name="sort_order" type="number" value="0" /></label>
+                            </div>
+                            <label>名称 <input name="name" required /></label>
+                            <label>地点 <input name="location" /></label>
+                            <div class="two">
+                                <label>开始日期 <input name="start_date" type="date" required /></label>
+                                <label>结束日期 <input name="end_date" type="date" required /></label>
+                            </div>
+                            <label>描述 <textarea name="description" style="min-height:96px"></textarea></label>
+                            <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
+                            <div class="actions">
+                                <button class="btn" type="submit">◆ 保存行程</button>
+                                <button class="btn ghost" type="button" id="resetScheduleBtn">清空</button>
+                            </div>
+                        </form>
+                        <div id="scheduleList" class="table-wrap"></div>
+                    </div>
+
+                    <div class="panel form-grid">
+                        <form id="socialForm" class="form-grid">
+                            <h3 id="socialFormTitle">新建联系方式</h3>
+                            <input type="hidden" name="id" />
+                            <div class="two">
+                                <label>名称 <input name="name" required /></label>
+                                <label>图标字母 <input name="icon" maxlength="8" placeholder="QQ / X / B" /></label>
+                            </div>
+                            <label>说明 <input name="desc" placeholder="动态 / 日常" /></label>
+                            <label>链接 <input name="link" placeholder="https://..." /></label>
+                            <div class="two">
+                                <label>ID / 号码 <input name="number" /></label>
+                                <label>排序 <input name="sort_order" type="number" value="0" /></label>
+                            </div>
+                            <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
+                            <div class="actions">
+                                <button class="btn" type="submit">◆ 保存联系方式</button>
+                                <button class="btn ghost" type="button" id="resetSocialBtn">清空</button>
+                            </div>
+                        </form>
+                        <div id="socialList" class="table-wrap"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="friendsTab" class="tab-view hidden">
+                <div class="panel-grid">
+                    <form id="friendForm" class="panel form-grid">
+                        <h3 id="friendFormTitle">新建友链</h3>
+                        <input type="hidden" name="id" />
+                        <div class="two">
+                            <label>头像 ID / 名称 <input name="display_id" required placeholder="朋友的名字或 ID" /></label>
+                            <label>排序 <input name="sort_order" type="number" value="0" /></label>
+                        </div>
+                        <label>头像 URL <input name="avatar_url" placeholder="https://.../avatar.png，可留空" /></label>
+                        <label>站点 URL <input name="url" placeholder="https://...，可留空" /></label>
+                        <label>介绍 <textarea name="comment" style="min-height:140px" placeholder="展示在友链卡片里的介绍"></textarea></label>
+                        <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
+                        <div class="actions">
+                            <button class="btn" type="submit">◆ 保存友链</button>
+                            <button class="btn ghost" type="button" id="resetFriendBtn">清空</button>
+                        </div>
+                    </form>
+                    <div class="panel">
+                        <h3>友链列表</h3>
+                        <div id="friendList" class="table-wrap" style="margin-top:16px"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <div id="status" class="status"></div>
+
+    <script>
+        const API = window.location.origin;
+        const TOKEN_KEY = "lingxun_admin_token";
+        const state = { tab: "gallery", gallery: [], posts: [], bonus: null, schedules: [], socials: [], friends: [] };
+
+        const $ = (selector) => document.querySelector(selector);
+        const loginView = $("#loginView");
+        const appView = $("#appView");
+        const statusBox = $("#status");
+
+        function token() {
+            return localStorage.getItem(TOKEN_KEY);
+        }
+
+        function authHeaders(extra = {}) {
+            return { ...extra, Authorization: `Bearer ${token()}` };
+        }
+
+        function showStatus(message, isError = false) {
+            statusBox.textContent = message;
+            statusBox.style.borderLeftColor = isError ? "var(--red)" : "var(--amber)";
+            statusBox.classList.add("show");
+            window.clearTimeout(showStatus.timer);
+            showStatus.timer = window.setTimeout(() => statusBox.classList.remove("show"), 2600);
+        }
+
+        async function request(path, options = {}) {
+            const response = await fetch(`${API}${path}`, options);
+            if (response.status === 401) {
+                localStorage.removeItem(TOKEN_KEY);
+                showLogin();
+                throw new Error("登录状态已失效");
+            }
+            const contentType = response.headers.get("content-type") || "";
+            const data = contentType.includes("application/json") ? await response.json() : await response.text();
+            if (!response.ok) {
+                throw new Error(data.detail || "请求失败");
+            }
+            return data;
+        }
+
+        function absoluteUrl(url) {
+            if (!url) return "";
+            if (/^https?:\/\//.test(url)) return url;
+            return `${API}${url}`;
+        }
+
+        function showLogin() {
+            loginView.classList.remove("hidden");
+            appView.classList.add("hidden");
+        }
+
+        function showApp() {
+            loginView.classList.add("hidden");
+            appView.classList.remove("hidden");
+        }
+
+        async function boot() {
+            if (!token()) return showLogin();
+            try {
+                await request("/api/admin/me", { headers: authHeaders() });
+                showApp();
+                await loadAll();
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        }
+
+        async function loadAll() {
+            if (state.tab === "gallery") await loadGallery();
+            if (state.tab === "posts") await loadPosts();
+            if (state.tab === "bonus") await loadBonus();
+            if (state.tab === "final") await loadFinal();
+            if (state.tab === "friends") await loadFriends();
+        }
+
+        function setTab(tab) {
+            state.tab = tab;
+            document.querySelectorAll(".nav-btn[data-tab]").forEach((btn) => {
+                btn.classList.toggle("active", btn.dataset.tab === tab);
+            });
+            document.querySelectorAll(".tab-view").forEach((view) => view.classList.add("hidden"));
+            $(`#${tab}Tab`).classList.remove("hidden");
+            const titles = {
+                gallery: "画廊<span>管理</span>",
+                posts: "动态<span>编辑</span>",
+                bonus: "Bonus<span>文案</span>",
+                final: "行程<span>联系</span>",
+                friends: "友链<span>管理</span>",
+            };
+            $("#pageTitle").innerHTML = titles[tab] || titles.gallery;
+            loadAll().catch((error) => showStatus(error.message, true));
+        }
+
+        async function loadGallery() {
+            state.gallery = await request("/api/admin/gallery", { headers: authHeaders() });
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const target = $("#galleryList");
+            if (!state.gallery.length) {
+                target.innerHTML = `<div class="empty">暂无后台照片</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>Preview</th><th>Title</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${state.gallery.map((item) => `
+                            <tr>
+                                <td><img class="thumb" src="${absoluteUrl(item.file_url)}" alt=""></td>
+                                <td>
+                                    <strong>${escapeHtml(item.title || item.original_filename || "Untitled")}</strong>
+                                    <div class="muted">${escapeHtml(item.description || "")}</div>
+                                </td>
+                                <td><input data-gallery-order="${item.id}" type="number" value="${item.sort_order}" style="width:86px"></td>
+                                <td>${item.is_visible ? "显示" : "隐藏"}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn secondary mini" data-gallery-toggle="${item.id}">${item.is_visible ? "隐藏" : "显示"}</button>
+                                        <button class="btn secondary mini" data-gallery-save="${item.id}">排序</button>
+                                        <button class="btn danger mini" data-gallery-delete="${item.id}">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function loadPosts() {
+            state.posts = await request("/api/admin/posts", { headers: authHeaders() });
+            renderPosts();
+        }
+
+        function renderPosts() {
+            const target = $("#postList");
+            if (!state.posts.length) {
+                target.innerHTML = `<div class="empty">暂无后台动态</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>Date</th><th>Title</th><th>Tag</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${state.posts.map((post) => `
+                            <tr>
+                                <td>${escapeHtml(post.date)}</td>
+                                <td>
+                                    <strong>${escapeHtml(post.title)}</strong>
+                                    <div class="muted">/post/?slug=${escapeHtml(post.slug)}</div>
+                                </td>
+                                <td>${escapeHtml(post.tag)}</td>
+                                <td>${post.is_published ? "已发布" : "草稿"}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn secondary mini" data-post-edit="${post.id}">编辑</button>
+                                        <button class="btn danger mini" data-post-delete="${post.id}">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function loadBonus() {
+            state.bonus = await request("/api/admin/bonus", { headers: authHeaders() });
+            const form = $("#bonusForm");
+            Object.entries(state.bonus).forEach(([key, value]) => {
+                if (form.elements[key]) form.elements[key].value = value || "";
+            });
+        }
+
+        async function loadFinal() {
+            const [schedules, socials] = await Promise.all([
+                request("/api/admin/schedules", { headers: authHeaders() }),
+                request("/api/admin/socials", { headers: authHeaders() }),
+            ]);
+            state.schedules = schedules;
+            state.socials = socials;
+            renderSchedules();
+            renderSocials();
+        }
+
+        function renderSchedules() {
+            const target = $("#scheduleList");
+            if (!state.schedules.length) {
+                target.innerHTML = `<div class="empty">暂无后台行程；为空时前台继续显示原始行程</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>Date</th><th>Name</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${state.schedules.map((item) => `
+                            <tr>
+                                <td>${escapeHtml(item.start_date)}<br><span class="muted">${escapeHtml(item.end_date)}</span></td>
+                                <td>
+                                    <strong>${escapeHtml(item.name)}</strong>
+                                    <div class="muted">${escapeHtml(item.description || "")}</div>
+                                </td>
+                                <td>${escapeHtml(item.location || "")}</td>
+                                <td>${item.is_visible ? "显示" : "隐藏"}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn secondary mini" data-schedule-edit="${item.id}">编辑</button>
+                                        <button class="btn danger mini" data-schedule-delete="${item.id}">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderSocials() {
+            const target = $("#socialList");
+            if (!state.socials.length) {
+                target.innerHTML = `<div class="empty">暂无后台联系方式；为空时前台继续显示原始联系方式</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>Name</th><th>Info</th><th>Link</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${state.socials.map((item) => `
+                            <tr>
+                                <td><strong>${escapeHtml(item.name)}</strong><div class="muted">${escapeHtml(item.icon || "")}</div></td>
+                                <td>${escapeHtml(item.desc || "")}<div class="muted">${escapeHtml(item.number || "")}</div></td>
+                                <td class="muted">${escapeHtml(item.link || "")}</td>
+                                <td>${item.is_visible ? "显示" : "隐藏"}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn secondary mini" data-social-edit="${item.id}">编辑</button>
+                                        <button class="btn danger mini" data-social-delete="${item.id}">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function loadFriends() {
+            state.friends = await request("/api/admin/friends", { headers: authHeaders() });
+            renderFriends();
+        }
+
+        function renderFriends() {
+            const target = $("#friendList");
+            if (!state.friends.length) {
+                target.innerHTML = `<div class="empty">暂无后台友链</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>Avatar</th><th>ID</th><th>URL</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${state.friends.map((item) => `
+                            <tr>
+                                <td>${item.avatar_url ? `<img class="thumb" src="${escapeHtml(item.avatar_url)}" alt="">` : `<div class="thumb" style="display:grid;place-items:center;color:var(--muted);font-weight:900">${escapeHtml((item.display_id || "?").slice(0, 1))}</div>`}</td>
+                                <td>
+                                    <strong>${escapeHtml(item.display_id)}</strong>
+                                    <div class="muted">${escapeHtml(item.comment || "")}</div>
+                                </td>
+                                <td class="muted">${escapeHtml(item.url || "")}</td>
+                                <td>${item.is_visible ? "显示" : "隐藏"}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn secondary mini" data-friend-edit="${item.id}">编辑</button>
+                                        <button class="btn danger mini" data-friend-delete="${item.id}">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function fillPostForm(post) {
+            const form = $("#postForm");
+            form.elements.id.value = post?.id || "";
+            form.elements.title.value = post?.title || "";
+            form.elements.date.value = post?.date || new Date().toISOString().slice(0, 10).replace(/-/g, ".");
+            form.elements.tag.value = post?.tag || "UPDATE";
+            form.elements.slug.value = post?.slug || "";
+            form.elements.desc.value = post?.desc || "";
+            form.elements.content.value = post?.content || "";
+            form.elements.cover_url.value = post?.cover_url || "";
+            form.elements.is_published.checked = post?.is_published ?? true;
+            $("#postFormTitle").textContent = post ? "编辑动态" : "新建动态";
+        }
+
+        function fillScheduleForm(item) {
+            const form = $("#scheduleForm");
+            form.elements.id.value = item?.id || "";
+            form.elements.code.value = item?.code || "";
+            form.elements.name.value = item?.name || "";
+            form.elements.location.value = item?.location || "";
+            form.elements.start_date.value = item?.start_date || "";
+            form.elements.end_date.value = item?.end_date || "";
+            form.elements.description.value = item?.description || "";
+            form.elements.sort_order.value = item?.sort_order ?? 0;
+            form.elements.is_visible.checked = item?.is_visible ?? true;
+            $("#scheduleFormTitle").textContent = item ? "编辑行程" : "新建行程";
+        }
+
+        function fillSocialForm(item) {
+            const form = $("#socialForm");
+            form.elements.id.value = item?.id || "";
+            form.elements.name.value = item?.name || "";
+            form.elements.icon.value = item?.icon || "";
+            form.elements.desc.value = item?.desc || "";
+            form.elements.link.value = item?.link || "";
+            form.elements.number.value = item?.number || "";
+            form.elements.sort_order.value = item?.sort_order ?? 0;
+            form.elements.is_visible.checked = item?.is_visible ?? true;
+            $("#socialFormTitle").textContent = item ? "编辑联系方式" : "新建联系方式";
+        }
+
+        function fillFriendForm(item) {
+            const form = $("#friendForm");
+            form.elements.id.value = item?.id || "";
+            form.elements.display_id.value = item?.display_id || "";
+            form.elements.avatar_url.value = item?.avatar_url || "";
+            form.elements.url.value = item?.url || "";
+            form.elements.comment.value = item?.comment || "";
+            form.elements.sort_order.value = item?.sort_order ?? 0;
+            form.elements.is_visible.checked = item?.is_visible ?? true;
+            $("#friendFormTitle").textContent = item ? "编辑友链" : "新建友链";
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        $("#loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            try {
+                const data = await request("/api/admin/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: $("#loginUsername").value,
+                        password: $("#loginPassword").value,
+                    }),
+                });
+                localStorage.setItem(TOKEN_KEY, data.access_token);
+                showApp();
+                showStatus("登录成功");
+                await loadAll();
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#logoutBtn").addEventListener("click", () => {
+            localStorage.removeItem(TOKEN_KEY);
+            showLogin();
+        });
+
+        $("#refreshBtn").addEventListener("click", () => loadAll().then(() => showStatus("已刷新")).catch((error) => showStatus(error.message, true)));
+
+        document.querySelectorAll(".nav-btn[data-tab]").forEach((btn) => {
+            btn.addEventListener("click", () => setTab(btn.dataset.tab));
+        });
+
+        $("#galleryForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const data = new FormData(form);
+            data.set("is_visible", form.elements.is_visible.checked ? "true" : "false");
+            try {
+                await request("/api/admin/gallery", { method: "POST", headers: authHeaders(), body: data });
+                form.reset();
+                form.elements.is_visible.checked = true;
+                await loadGallery();
+                showStatus("照片已上传");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#galleryList").addEventListener("click", async (event) => {
+            const toggleId = event.target.dataset.galleryToggle;
+            const deleteId = event.target.dataset.galleryDelete;
+            const saveId = event.target.dataset.gallerySave;
+            try {
+                if (toggleId) {
+                    const item = state.gallery.find((photo) => String(photo.id) === toggleId);
+                    await request(`/api/admin/gallery/${toggleId}`, {
+                        method: "PATCH",
+                        headers: authHeaders({ "Content-Type": "application/json" }),
+                        body: JSON.stringify({ is_visible: !item.is_visible }),
+                    });
+                    await loadGallery();
+                    showStatus("显示状态已更新");
+                }
+                if (saveId) {
+                    const order = document.querySelector(`[data-gallery-order="${saveId}"]`).value;
+                    await request(`/api/admin/gallery/${saveId}`, {
+                        method: "PATCH",
+                        headers: authHeaders({ "Content-Type": "application/json" }),
+                        body: JSON.stringify({ sort_order: Number(order) }),
+                    });
+                    await loadGallery();
+                    showStatus("排序已保存");
+                }
+                if (deleteId && confirm("确认删除这张照片？")) {
+                    await request(`/api/admin/gallery/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadGallery();
+                    showStatus("照片已删除");
+                }
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#coverFile").addEventListener("change", async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const data = new FormData();
+            data.append("file", file);
+            try {
+                const result = await request("/api/admin/posts/upload-cover", { method: "POST", headers: authHeaders(), body: data });
+                $("#postForm").elements.cover_url.value = result.file_url;
+                showStatus("封面已上传");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#postForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const id = form.elements.id.value;
+            const payload = {
+                title: form.elements.title.value,
+                date: form.elements.date.value,
+                tag: form.elements.tag.value || "UPDATE",
+                slug: form.elements.slug.value || null,
+                desc: form.elements.desc.value,
+                content: form.elements.content.value,
+                cover_url: form.elements.cover_url.value || null,
+                is_published: form.elements.is_published.checked,
+            };
+            try {
+                await request(id ? `/api/admin/posts/${id}` : "/api/admin/posts", {
+                    method: id ? "PATCH" : "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                fillPostForm(null);
+                await loadPosts();
+                showStatus("动态已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#resetPostBtn").addEventListener("click", () => fillPostForm(null));
+
+        $("#postList").addEventListener("click", async (event) => {
+            const editId = event.target.dataset.postEdit;
+            const deleteId = event.target.dataset.postDelete;
+            if (editId) {
+                fillPostForm(state.posts.find((post) => String(post.id) === editId));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (deleteId && confirm("确认删除这条动态？")) {
+                try {
+                    await request(`/api/admin/posts/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadPosts();
+                    showStatus("动态已删除");
+                } catch (error) {
+                    showStatus(error.message, true);
+                }
+            }
+        });
+
+        $("#bonusForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const payload = {
+                typewriter_message: form.elements.typewriter_message.value,
+                birthday_date: form.elements.birthday_date.value,
+                love_date: form.elements.love_date.value,
+                site_date: form.elements.site_date.value,
+                future_date: form.elements.future_date.value,
+            };
+            try {
+                await request("/api/admin/bonus", {
+                    method: "PUT",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                showStatus("Bonus 已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#scheduleForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const id = form.elements.id.value;
+            const payload = {
+                code: form.elements.code.value,
+                name: form.elements.name.value,
+                location: form.elements.location.value,
+                start_date: form.elements.start_date.value,
+                end_date: form.elements.end_date.value,
+                description: form.elements.description.value,
+                sort_order: Number(form.elements.sort_order.value || 0),
+                is_visible: form.elements.is_visible.checked,
+            };
+            try {
+                await request(id ? `/api/admin/schedules/${id}` : "/api/admin/schedules", {
+                    method: id ? "PATCH" : "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                fillScheduleForm(null);
+                await loadFinal();
+                showStatus("行程已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#resetScheduleBtn").addEventListener("click", () => fillScheduleForm(null));
+
+        $("#scheduleList").addEventListener("click", async (event) => {
+            const editId = event.target.dataset.scheduleEdit;
+            const deleteId = event.target.dataset.scheduleDelete;
+            if (editId) {
+                fillScheduleForm(state.schedules.find((item) => String(item.id) === editId));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (deleteId && confirm("确认删除这条行程？")) {
+                try {
+                    await request(`/api/admin/schedules/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadFinal();
+                    showStatus("行程已删除");
+                } catch (error) {
+                    showStatus(error.message, true);
+                }
+            }
+        });
+
+        $("#socialForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const id = form.elements.id.value;
+            const payload = {
+                name: form.elements.name.value,
+                icon: form.elements.icon.value,
+                desc: form.elements.desc.value,
+                link: form.elements.link.value,
+                number: form.elements.number.value,
+                sort_order: Number(form.elements.sort_order.value || 0),
+                is_visible: form.elements.is_visible.checked,
+            };
+            try {
+                await request(id ? `/api/admin/socials/${id}` : "/api/admin/socials", {
+                    method: id ? "PATCH" : "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                fillSocialForm(null);
+                await loadFinal();
+                showStatus("联系方式已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#resetSocialBtn").addEventListener("click", () => fillSocialForm(null));
+
+        $("#socialList").addEventListener("click", async (event) => {
+            const editId = event.target.dataset.socialEdit;
+            const deleteId = event.target.dataset.socialDelete;
+            if (editId) {
+                fillSocialForm(state.socials.find((item) => String(item.id) === editId));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (deleteId && confirm("确认删除这个联系方式？")) {
+                try {
+                    await request(`/api/admin/socials/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadFinal();
+                    showStatus("联系方式已删除");
+                } catch (error) {
+                    showStatus(error.message, true);
+                }
+            }
+        });
+
+        $("#friendForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const id = form.elements.id.value;
+            const payload = {
+                display_id: form.elements.display_id.value,
+                avatar_url: form.elements.avatar_url.value,
+                url: form.elements.url.value,
+                comment: form.elements.comment.value,
+                sort_order: Number(form.elements.sort_order.value || 0),
+                is_visible: form.elements.is_visible.checked,
+            };
+            try {
+                await request(id ? `/api/admin/friends/${id}` : "/api/admin/friends", {
+                    method: id ? "PATCH" : "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                fillFriendForm(null);
+                await loadFriends();
+                showStatus("友链已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#resetFriendBtn").addEventListener("click", () => fillFriendForm(null));
+
+        $("#friendList").addEventListener("click", async (event) => {
+            const editId = event.target.dataset.friendEdit;
+            const deleteId = event.target.dataset.friendDelete;
+            if (editId) {
+                fillFriendForm(state.friends.find((item) => String(item.id) === editId));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (deleteId && confirm("确认删除这个友链？")) {
+                try {
+                    await request(`/api/admin/friends/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadFriends();
+                    showStatus("友链已删除");
+                } catch (error) {
+                    showStatus(error.message, true);
+                }
+            }
+        });
+
+        fillPostForm(null);
+        fillScheduleForm(null);
+        fillSocialForm(null);
+        fillFriendForm(null);
+        boot();
+    </script>
+</body>
+</html>

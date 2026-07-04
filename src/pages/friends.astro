@@ -64,7 +64,7 @@ const friendsData = [
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div id="friends-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 
                 {friendsData.map((friend, index) => {
                     // 保留一点点错落感，让中间列稍微下沉
@@ -133,6 +133,69 @@ const friendsData = [
         </div>
     </main>
 </Layout>
+
+<script>
+    import { escapeHtml, fetchPublic, type FriendLink } from '../lib/publicContent';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const list = document.getElementById('friends-list');
+        if (!list) return;
+
+        const friends = await fetchPublic<FriendLink[]>('/api/public/friends');
+        if (!friends?.length) return;
+
+        list.innerHTML = friends.map(renderFriendCard).join('');
+    });
+
+    function renderFriendCard(friend: FriendLink, index: number) {
+        const staggerClass = index % 3 === 1 ? 'lg:translate-y-8' : '';
+        const tag = friend.url ? 'a' : 'div';
+        const attrs = friend.url ? `href="${escapeHtml(friend.url)}" target="_blank" rel="noopener noreferrer"` : '';
+        const avatar = friend.avatar_url
+            ? `<img src="${escapeHtml(friend.avatar_url)}" alt="${escapeHtml(friend.display_id)}" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" />`
+            : `<span class="text-lg font-black text-slate-500 group-hover:text-amber-400 transition-colors">${escapeHtml(friend.display_id.slice(0, 1) || '?')}</span>`;
+
+        return `
+            <${tag}
+                ${attrs}
+                class="group relative block w-full p-6 bg-[#091121]/80 backdrop-blur-lg border border-slate-700/60 rounded-xl transition-all duration-500 hover:-translate-y-2 hover:border-amber-500/50 hover:shadow-[0_10px_30px_rgba(251,191,36,0.15)] overflow-hidden ${staggerClass}"
+            >
+                <span class="absolute top-0 left-0 w-[200%] h-full z-0 block -skew-x-12 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent -translate-x-[150%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out pointer-events-none"></span>
+                <div class="absolute top-0 left-0 w-0 h-[2px] bg-amber-400 transition-all duration-500 group-hover:w-full"></div>
+                <div class="flex items-start gap-4 relative z-10">
+                    <div style="width: 52px; height: 52px;" class="relative flex-shrink-0">
+                        <div class="absolute -inset-1 border border-dashed border-slate-600 rounded-lg group-hover:animate-spin-slow group-hover:border-amber-500/50 transition-colors opacity-0 group-hover:opacity-100"></div>
+                        <div class="w-full h-full rounded-lg overflow-hidden border border-slate-600 bg-[#050b14] relative z-10 group-hover:border-amber-400/50 transition-colors flex items-center justify-center shadow-lg">
+                            ${avatar}
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0 mt-0.5">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="text-base md:text-lg font-bold text-white tracking-wide truncate group-hover:text-amber-400 transition-colors duration-300">
+                                ${escapeHtml(friend.display_id)}
+                            </h3>
+                            <svg class="w-4 h-4 text-slate-500 group-hover:text-amber-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                        </div>
+                        <div class="flex items-center gap-1.5 mb-3">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-[9px] text-slate-400 font-mono tracking-widest uppercase">Node_Online</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-[#02050a] border border-slate-800/80 rounded-lg relative z-10 group-hover:border-slate-700 transition-colors shadow-inner">
+                    <div class="text-[9px] text-slate-500 font-mono mb-1 select-none">
+                        // 档案批注_
+                    </div>
+                    <p class="text-xs text-slate-300 font-light leading-relaxed line-clamp-3 group-hover:text-amber-100/90 transition-colors">
+                        ${escapeHtml(friend.comment)}
+                    </p>
+                </div>
+            </${tag}>
+        `;
+    }
+</script>
 
 <style>
     @keyframes spin-slow {

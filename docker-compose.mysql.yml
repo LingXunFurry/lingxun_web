@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: lingxun_website_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: lingxun_website
+      MYSQL_ROOT_PASSWORD: lingxun_mysql_root_password
+      MYSQL_USER: lingxun
+      MYSQL_PASSWORD: lingxun_mysql_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - lingxun_mysql_data:/var/lib/mysql
+      - ./sql/admin_schema.sql:/docker-entrypoint-initdb.d/001-admin-schema.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  lingxun_mysql_data:

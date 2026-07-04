@@ -221,6 +221,8 @@
 </style>
 
 <script>
+    import { fetchPublic, type BonusContent } from '../lib/publicContent';
+
     document.addEventListener('DOMContentLoaded', () => {
         const eggSection = document.getElementById('easter-egg-section');
         const eggLoader = document.getElementById('egg-loader');
@@ -230,14 +232,19 @@
         
         let hasBooted = false;
         let typewriterDone = false; 
+        let bonusContent: BonusContent | null = null;
+
+        fetchPublic<BonusContent>('/api/public/bonus').then((content) => {
+            bonusContent = content;
+        });
 
         function calculateDates() {
             const now = new Date();
             const dates = {
-                birth: new Date('2005-12-13'),     
-                love: new Date('2026-06-01'),      
-                site: new Date('2026-06-04'),      
-                unknown: new Date('2026-12-31')    
+                birth: new Date(bonusContent?.birthday_date || '2005-12-13'),
+                love: new Date(bonusContent?.love_date || '2026-06-01'),
+                site: new Date(bonusContent?.site_date || '2026-06-04'),
+                unknown: new Date(bonusContent?.future_date || '2026-12-31')
             };
             const msPerDay = 1000 * 60 * 60 * 24;
             
@@ -293,16 +300,17 @@
 
             const message = "致充满好奇心的你：\n\n你能破解系统指令来到这个本不应该进入的这里，说明你拥有罕见的探索欲。\n\n这里是凌巽的一片净土，没有喧嚣的社交，只有值得纪念的日子以及这段留言。\n\n感谢你的到访。\n愿你在人生的旅途中，也能寻找到自己的意义。\n\n-- LINGXUN";
             
+            const activeMessage = bonusContent?.typewriter_message || message;
             let index = 0;
             container.innerHTML = '';
             cursor.classList.remove('hidden');
 
             const typeInterval = setInterval(() => {
-                if (index < message.length) {
-                    if (message.charAt(index) === '\n') {
-                        container.innerHTML += '<br>';
+                if (index < activeMessage.length) {
+                    if (activeMessage.charAt(index) === '\n') {
+                        container.append(document.createElement('br'));
                     } else {
-                        container.innerHTML += message.charAt(index);
+                        container.append(document.createTextNode(activeMessage.charAt(index)));
                     }
                     index++;
                 } else {
