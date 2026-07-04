@@ -20,12 +20,30 @@ export type PublicPost = {
     is_published: boolean;
 };
 
+export type PostComment = {
+    id: number;
+    post_id: number;
+    parent_id?: number | null;
+    author_id: string;
+    avatar_url: string;
+    content: string;
+    like_count: number;
+    is_visible: boolean;
+    created_at?: string | null;
+    updated_at?: string | null;
+};
+
 export type BonusContent = {
     typewriter_message: string;
     birthday_date: string;
     love_date: string;
     site_date: string;
     future_date: string;
+};
+
+export type SiteStats = {
+    visit_count: number;
+    interaction_count: number;
 };
 
 export type ScheduleItem = {
@@ -78,6 +96,33 @@ export async function fetchPublic<T>(path: string): Promise<T | null> {
     try {
         const response = await fetch(`${getApiBase()}${path}`, {
             headers: { Accept: "application/json" },
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch {
+        return null;
+    }
+}
+
+export async function postPublic<T>(path: string): Promise<T | null> {
+    try {
+        const response = await fetch(`${getApiBase()}${path}`, {
+            method: "POST",
+            headers: { Accept: "application/json" },
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch {
+        return null;
+    }
+}
+
+export async function submitPublicForm<T>(path: string, body: FormData): Promise<T | null> {
+    try {
+        const response = await fetch(`${getApiBase()}${path}`, {
+            method: "POST",
+            headers: { Accept: "application/json" },
+            body,
         });
         if (!response.ok) return null;
         return await response.json();

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from ..auth import authenticate_admin, create_access_token, require_admin
 from ..database import get_db
-from ..models import BonusContent, FriendLink, GalleryPhoto, Post, ScheduleItem, SocialLink
+from ..models import BonusContent, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SocialLink
 from ..schemas import (
     BonusContentIn,
     BonusContentOut,
@@ -14,6 +14,8 @@ from ..schemas import (
     GalleryPhotoOut,
     GalleryPhotoUpdate,
     LoginRequest,
+    PostCommentOut,
+    PostCommentPatch,
     PostIn,
     PostOut,
     PostPatch,
@@ -174,6 +176,63 @@ async def upload_post_cover(
     _: str = Depends(require_admin),
 ):
     return {"file_url": await save_image_upload(file, "post_covers")}
+
+
+@router.get("/comments", response_model=list[PostCommentOut])
+def admin_list_comments(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    query = select(PostComment).order_by(PostComment.created_at.desc(), PostComment.id.desc())
+    return db.scalars(query).all()
+
+
+@router.patch("/comments/{comment_id}", response_model=PostCommentOut)
+def admin_update_comment(
+    comment_id: int,
+    payload: PostCommentPatch,
+    _: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    comment = db.get(PostComment, comment_id)
+    if not comment:
+        raise HTTPException(status_code=404, detail="留言不存在。")
+
+    data = payload.model_dump(exclude_unset=True)
+    if "author_id" in data and data["author_id"] is not None:
+        data["author_id"] = data["author_id"].strip()
+        if not data["author_id"]:
+            raise HTTPException(status_code=400, detail="留言人的 ID 不能为空。")
+    if "content" in data and data["content"] is not None:
+        data["content"] = data["content"].strip()
+        if not data["content"]:
+            raise HTTPException(status_code=400, detail="留言内容不能为空。")
+    if "like_count" in data and data["like_count"] is not None:
+        data["like_count"] = max(0, data["like_count"])
+
+    for field, value in data.items():
+        setattr(comment, field, value)
+    db.commit()
+    db.refresh(comment)
+    return comment
+
+
+@router.delete("/comments/{comment_id}")
+def admin_delete_comment(comment_id: int, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    comment = db.get(PostComment, comment_id)
+    if not comment:
+        raise HTTPException(status_code=404, detail="留言不存在。")
+
+    def collect_children(parent_id: int) -> list[PostComment]:
+        children = db.scalars(select(PostComment).where(PostComment.parent_id == parent_id)).all()
+        collected = []
+        for child in children:
+            collected.extend(collect_children(child.id))
+            collected.append(child)
+        return collected
+
+    for child in collect_children(comment.id):
+        db.delete(child)
+    db.delete(comment)
+    db.commit()
+    return {"ok": True}
 
 
 @router.get("/bonus", response_model=BonusContentOut)

@@ -456,6 +456,7 @@
             <nav>
                 <button class="nav-btn active" data-tab="gallery">▣ 画廊</button>
                 <button class="nav-btn" data-tab="posts">▤ 动态</button>
+                <button class="nav-btn" data-tab="comments">✧ 评论</button>
                 <button class="nav-btn" data-tab="bonus">✦ Bonus</button>
                 <button class="nav-btn" data-tab="final">⌁ 行程 / 联系</button>
                 <button class="nav-btn" data-tab="friends">◇ 友链</button>
@@ -536,6 +537,30 @@
                     </div>
                     <button class="btn" type="submit">✦ 保存 Bonus</button>
                 </form>
+            </section>
+
+            <section id="commentsTab" class="tab-view hidden">
+                <div class="panel-grid">
+                    <form id="commentForm" class="panel form-grid">
+                        <h3 id="commentFormTitle">编辑评论</h3>
+                        <input type="hidden" name="id" />
+                        <div class="two">
+                            <label>留言 ID <input name="author_id" required /></label>
+                            <label>点赞数 <input name="like_count" type="number" value="0" /></label>
+                        </div>
+                        <label>头像 URL <input name="avatar_url" placeholder="/uploads/comment_avatars/... 或默认头像" /></label>
+                        <label>留言内容 <textarea name="content" style="min-height:160px" required></textarea></label>
+                        <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
+                        <div class="actions">
+                            <button class="btn" type="submit">◆ 保存评论</button>
+                            <button class="btn ghost" type="button" id="resetCommentBtn">清空</button>
+                        </div>
+                    </form>
+                    <div class="panel">
+                        <h3>评论列表</h3>
+                        <div id="commentList" class="table-wrap" style="margin-top:16px"></div>
+                    </div>
+                </div>
             </section>
 
             <section id="finalTab" class="tab-view hidden">
@@ -621,7 +646,7 @@
     <script>
         const API = window.location.origin;
         const TOKEN_KEY = "lingxun_admin_token";
-        const state = { tab: "gallery", gallery: [], posts: [], bonus: null, schedules: [], socials: [], friends: [] };
+        const state = { tab: "gallery", gallery: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
 
         const $ = (selector) => document.querySelector(selector);
         const loginView = $("#loginView");
@@ -689,6 +714,7 @@
         async function loadAll() {
             if (state.tab === "gallery") await loadGallery();
             if (state.tab === "posts") await loadPosts();
+            if (state.tab === "comments") await loadComments();
             if (state.tab === "bonus") await loadBonus();
             if (state.tab === "final") await loadFinal();
             if (state.tab === "friends") await loadFriends();
@@ -704,6 +730,7 @@
             const titles = {
                 gallery: "画廊<span>管理</span>",
                 posts: "动态<span>编辑</span>",
+                comments: "评论<span>审核</span>",
                 bonus: "Bonus<span>文案</span>",
                 final: "行程<span>联系</span>",
                 friends: "友链<span>管理</span>",
@@ -778,6 +805,50 @@
                                     <div class="actions">
                                         <button class="btn secondary mini" data-post-edit="${post.id}">编辑</button>
                                         <button class="btn danger mini" data-post-delete="${post.id}">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function loadComments() {
+            state.comments = await request("/api/admin/comments", { headers: authHeaders() });
+            renderComments();
+        }
+
+        function renderComments() {
+            const target = $("#commentList");
+            if (!state.comments.length) {
+                target.innerHTML = `<div class="empty">暂无评论</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>Post</th><th>Author</th><th>Content</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        ${state.comments.map((item) => `
+                            <tr>
+                                <td>
+                                    #${escapeHtml(item.post_id)}
+                                    ${item.parent_id ? `<div class="muted">Reply to #${escapeHtml(item.parent_id)}</div>` : ""}
+                                </td>
+                                <td>
+                                    <strong>${escapeHtml(item.author_id)}</strong>
+                                    <div class="muted">${escapeHtml(formatDateTime(item.created_at))}</div>
+                                    <div class="muted">LIKE ${escapeHtml(item.like_count)}</div>
+                                </td>
+                                <td>
+                                    <div style="max-width:360px;white-space:pre-wrap">${escapeHtml(item.content)}</div>
+                                    <div class="muted">${escapeHtml(item.avatar_url || "")}</div>
+                                </td>
+                                <td>${item.is_visible ? "显示" : "隐藏"}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn secondary mini" data-comment-edit="${item.id}">编辑</button>
+                                        <button class="btn danger mini" data-comment-delete="${item.id}">删除</button>
                                     </div>
                                 </td>
                             </tr>
@@ -916,6 +987,30 @@
             form.elements.cover_url.value = post?.cover_url || "";
             form.elements.is_published.checked = post?.is_published ?? true;
             $("#postFormTitle").textContent = post ? "编辑动态" : "新建动态";
+        }
+
+        function fillCommentForm(item) {
+            const form = $("#commentForm");
+            form.elements.id.value = item?.id || "";
+            form.elements.author_id.value = item?.author_id || "";
+            form.elements.avatar_url.value = item?.avatar_url || "";
+            form.elements.content.value = item?.content || "";
+            form.elements.like_count.value = item?.like_count ?? 0;
+            form.elements.is_visible.checked = item?.is_visible ?? true;
+            $("#commentFormTitle").textContent = item ? `编辑评论 #${item.id}` : "编辑评论";
+        }
+
+        function formatDateTime(value) {
+            if (!value) return "";
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleString("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+            });
         }
 
         function fillScheduleForm(item) {
@@ -1104,6 +1199,55 @@
                     await request(`/api/admin/posts/${deleteId}`, { method: "DELETE", headers: authHeaders() });
                     await loadPosts();
                     showStatus("动态已删除");
+                } catch (error) {
+                    showStatus(error.message, true);
+                }
+            }
+        });
+
+        $("#commentForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const id = form.elements.id.value;
+            if (!id) {
+                showStatus("请先从评论列表选择一条评论", true);
+                return;
+            }
+            const payload = {
+                author_id: form.elements.author_id.value,
+                avatar_url: form.elements.avatar_url.value,
+                content: form.elements.content.value,
+                like_count: Number(form.elements.like_count.value || 0),
+                is_visible: form.elements.is_visible.checked,
+            };
+            try {
+                await request(`/api/admin/comments/${id}`, {
+                    method: "PATCH",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                fillCommentForm(null);
+                await loadComments();
+                showStatus("评论已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#resetCommentBtn").addEventListener("click", () => fillCommentForm(null));
+
+        $("#commentList").addEventListener("click", async (event) => {
+            const editId = event.target.dataset.commentEdit;
+            const deleteId = event.target.dataset.commentDelete;
+            if (editId) {
+                fillCommentForm(state.comments.find((item) => String(item.id) === editId));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (deleteId && confirm("确认删除这条评论？如果有回复，也会一起删除。")) {
+                try {
+                    await request(`/api/admin/comments/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadComments();
+                    showStatus("评论已删除");
                 } catch (error) {
                     showStatus(error.message, true);
                 }

@@ -37,18 +37,67 @@ import Layout from '../layouts/Layout.astro';
 
                 <div id="post-content" class="markdown-body"></div>
             </article>
+
+            <section id="comments-section" class="hidden mt-16 border-t border-slate-800 pt-10">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+                    <div>
+                        <div class="text-amber-500 font-mono text-xs tracking-widest mb-2">MESSAGE_CHANNEL</div>
+                        <h2 class="text-2xl font-bold text-white tracking-wide">评论区</h2>
+                    </div>
+                    <div id="comments-count" class="text-slate-500 font-mono text-xs tracking-widest">0 SIGNALS</div>
+                </div>
+
+                <form id="comment-form" class="bg-[#091121]/70 border border-slate-800 p-5 md:p-6 mb-8">
+                    <input type="hidden" name="parent_id" />
+                    <div id="reply-context" class="hidden mb-4 text-xs text-amber-300 font-mono tracking-widest"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <label class="text-xs text-slate-400 font-mono tracking-widest">
+                            留言 ID
+                            <input name="author_id" required maxlength="80" class="mt-2 w-full bg-slate-950/80 border border-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-amber-400" placeholder="你的名字 / ID" />
+                        </label>
+                        <label class="text-xs text-slate-400 font-mono tracking-widest">
+                            头像
+                            <input name="avatar" type="file" accept="image/*" class="mt-2 w-full bg-slate-950/80 border border-slate-800 px-3 py-2.5 text-slate-400 file:mr-3 file:border-0 file:bg-amber-400/10 file:px-3 file:py-1.5 file:text-amber-200" />
+                        </label>
+                    </div>
+                    <label class="text-xs text-slate-400 font-mono tracking-widest">
+                        留言内容
+                        <textarea name="content" required maxlength="1000" class="mt-2 min-h-28 w-full resize-y bg-slate-950/80 border border-slate-800 px-3 py-3 text-slate-100 outline-none focus:border-amber-400" placeholder="写下一条信号..."></textarea>
+                    </label>
+                    <div class="mt-4 flex flex-wrap items-center gap-3">
+                        <button id="comment-submit" type="submit" class="border border-amber-400/50 bg-amber-400/10 px-5 py-2.5 text-amber-200 font-mono text-xs tracking-widest transition hover:border-amber-300 hover:bg-amber-400/20">发送留言</button>
+                        <button id="cancel-reply" type="button" class="hidden border border-slate-700 px-5 py-2.5 text-slate-400 font-mono text-xs tracking-widest transition hover:border-slate-500 hover:text-slate-200">取消回复</button>
+                        <span id="comment-status" class="text-xs text-slate-500 font-mono"></span>
+                    </div>
+                </form>
+
+                <div id="comments-list" class="flex flex-col gap-4"></div>
+            </section>
         </div>
     </main>
 </Layout>
 
 <script>
-    import { fetchPublic, markdownToHtml, toApiUrl, type PublicPost } from '../lib/publicContent';
+    import {
+        escapeHtml,
+        fetchPublic,
+        markdownToHtml,
+        postPublic,
+        submitPublicForm,
+        toApiUrl,
+        type PostComment,
+        type PublicPost,
+    } from '../lib/publicContent';
+
+    let activeSlug = '';
+    let comments: PostComment[] = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
         const slug = new URLSearchParams(window.location.search).get('slug');
         const loading = document.getElementById('dynamic-post-loading');
         const article = document.getElementById('dynamic-post');
         if (!slug || !loading || !article) return;
+        activeSlug = slug;
 
         const post = await fetchPublic<PublicPost>(`/api/public/posts/${encodeURIComponent(slug)}`);
         if (!post) {
@@ -75,11 +124,158 @@ import Layout from '../layouts/Layout.astro';
 
         loading.classList.add('hidden');
         article.classList.remove('hidden');
+
+        const commentsSection = document.getElementById('comments-section');
+        commentsSection?.classList.remove('hidden');
+        setupCommentForm();
+        await loadComments();
     });
 
     function setText(id: string, value: string) {
         const element = document.getElementById(id);
         if (element) element.textContent = value;
+    }
+
+    async function loadComments() {
+        if (!activeSlug) return;
+        comments = await fetchPublic<PostComment[]>(`/api/public/posts/${encodeURIComponent(activeSlug)}/comments`) || [];
+        renderComments();
+    }
+
+    function renderComments() {
+        const list = document.getElementById('comments-list');
+        const count = document.getElementById('comments-count');
+        if (!list) return;
+        if (count) count.textContent = `${comments.length} SIGNALS`;
+
+        const roots = comments.filter((item) => !item.parent_id);
+        if (!roots.length) {
+            list.innerHTML = `<div class="border border-dashed border-slate-800 bg-slate-950/40 p-6 text-center text-slate-500 font-mono text-xs tracking-widest">NO_SIGNAL_YET</div>`;
+            return;
+        }
+
+        list.innerHTML = roots.map((comment) => renderComment(comment, false)).join('');
+        bindCommentActions();
+    }
+
+    function renderComment(comment: PostComment, isReply: boolean) {
+        const replies = comments.filter((item) => item.parent_id === comment.id);
+        const avatar = toApiUrl(comment.avatar_url);
+        return `
+            <div class="${isReply ? 'ml-8 md:ml-14 mt-3' : ''}">
+                <article class="bg-[#091121]/70 border border-slate-800 p-4 md:p-5">
+                    <div class="flex items-start gap-4">
+                        <img src="${escapeHtml(avatar)}" alt="${escapeHtml(comment.author_id)}" class="w-11 h-11 rounded-lg object-cover border border-slate-700 bg-slate-950" loading="lazy" />
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
+                                <span class="text-amber-200 font-bold">${escapeHtml(comment.author_id)}</span>
+                                <time class="text-slate-500 font-mono text-[10px] tracking-widest">${escapeHtml(formatDate(comment.created_at))}</time>
+                            </div>
+                            <div class="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap break-words">${escapeHtml(comment.content)}</div>
+                            <div class="mt-4 flex items-center gap-3 font-mono text-[11px] tracking-widest">
+                                <button type="button" data-like-comment="${comment.id}" class="text-slate-500 hover:text-amber-300 transition">LIKE ${escapeHtml(comment.like_count)}</button>
+                                <button type="button" data-reply-comment="${comment.id}" data-reply-author="${escapeHtml(comment.author_id)}" class="text-slate-500 hover:text-cyan-300 transition">REPLY</button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                ${replies.map((reply) => renderComment(reply, true)).join('')}
+            </div>
+        `;
+    }
+
+    function bindCommentActions() {
+        document.querySelectorAll('[data-like-comment]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const id = (button as HTMLElement).dataset.likeComment;
+                if (!id || !activeSlug) return;
+                const updated = await postPublic<PostComment>(`/api/public/posts/${encodeURIComponent(activeSlug)}/comments/${id}/like`);
+                if (!updated) return;
+                comments = comments.map((item) => item.id === updated.id ? updated : item);
+                renderComments();
+            });
+        });
+
+        document.querySelectorAll('[data-reply-comment]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const target = button as HTMLElement;
+                startReply(target.dataset.replyComment || '', target.dataset.replyAuthor || '');
+            });
+        });
+    }
+
+    function setupCommentForm() {
+        const form = document.getElementById('comment-form') as HTMLFormElement | null;
+        const cancel = document.getElementById('cancel-reply');
+        if (!form) return;
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!activeSlug) return;
+            setCommentStatus('SENDING...');
+            const submit = document.getElementById('comment-submit') as HTMLButtonElement | null;
+            if (submit) submit.disabled = true;
+
+            const data = new FormData(form);
+            const created = await submitPublicForm<PostComment>(`/api/public/posts/${encodeURIComponent(activeSlug)}/comments`, data);
+            if (submit) submit.disabled = false;
+
+            if (!created) {
+                setCommentStatus('SEND_FAILED');
+                return;
+            }
+
+            form.reset();
+            clearReply();
+            setCommentStatus('SIGNAL_ACCEPTED');
+            await loadComments();
+        });
+
+        cancel?.addEventListener('click', clearReply);
+    }
+
+    function startReply(commentId: string, author: string) {
+        const form = document.getElementById('comment-form') as HTMLFormElement | null;
+        const parent = form?.elements.namedItem('parent_id') as HTMLInputElement | null;
+        const context = document.getElementById('reply-context');
+        const cancel = document.getElementById('cancel-reply');
+        const content = form?.elements.namedItem('content') as HTMLTextAreaElement | null;
+        if (parent) parent.value = commentId;
+        if (context) {
+            context.textContent = `REPLY_TO // ${author}`;
+            context.classList.remove('hidden');
+        }
+        cancel?.classList.remove('hidden');
+        content?.focus();
+        form?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function clearReply() {
+        const form = document.getElementById('comment-form') as HTMLFormElement | null;
+        const parent = form?.elements.namedItem('parent_id') as HTMLInputElement | null;
+        const context = document.getElementById('reply-context');
+        const cancel = document.getElementById('cancel-reply');
+        if (parent) parent.value = '';
+        context?.classList.add('hidden');
+        cancel?.classList.add('hidden');
+    }
+
+    function setCommentStatus(value: string) {
+        const status = document.getElementById('comment-status');
+        if (status) status.textContent = value;
+    }
+
+    function formatDate(value: string | null | undefined) {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
     }
 </script>
 

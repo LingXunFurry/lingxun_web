@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -34,6 +34,21 @@ class Post(Base):
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
+class PostComment(Base):
+    __tablename__ = "post_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), index=True, nullable=False)
+    parent_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("post_comments.id", ondelete="CASCADE"), index=True, nullable=True)
+    author_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    avatar_url: Mapped[str] = mapped_column(String(500), default="")
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    like_count: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    is_visible: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
 class BonusContent(Base):
     __tablename__ = "bonus_content"
 
@@ -43,6 +58,15 @@ class BonusContent(Base):
     love_date: Mapped[str] = mapped_column(String(32), default="2026-06-01")
     site_date: Mapped[str] = mapped_column(String(32), default="2026-06-04")
     future_date: Mapped[str] = mapped_column(String(32), default="2026-12-31")
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class SiteStats(Base):
+    __tablename__ = "site_stats"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    visit_count: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+    interaction_count: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 

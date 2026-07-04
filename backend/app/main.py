@@ -10,7 +10,7 @@ from sqlalchemy import select
 
 from .config import settings
 from .database import Base, SessionLocal, engine
-from .models import BonusContent, FriendLink, GalleryPhoto, Post, ScheduleItem, SocialLink
+from .models import BonusContent, FriendLink, GalleryPhoto, Post, ScheduleItem, SiteStats, SocialLink
 from .routers import admin, public
 from .routers.admin import DEFAULT_BONUS_MESSAGE
 
@@ -39,6 +39,9 @@ def create_app() -> FastAPI:
         with SessionLocal() as db:
             if not db.get(BonusContent, 1):
                 db.add(BonusContent(id=1, typewriter_message=DEFAULT_BONUS_MESSAGE))
+                db.commit()
+            if not db.get(SiteStats, 1):
+                db.add(SiteStats(id=1, visit_count=0, interaction_count=0))
                 db.commit()
             if not db.scalar(select(ScheduleItem.id).limit(1)):
                 db.add_all(ScheduleItem(**item) for item in DEFAULT_SCHEDULES)

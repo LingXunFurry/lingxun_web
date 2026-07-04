@@ -70,31 +70,44 @@
         {/* 核心数据网格 */}
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-none lg:flex-1 lg:min-h-0">
             
-            {/* 🔴 [左翼] 访客终端反向侦测雷达 */}
+            {/* 🔴 [左翼] 访客互动统计 */}
             <div class="lg:col-span-3 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.5)]">
-                <div class="bg-slate-900/50 border-b border-cyan-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-cyan-400"># 获取本地数据中...</div>
+                <div class="bg-slate-900/50 border-b border-cyan-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-cyan-400"># VISITOR SIGNAL</div>
                 
-                <div class="p-6 flex flex-col gap-5 h-full justify-center relative font-mono text-xs z-10">
-                    <div class="absolute right-[-20%] top-1/2 -translate-y-1/2 w-48 h-48 border border-cyan-500/10 rounded-full flex items-center justify-center -z-10">
+                <div class="p-6 flex flex-col h-full justify-center relative font-mono text-xs z-10">
+                    <div class="absolute right-[-22%] top-1/2 -translate-y-1/2 w-52 h-52 border border-cyan-500/10 rounded-full flex items-center justify-center -z-10">
                         <div class="w-[80%] h-[80%] border border-cyan-500/20 rounded-full"></div>
                         <div class="absolute w-full h-full bg-[conic-gradient(from_0deg,transparent_70%,rgba(6,182,212,0.15)_100%)] rounded-full animate-[spin_4s_linear_infinite]"></div>
                     </div>
 
-                    <div>
-                        <div class="text-slate-500 text-[9px] mb-1 flex items-center gap-2"><span class="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span> CLIENT_SYSTEM</div>
-                        <div id="telemetry-os" class="text-cyan-300 font-bold tracking-wider">SCANNING...</div>
+                    <div class="relative border-b border-cyan-900/30 pb-6">
+                        <div class="text-slate-500 text-[9px] mb-3 flex items-center gap-2">
+                            <span class="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span>
+                            VISITOR_COUNT
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <span id="bonus-visit-count" class="text-4xl lg:text-5xl font-black text-cyan-200 tracking-tight drop-shadow-[0_0_12px_rgba(103,232,249,0.35)]">--</span>
+                            <span class="pb-2 text-slate-500 text-[10px] tracking-widest">人</span>
+                        </div>
+                        <div class="mt-3 text-slate-500 leading-relaxed">
+                            已记录到访信号
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-slate-500 text-[9px] mb-1">SCREEN_RESOLUTION</div>
-                        <div id="telemetry-res" class="text-cyan-300 tracking-wider">SCANNING...</div>
-                    </div>
-                    <div>
-                        <div class="text-slate-500 text-[9px] mb-1">TIMEZONE_SYNC</div>
-                        <div id="telemetry-tz" class="text-cyan-300 tracking-wider">SCANNING...</div>
-                    </div>
-                    <div>
-                        <div class="text-slate-500 text-[9px] mb-1">LOCAL_MEMORY_HEAP</div>
-                        <div id="telemetry-mem" class="text-cyan-300 tracking-wider">SCANNING...</div>
+
+                    <div class="relative pt-6">
+                        <div class="text-slate-500 text-[9px] mb-3 flex items-center gap-2">
+                            <span class="w-1 h-1 bg-amber-400 rounded-full animate-pulse"></span>
+                            MANUAL_PULSE
+                        </div>
+                        <button id="bonus-interaction-button" type="button" class="group w-full border border-amber-500/40 bg-amber-400/10 px-4 py-3 text-left transition-all duration-300 hover:border-amber-300 hover:bg-amber-400/15 hover:shadow-[0_0_24px_rgba(251,191,36,0.18)] active:scale-[0.98]">
+                            <span class="flex items-center justify-between gap-3">
+                                <span class="text-amber-200 font-bold tracking-widest">SIGNAL PULSE</span>
+                                <span class="text-amber-400 transition-transform duration-300 group-hover:translate-x-1">&gt;</span>
+                            </span>
+                        </button>
+                        <div class="mt-4 text-slate-500 leading-relaxed">
+                            已被按下 <span id="bonus-interaction-count" class="text-amber-300 font-bold">--</span> 次
+                        </div>
                     </div>
                 </div>
             </div>
@@ -221,7 +234,7 @@
 </style>
 
 <script>
-    import { fetchPublic, type BonusContent } from '../lib/publicContent';
+    import { fetchPublic, postPublic, type BonusContent, type SiteStats } from '../lib/publicContent';
 
     document.addEventListener('DOMContentLoaded', () => {
         const eggSection = document.getElementById('easter-egg-section');
@@ -237,6 +250,8 @@
         fetchPublic<BonusContent>('/api/public/bonus').then((content) => {
             bonusContent = content;
         });
+        recordVisit();
+        setupInteractionCounter();
 
         function calculateDates() {
             const now = new Date();
@@ -261,35 +276,63 @@
             fillDate('days-unknown', dates.unknown);
         }
 
-        function scanLocalTelemetry() {
-            const resEl = document.getElementById('telemetry-res');
-            if (resEl) resEl.innerText = `${window.innerWidth} x ${window.innerHeight} PX`;
+        function formatCounter(value: number | null | undefined) {
+            return new Intl.NumberFormat('zh-CN').format(Math.max(0, Number(value || 0)));
+        }
 
-            const tzEl = document.getElementById('telemetry-tz');
-            if (tzEl) tzEl.innerText = Intl.DateTimeFormat().resolvedOptions().timeZone.toUpperCase();
+        function updateStats(stats: SiteStats | null) {
+            if (!stats) return;
 
-            const osEl = document.getElementById('telemetry-os');
-            if (osEl) {
-                const ua = navigator.userAgent;
-                let osName = "UNKNOWN_NODE";
-                if (ua.indexOf("Win") !== -1) osName = "WINDOWS_NT_STATION";
-                if (ua.indexOf("Mac") !== -1) osName = "MACOS_TERMINAL";
-                if (ua.indexOf("Linux") !== -1) osName = "LINUX_KERNEL_NODE";
-                if (ua.indexOf("Android") !== -1) osName = "ANDROID_MOBILE_SYS";
-                if (ua.indexOf("like Mac") !== -1) osName = "IOS_MOBILE_DEVICE";
-                osEl.innerText = osName;
+            const visitEl = document.getElementById('bonus-visit-count');
+            if (visitEl) visitEl.innerText = formatCounter(stats.visit_count);
+
+            const interactionEl = document.getElementById('bonus-interaction-count');
+            if (interactionEl) interactionEl.innerText = formatCounter(stats.interaction_count);
+        }
+
+        async function recordVisit() {
+            const sessionKey = 'lingxun:bonus-visit-recorded';
+            let shouldRecord = true;
+
+            try {
+                shouldRecord = sessionStorage.getItem(sessionKey) !== '1';
+            } catch {
+                shouldRecord = true;
             }
 
-            const memEl = document.getElementById('telemetry-mem');
-            if (memEl) {
-                const performanceMemory = (performance as any).memory;
-                if (performanceMemory) {
-                    const usedMB = Math.round(performanceMemory.usedJSHeapSize / 1024 / 1024);
-                    memEl.innerText = `${usedMB} MB / ${Math.round(performanceMemory.jsHeapSizeLimit / 1024 / 1024)} MB`;
-                } else {
-                    memEl.innerText = "ACCESS_RESTRICTED";
+            const stats = shouldRecord
+                ? await postPublic<SiteStats>('/api/public/stats/visit')
+                : await fetchPublic<SiteStats>('/api/public/stats');
+
+            if (stats && shouldRecord) {
+                try {
+                    sessionStorage.setItem(sessionKey, '1');
+                } catch {
+                    // Some privacy modes block sessionStorage; the counter still works.
                 }
             }
+
+            updateStats(stats);
+        }
+
+        function setupInteractionCounter() {
+            const button = document.getElementById('bonus-interaction-button') as HTMLButtonElement | null;
+            if (!button) return;
+
+            let pending = false;
+            button.addEventListener('click', async () => {
+                if (pending) return;
+                pending = true;
+                button.disabled = true;
+                button.classList.add('opacity-70', 'cursor-wait');
+
+                const stats = await postPublic<SiteStats>('/api/public/stats/interaction');
+                updateStats(stats);
+
+                pending = false;
+                button.disabled = false;
+                button.classList.remove('opacity-70', 'cursor-wait');
+            });
         }
 
         function runTypewriter() {
@@ -326,7 +369,6 @@
             if (hasBooted) {
                 eggLoader.classList.add('opacity-0', 'pointer-events-none');
                 calculateDates();
-                scanLocalTelemetry(); 
                 eggDashboard.classList.remove('opacity-0', 'pointer-events-none');
                 runTypewriter(); 
                 return;
@@ -347,7 +389,6 @@
                     setTimeout(() => {
                         eggLoader.classList.add('opacity-0', 'pointer-events-none');
                         calculateDates();
-                        scanLocalTelemetry(); 
                         eggDashboard.classList.remove('opacity-0', 'pointer-events-none');
                         setTimeout(runTypewriter, 500); 
                     }, 400); 

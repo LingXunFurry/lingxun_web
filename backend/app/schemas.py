@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -66,6 +68,29 @@ class PostOut(BaseModel):
     is_published: bool
 
 
+class PostCommentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    post_id: int
+    parent_id: int | None = None
+    author_id: str
+    avatar_url: str = ""
+    content: str
+    like_count: int = 0
+    is_visible: bool = True
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class PostCommentPatch(BaseModel):
+    author_id: str | None = None
+    avatar_url: str | None = None
+    content: str | None = None
+    like_count: int | None = None
+    is_visible: bool | None = None
+
+
 class BonusContentIn(BaseModel):
     typewriter_message: str = Field(..., min_length=1)
     birthday_date: str = "2005-12-13"
@@ -78,6 +103,13 @@ class BonusContentOut(BonusContentIn):
     model_config = ConfigDict(from_attributes=True)
 
     id: int = 1
+
+
+class SiteStatsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    visit_count: int = 0
+    interaction_count: int = 0
 
 
 class ScheduleItemIn(BaseModel):

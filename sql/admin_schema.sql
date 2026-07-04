@@ -34,6 +34,24 @@ CREATE TABLE IF NOT EXISTS posts (
   INDEX idx_posts_published (is_published)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS post_comments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL,
+  parent_id INT NULL,
+  author_id VARCHAR(80) NOT NULL,
+  avatar_url VARCHAR(500) NOT NULL DEFAULT '',
+  content TEXT NOT NULL,
+  like_count BIGINT NOT NULL DEFAULT 0,
+  is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_comment_post (post_id),
+  INDEX idx_comment_parent (parent_id),
+  INDEX idx_comment_visible (is_visible),
+  CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES post_comments(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS bonus_content (
   id INT PRIMARY KEY DEFAULT 1,
   typewriter_message TEXT NOT NULL,
@@ -59,6 +77,17 @@ INSERT INTO bonus_content (
   '2026-06-04',
   '2026-12-31'
 ) ON DUPLICATE KEY UPDATE id = id;
+
+CREATE TABLE IF NOT EXISTS site_stats (
+  id INT PRIMARY KEY DEFAULT 1,
+  visit_count BIGINT NOT NULL DEFAULT 0,
+  interaction_count BIGINT NOT NULL DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO site_stats (id, visit_count, interaction_count)
+VALUES (1, 0, 0)
+ON DUPLICATE KEY UPDATE id = id;
 
 CREATE TABLE IF NOT EXISTS schedule_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
