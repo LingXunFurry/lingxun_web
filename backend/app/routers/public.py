@@ -1,8 +1,9 @@
 import random
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from ..database import get_db
 from ..models import BonusContent, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteStats, SocialLink
@@ -82,15 +83,23 @@ def list_post_comments(slug: str, db: Session = Depends(get_db)):
 @router.post("/posts/{slug}/comments", response_model=PostCommentOut, status_code=status.HTTP_201_CREATED)
 async def create_post_comment(
     slug: str,
-    author_id: str = Form(...),
-    content: str = Form(...),
-    parent_id: int | None = Form(None),
-    avatar: UploadFile | None = File(None),
+    request: Request,
     db: Session = Depends(get_db),
 ):
     post = db.scalar(select(Post).where(Post.slug == slug, Post.is_published.is_(True)))
     if not post:
         raise HTTPException(status_code=404, detail="动态不存在或未发布。")
+
+    form = await request.form()
+    author_id = str(form.get("author_id") or "")
+    content = str(form.get("content") or "")
+    parent_value = str(form.get("parent_id") or "").strip()
+    parent_id: int | None = None
+    if parent_value:
+        try:
+            parent_id = int(parent_value)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="回复 ID 不正确。") from exc
 
     author_id = author_id.strip()
     content = content.strip()
@@ -108,8 +117,9 @@ async def create_post_comment(
         if not parent or parent.post_id != post.id or not parent.is_visible:
             raise HTTPException(status_code=404, detail="要回复的留言不存在。")
 
+    avatar = form.get("avatar")
     avatar_url = default_avatar_url()
-    if avatar and avatar.filename:
+    if isinstance(avatar, StarletteUploadFile) and avatar.filename:
         avatar_url = await save_image_upload(avatar, "comment_avatars", max_dimension=512, quality=78)
 
     comment = PostComment(
