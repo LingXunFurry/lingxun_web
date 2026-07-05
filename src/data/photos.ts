@@ -1,12 +1,12 @@
 // src/data/photos.ts
 export const galleryPhotos = [
     {
-        src: "/assets/gallery/photo1.jpg",
+        src: "/assets/gallery/photo1.webp",
         alt: "新立绘设定",
         date: "2026.06.01"
     },
     {
-        src: "/assets/gallery/photo2.jpg",
+        src: "/assets/gallery/photo2.webp",
         alt: "冒险者公会场景",
         date: "2026.05.28"
     },
