@@ -520,14 +520,14 @@
         <div class="login-panel">
             <div class="eyebrow">LX Admin</div>
             <h1 class="login-title">CONTROL<span> CORE</span></h1>
-            <form id="loginForm" class="login-form">
+            <form id="loginForm" class="login-form" autocomplete="off">
                 <label>
                     Username
                     <input id="loginUsername" autocomplete="username" placeholder="Admin username" />
                 </label>
                 <label>
                     Password
-                    <input id="loginPassword" type="password" autocomplete="current-password" />
+                    <input id="loginPassword" type="password" autocomplete="new-password" data-1p-ignore="true" data-lpignore="true" />
                 </label>
                 <button class="btn" type="submit">⏎ 登录</button>
             </form>
@@ -744,7 +744,7 @@
                 <form id="passwordForm" class="panel form-grid">
                     <h3>修改后台密码</h3>
                     <label>用户名 <input name="username" autocomplete="username" placeholder="Admin username" required /></label>
-                    <label>旧密码 <input name="current_password" type="password" autocomplete="current-password" required /></label>
+                    <label>旧密码 <input name="current_password" type="password" autocomplete="off" data-1p-ignore="true" data-lpignore="true" required /></label>
                     <div class="two">
                         <label>新密码 <input name="new_password" type="password" autocomplete="new-password" minlength="6" required /></label>
                         <label>确认新密码 <input name="confirm_password" type="password" autocomplete="new-password" minlength="6" required /></label>
@@ -907,11 +907,26 @@
         function showLogin() {
             loginView.classList.remove("hidden");
             appView.classList.add("hidden");
+            clearPasswordFields();
+            window.setTimeout(clearPasswordFields, 150);
+            window.setTimeout(clearPasswordFields, 600);
         }
 
         function showApp() {
             loginView.classList.add("hidden");
             appView.classList.remove("hidden");
+            clearPasswordFields();
+        }
+
+        function clearPasswordFields() {
+            const loginPassword = $("#loginPassword");
+            if (loginPassword) loginPassword.value = "";
+            const passwordForm = $("#passwordForm");
+            if (!passwordForm) return;
+            ["current_password", "new_password", "confirm_password"].forEach((name) => {
+                const field = passwordForm.elements[name];
+                if (field) field.value = "";
+            });
         }
 
         function syncSecurityUsername() {
@@ -1313,6 +1328,7 @@
 
         $("#logoutBtn").addEventListener("click", () => {
             clearSession();
+            clearPasswordFields();
             showLogin();
         });
 
@@ -1539,7 +1555,7 @@
                 form.elements.username.value = currentAdminUsername;
                 clearSession();
                 showLogin();
-                $("#loginPassword").value = "";
+                clearPasswordFields();
                 showStatus("密码已更新，请重新登录");
             } catch (error) {
                 showStatus(error.message, true);
