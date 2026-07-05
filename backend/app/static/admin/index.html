@@ -523,7 +523,7 @@
             <form id="loginForm" class="login-form">
                 <label>
                     Username
-                    <input id="loginUsername" autocomplete="username" value="lingxun" />
+                    <input id="loginUsername" autocomplete="username" placeholder="Admin username" />
                 </label>
                 <label>
                     Password
@@ -617,21 +617,25 @@
                     <h3>Bonus Page</h3>
                     <textarea name="typewriter_message" style="min-height:260px"></textarea>
                     <div class="two">
-                        <label>生日标题 <input name="birthday_title" maxlength="80" placeholder="BIRTHDAY" /></label>
-                        <label>生日日期 <input name="birthday_date" type="date" /></label>
+                        <label>生日英文标题 <input name="birthday_title" maxlength="80" placeholder="BIRTHDAY" /></label>
+                        <label>生日中文标题 <input name="birthday_subtitle" maxlength="80" placeholder="诞生之日" /></label>
                     </div>
+                    <label>生日日期 <input name="birthday_date" type="date" /></label>
                     <div class="two">
-                        <label>恋爱标题 <input name="love_title" maxlength="80" placeholder="FALL_IN_LOVE" /></label>
-                        <label>恋爱日期 <input name="love_date" type="date" /></label>
+                        <label>恋爱英文标题 <input name="love_title" maxlength="80" placeholder="FALL_IN_LOVE" /></label>
+                        <label>恋爱中文标题 <input name="love_subtitle" maxlength="80" placeholder="和小狼恋爱" /></label>
                     </div>
+                    <label>恋爱日期 <input name="love_date" type="date" /></label>
                     <div class="two">
-                        <label>网站标题 <input name="site_title" maxlength="80" placeholder="WEBSITE_BIRTH" /></label>
-                        <label>网站上线 <input name="site_date" type="date" /></label>
+                        <label>网站英文标题 <input name="site_title" maxlength="80" placeholder="WEBSITE_BIRTH" /></label>
+                        <label>网站中文标题 <input name="site_subtitle" maxlength="80" placeholder="网站上线" /></label>
                     </div>
+                    <label>网站上线 <input name="site_date" type="date" /></label>
                     <div class="two">
-                        <label>未来标题 <input name="future_title" maxlength="80" placeholder="FUTURE_X" /></label>
-                        <label>未来节点 <input name="future_date" type="date" /></label>
+                        <label>未来英文标题 <input name="future_title" maxlength="80" placeholder="FUTURE_X" /></label>
+                        <label>未来中文标题 <input name="future_subtitle" maxlength="80" placeholder="观测未定" /></label>
                     </div>
+                    <label>未来节点 <input name="future_date" type="date" /></label>
                     <button class="btn" type="submit">✦ 保存 Bonus</button>
                 </form>
             </section>
@@ -739,7 +743,7 @@
             <section id="securityTab" class="tab-view hidden">
                 <form id="passwordForm" class="panel form-grid">
                     <h3>修改后台密码</h3>
-                    <label>用户名 <input name="username" autocomplete="username" value="lingxun" required /></label>
+                    <label>用户名 <input name="username" autocomplete="username" placeholder="Admin username" required /></label>
                     <label>旧密码 <input name="current_password" type="password" autocomplete="current-password" required /></label>
                     <div class="two">
                         <label>新密码 <input name="new_password" type="password" autocomplete="new-password" minlength="6" required /></label>
@@ -762,6 +766,7 @@
         const state = { tab: "gallery", gallery: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
         let sessionTimer = 0;
         let refreshPromise = null;
+        let currentAdminUsername = "";
 
         const $ = (selector) => document.querySelector(selector);
         const loginView = $("#loginView");
@@ -909,11 +914,20 @@
             appView.classList.remove("hidden");
         }
 
+        function syncSecurityUsername() {
+            const form = $("#passwordForm");
+            if (form && currentAdminUsername) {
+                form.elements.username.value = currentAdminUsername;
+            }
+        }
+
         async function boot() {
             if (!token()) return showLogin();
             scheduleSessionExpiry();
             try {
-                await request("/api/admin/me", { headers: authHeaders() });
+                const me = await request("/api/admin/me", { headers: authHeaders() });
+                currentAdminUsername = me.username || "";
+                syncSecurityUsername();
                 showApp();
                 await loadAll();
             } catch (error) {
@@ -1213,15 +1227,18 @@
 
         function formatDateTime(value) {
             if (!value) return "";
-            const date = new Date(value);
+            const normalized = /([zZ]|[+-]\d{2}:?\d{2})$/.test(value) ? value : `${value}Z`;
+            const date = new Date(normalized);
             if (Number.isNaN(date.getTime())) return value;
-            return date.toLocaleString("zh-CN", {
+            return `${new Intl.DateTimeFormat("zh-CN", {
+                timeZone: "Asia/Shanghai",
                 year: "numeric",
                 month: "2-digit",
                 day: "2-digit",
                 hour: "2-digit",
                 minute: "2-digit",
-            });
+                hour12: false,
+            }).format(date)} BJT`;
         }
 
         function fillScheduleForm(item) {
@@ -1284,6 +1301,8 @@
                     }),
                 });
                 saveSession(data.access_token, data.expires_in);
+                currentAdminUsername = $("#loginUsername").value;
+                syncSecurityUsername();
                 showApp();
                 showStatus("登录成功");
                 await loadAll();
@@ -1471,12 +1490,16 @@
             const payload = {
                 typewriter_message: form.elements.typewriter_message.value,
                 birthday_title: form.elements.birthday_title.value || "BIRTHDAY",
+                birthday_subtitle: form.elements.birthday_subtitle.value || "诞生之日",
                 birthday_date: form.elements.birthday_date.value,
                 love_title: form.elements.love_title.value || "FALL_IN_LOVE",
+                love_subtitle: form.elements.love_subtitle.value || "和小狼恋爱",
                 love_date: form.elements.love_date.value,
                 site_title: form.elements.site_title.value || "WEBSITE_BIRTH",
+                site_subtitle: form.elements.site_subtitle.value || "网站上线",
                 site_date: form.elements.site_date.value,
                 future_title: form.elements.future_title.value || "FUTURE_X",
+                future_subtitle: form.elements.future_subtitle.value || "观测未定",
                 future_date: form.elements.future_date.value,
             };
             try {
@@ -1513,7 +1536,7 @@
                     body: JSON.stringify(payload),
                 });
                 form.reset();
-                form.elements.username.value = $("#loginUsername").value || "lingxun";
+                form.elements.username.value = currentAdminUsername;
                 clearSession();
                 showLogin();
                 $("#loginPassword").value = "";

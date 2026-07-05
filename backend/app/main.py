@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-import shutil
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,10 +13,34 @@ from .auth import ensure_admin_account
 from .models import BonusContent, FriendLink, GalleryPhoto, Post, ScheduleItem, SiteStats, SocialLink
 from .routers import admin, public
 from .routers.admin import DEFAULT_BONUS_MESSAGE
+from .utils import save_optimized_image_content
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Lingxun Website Admin API", version="1.0.0")
+    app = FastAPI(
+        title="Lingxun Website Admin API",
+        version="1.0.0",
+        docs_url=None,
+        redoc_url=None,
+        openapi_url=None,
+    )
+
+    @app.middleware("http")
+    async def add_security_headers(request, call_next):
+        response = await call_next(request)
+        path = request.url.path
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+        if path.startswith("/admin") or path.startswith("/api/admin"):
+            response.headers["Cache-Control"] = "no-store"
+        elif path.startswith("/_astro") or path.startswith("/uploads"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     app.add_middleware(
         CORSMiddleware,
@@ -91,15 +114,19 @@ def ensure_database_schema() -> None:
         return
 
     bonus_columns = {column["name"] for column in inspector.get_columns("bonus_content")}
-    bonus_title_columns = {
+    bonus_text_columns = {
         "birthday_title": "BIRTHDAY",
+        "birthday_subtitle": "诞生之日",
         "love_title": "FALL_IN_LOVE",
+        "love_subtitle": "和小狼恋爱",
         "site_title": "WEBSITE_BIRTH",
+        "site_subtitle": "网站上线",
         "future_title": "FUTURE_X",
+        "future_subtitle": "观测未定",
     }
 
     with engine.begin() as connection:
-        for column_name, default_value in bonus_title_columns.items():
+        for column_name, default_value in bonus_text_columns.items():
             if column_name not in bonus_columns:
                 connection.execute(
                     text(
@@ -147,15 +174,23 @@ def seed_gallery(db) -> None:
     allowed = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
     photos = sorted(path for path in gallery_dir.iterdir() if path.suffix.lower() in allowed)
     for index, source in enumerate(photos, start=1):
-        target_name = f"default-{source.name}"
+        target_name = f"default-{source.stem}.webp"
         target = target_dir / target_name
         if not target.exists():
-            shutil.copy2(source, target)
+            file_url = save_optimized_image_content(
+                source.read_bytes(),
+                source.suffix.lower(),
+                "gallery",
+                max_dimension=1280,
+                quality=76,
+            )
+        else:
+            file_url = f"/uploads/gallery/{target_name}"
         db.add(
             GalleryPhoto(
                 title=source.stem,
                 description="",
-                file_url=f"/uploads/gallery/{target_name}",
+                file_url=file_url,
                 original_filename=source.name,
                 sort_order=index,
                 is_visible=True,

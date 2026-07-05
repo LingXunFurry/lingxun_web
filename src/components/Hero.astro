@@ -1,6 +1,6 @@
 ---
 // Hero.astro 首屏组件
-import { Image } from 'astro:assets'; 
+import { Image } from 'astro:assets';
 
 // =================================================================
 // 1. 全自动读取画廊文件夹
@@ -20,20 +20,23 @@ const heroImages = allGalleryImages.slice(0, 4);
 ---
 
 <section class="snap-start relative w-full h-screen overflow-hidden">
-    
+
     <div id="bg-carousel" class="absolute inset-0 w-full h-full z-0 bg-slate-950">
         {/* 利用遍历动态生成图片标签：
             如果是第一张图 (index === 0)，默认显示 (opacity-100)
             如果是其他图，默认隐藏 (opacity-0)，等待 JS 轮播接管
         */}
         {heroImages.map((img, index) => (
-            <Image 
-                src={img} 
-                alt={`龙宫档案首屏_${index + 1}`} 
-                width={1920} 
-                format="webp" 
-                quality={80} 
-                class={`carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === 0 ? 'opacity-100' : 'opacity-0'}`} 
+            <Image
+                src={img}
+                alt={`龙宫档案首屏_${index + 1}`}
+                width={1920}
+                format="webp"
+                quality={index === 0 ? 78 : 70}
+                loading={index === 0 ? "eager" : "lazy"}
+                decoding="async"
+                fetchpriority={index === 0 ? "high" : "low"}
+                class={`carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === 0 ? 'opacity-100' : 'opacity-0'}`}
             />
         ))}
     </div>
@@ -55,7 +58,7 @@ const heroImages = allGalleryImages.slice(0, 4);
             向下滚动,探索更多
         </p>
     </div>
-    
+
     {/* 向下指引箭头：为了防止 transform 冲突，多包裹一层 div 来施加出场动画 */}
     <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 text-white/70 pointer-events-none">
         <div class="opacity-0 animate-hero-arrow">
@@ -79,14 +82,14 @@ const heroImages = allGalleryImages.slice(0, 4);
                 // 把当前显示的图片透明度设为 0
                 images[currentIndex].classList.remove('opacity-100');
                 images[currentIndex].classList.add('opacity-0');
-                
+
                 // 计算下一张图片的索引（取余保证最后一张之后是第一张，形成循环）
                 currentIndex = (currentIndex + 1) % images.length;
-                
+
                 // 把下一张图片的透明度设为 1
                 images[currentIndex].classList.remove('opacity-0');
                 images[currentIndex].classList.add('opacity-100');
-            }, 5000); 
+            }, 5000);
         }
 
         // 粒子流动算法
@@ -94,10 +97,18 @@ const heroImages = allGalleryImages.slice(0, 4);
         const ctx = canvas.getContext('2d');
         if(!ctx) return;
 
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const lowCoreDevice = (navigator.hardwareConcurrency || 8) <= 4;
+        if (reducedMotion) {
+            canvas.remove();
+            return;
+        }
+
         // 画布尺寸适应浏览器窗口尺寸
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
-    
+
         // 记录鼠标位置,初始情况在屏幕外
         let mouse = { x: -1000, y: -1000 };
 
@@ -175,23 +186,36 @@ const heroImages = allGalleryImages.slice(0, 4);
             }
         }
 
-        // 生成350个粒子
+        // 按设备能力控制粒子数量，低性能手机不再硬扛 350 个粒子。
         let particleArray: Particle[] = [];
-        for (let i = 0; i < 350; i++) {
+        const particleCount = isMobile ? 90 : (lowCoreDevice ? 180 : 300);
+        for (let i = 0; i < particleCount; i++) {
             particleArray.push(new Particle());
         }
 
         // 动画主循环
+        let frameId = 0;
+        let paused = false;
         function animate() {
+            if (paused) return;
             ctx?.clearRect(0, 0, width, height);
 
             for (let i = 0; i < particleArray.length; i++) {
                 particleArray[i].update();
                 particleArray[i].draw();
             }
-            
-            requestAnimationFrame(animate);
+
+            frameId = requestAnimationFrame(animate);
         }
+
+        document.addEventListener('visibilitychange', () => {
+            paused = document.hidden;
+            if (paused) {
+                cancelAnimationFrame(frameId);
+            } else {
+                animate();
+            }
+        });
 
         // 启动程序
         animate();

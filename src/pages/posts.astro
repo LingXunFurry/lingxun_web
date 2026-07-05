@@ -97,7 +97,7 @@ const sortedPosts = allPosts.sort((a, b) => {
 
     function renderPostRow(post: PublicPost) {
         const cover = post.cover_url
-            ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="${escapeHtml(post.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />`
+            ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="${escapeHtml(post.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low" />`
             : `<div class="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_50%_50%,rgba(251,191,36,0.12),transparent_58%),linear-gradient(135deg,rgba(15,23,42,1),rgba(2,6,23,1))]"><span class="text-slate-600 font-mono text-xs tracking-widest">NO_COVER_SIGNAL</span></div>`;
         return `
             <a href="/post/?slug=${encodeURIComponent(post.slug)}" class="group relative block w-full overflow-hidden bg-[#091121]/60 backdrop-blur-md border border-slate-800 rounded-xl transition-all duration-300 hover:border-slate-700 hover:bg-[#0c182e]/80 shadow-lg">

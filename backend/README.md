@@ -14,19 +14,14 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 打开 `http://127.0.0.1:8000/admin`。
 
-默认登录：
-
-- 用户名：`lingxun`
-- 密码：`lxloveshy`
-
-首次启动会自动创建后台账号，并导入现有本地画廊图片、Markdown 动态、默认 Bonus、行程和联系方式。之后后台密码以数据库里的哈希密码为准，可以在后台“安全”页修改。
+首次启动会读取 `ADMIN_USERNAME` 和 `ADMIN_PASSWORD` 创建后台账号，并导入现有本地画廊图片、Markdown 动态、默认 Bonus、行程和联系方式。之后后台密码以数据库里的哈希密码为准，可以在后台“安全”页修改。
 
 如果忘记后台密码，需要通过服务器权限重置，不提供网页找回入口：
 
 ```bash
 cd /home/lingxun/lingxun_web/backend
 source .venv/bin/activate
-python reset_admin_password.py lingxun 新密码
+python reset_admin_password.py <用户名> <新密码>
 sudo systemctl restart lingxun-web.service
 ```
 

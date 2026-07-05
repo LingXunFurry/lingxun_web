@@ -36,12 +36,16 @@ export type PostComment = {
 export type BonusContent = {
     typewriter_message: string;
     birthday_title: string;
+    birthday_subtitle: string;
     birthday_date: string;
     love_title: string;
+    love_subtitle: string;
     love_date: string;
     site_title: string;
+    site_subtitle: string;
     site_date: string;
     future_title: string;
+    future_subtitle: string;
     future_date: string;
 };
 

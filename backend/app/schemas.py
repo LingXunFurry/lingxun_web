@@ -101,12 +101,16 @@ class PostCommentPatch(BaseModel):
 class BonusContentIn(BaseModel):
     typewriter_message: str = Field(..., min_length=1)
     birthday_title: str = "BIRTHDAY"
+    birthday_subtitle: str = "诞生之日"
     birthday_date: str = "2005-12-13"
     love_title: str = "FALL_IN_LOVE"
+    love_subtitle: str = "和小狼恋爱"
     love_date: str = "2026-06-01"
     site_title: str = "WEBSITE_BIRTH"
+    site_subtitle: str = "网站上线"
     site_date: str = "2026-06-04"
     future_title: str = "FUTURE_X"
+    future_subtitle: str = "观测未定"
     future_date: str = "2026-12-31"
 
 

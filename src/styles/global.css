@@ -1,1 +1,39 @@
 @import "tailwindcss";
+
+@media (max-width: 767px), (prefers-reduced-motion: reduce) {
+    .animate-filmstrip,
+    .animate-intro,
+    .animate-ticker,
+    .animate-text-breath,
+    .animate-aurora,
+    .animate-aurora-reverse,
+    .animate-starflow,
+    .animate-starflow-slow,
+    .animate-breath-slow,
+    .animate-breath-slower {
+        animation: none !important;
+    }
+
+    #filmstrip-track {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .group:hover img {
+        transform: none !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

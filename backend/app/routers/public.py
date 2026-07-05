@@ -120,7 +120,7 @@ async def create_post_comment(
     avatar = form.get("avatar")
     avatar_url = default_avatar_url()
     if isinstance(avatar, StarletteUploadFile) and avatar.filename:
-        avatar_url = await save_image_upload(avatar, "comment_avatars", max_dimension=512, quality=78)
+        avatar_url = await save_image_upload(avatar, "comment_avatars", max_dimension=384, quality=72)
 
     comment = PostComment(
         post_id=post.id,

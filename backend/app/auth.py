@@ -55,6 +55,12 @@ def ensure_admin_account(db: Session) -> AdminAccount:
     if account:
         return account
 
+    if not settings.admin_username or not settings.admin_password:
+        raise RuntimeError(
+            "No admin account exists. Set ADMIN_USERNAME and ADMIN_PASSWORD once, "
+            "or run backend/reset_admin_password.py from the server."
+        )
+
     account = AdminAccount(
         username=settings.admin_username,
         password_hash=hash_password(settings.admin_password),

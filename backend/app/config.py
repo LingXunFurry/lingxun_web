@@ -15,8 +15,8 @@ class Settings:
         "DATABASE_URL",
         "mysql+pymysql://root:password@127.0.0.1:3306/lingxun_website?charset=utf8mb4",
     )
-    admin_username: str = os.getenv("ADMIN_USERNAME", "lingxun")
-    admin_password: str = os.getenv("ADMIN_PASSWORD", "lxloveshy")
+    admin_username: str = os.getenv("ADMIN_USERNAME", "")
+    admin_password: str = os.getenv("ADMIN_PASSWORD", "")
     jwt_secret_key: str = os.getenv(
         "JWT_SECRET_KEY",
         "dev-only-lingxun-admin-secret-change-before-deploy",

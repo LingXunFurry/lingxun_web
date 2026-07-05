@@ -72,7 +72,7 @@
             
             {/* 🔴 [左翼] 访客互动统计 */}
             <div class="lg:col-span-3 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.5)]">
-                <div class="bg-slate-900/50 border-b border-cyan-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-cyan-400"># VISITOR SIGNAL</div>
+                <div class="bg-slate-900/50 border-b border-cyan-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-cyan-400"># 访客信号</div>
                 
                 <div class="p-6 flex flex-col h-full justify-center relative font-mono text-xs z-10">
                     <div class="absolute right-[-22%] top-1/2 -translate-y-1/2 w-52 h-52 border border-cyan-500/10 rounded-full flex items-center justify-center -z-10">
@@ -83,7 +83,7 @@
                     <div class="relative border-b border-cyan-900/30 pb-6">
                         <div class="text-slate-500 text-[9px] mb-3 flex items-center gap-2">
                             <span class="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span>
-                            VISITOR_COUNT
+                            到访计数
                         </div>
                         <div class="flex items-end gap-2">
                             <span id="bonus-visit-count" class="text-4xl lg:text-5xl font-black text-cyan-200 tracking-tight drop-shadow-[0_0_12px_rgba(103,232,249,0.35)]">--</span>
@@ -97,11 +97,12 @@
                     <div class="relative pt-6">
                         <div class="text-slate-500 text-[9px] mb-3 flex items-center gap-2">
                             <span class="w-1 h-1 bg-amber-400 rounded-full animate-pulse"></span>
-                            MANUAL_PULSE
+                            手动回应
                         </div>
-                        <button id="bonus-interaction-button" type="button" class="group w-full border border-amber-500/40 bg-amber-400/10 px-4 py-3 text-left transition-all duration-300 hover:border-amber-300 hover:bg-amber-400/15 hover:shadow-[0_0_24px_rgba(251,191,36,0.18)] active:scale-[0.98]">
-                            <span class="flex items-center justify-between gap-3">
-                                <span class="text-amber-200 font-bold tracking-widest">SIGNAL PULSE</span>
+                        <button id="bonus-interaction-button" type="button" class="group relative w-full overflow-hidden border border-amber-500/40 bg-amber-400/10 px-4 py-3 text-left transition-all duration-300 hover:border-amber-300 hover:bg-amber-400/15 hover:shadow-[0_0_24px_rgba(251,191,36,0.18)] active:scale-[0.98]">
+                            <span id="bonus-interaction-flash" class="pointer-events-none absolute inset-0 bg-amber-300/20 opacity-0"></span>
+                            <span class="relative flex items-center justify-between gap-3">
+                                <span class="text-amber-200 font-bold tracking-widest">点亮信号</span>
                                 <span class="text-amber-400 transition-transform duration-300 group-hover:translate-x-1">&gt;</span>
                             </span>
                         </button>
@@ -122,10 +123,10 @@
                 <div class="flex-1 p-6 sm:p-8 flex flex-col justify-center">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 w-full">
                         {[
-                            { id: 'days-birth', titleId: 'days-birth-title', title: 'BIRTHDAY', desc: '诞生之日', color: '#fbbf24' },
-                            { id: 'days-love', titleId: 'days-love-title', title: 'FALL_IN_LOVE', desc: '和小狼恋爱', color: '#f43f5e' },
-                            { id: 'days-site', titleId: 'days-site-title', title: 'WEBSITE_BIRTH', desc: '网站上线', color: '#06b6d4' },
-                            { id: 'days-unknown', titleId: 'days-unknown-title', title: 'FUTURE_X', desc: '观测未定', color: '#10b981' }
+                            { id: 'days-birth', titleId: 'days-birth-title', subtitleId: 'days-birth-subtitle', title: 'BIRTHDAY', desc: '诞生之日', color: '#fbbf24' },
+                            { id: 'days-love', titleId: 'days-love-title', subtitleId: 'days-love-subtitle', title: 'FALL_IN_LOVE', desc: '和小狼恋爱', color: '#f43f5e' },
+                            { id: 'days-site', titleId: 'days-site-title', subtitleId: 'days-site-subtitle', title: 'WEBSITE_BIRTH', desc: '网站上线', color: '#06b6d4' },
+                            { id: 'days-unknown', titleId: 'days-unknown-title', subtitleId: 'days-unknown-subtitle', title: 'FUTURE_X', desc: '观测未定', color: '#10b981' }
                         ].map((item) => (
                             <div 
                                 class="group relative flex flex-col p-5 rounded-xl border border-slate-800/80 bg-slate-900/40 transition-transform duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden"
@@ -140,7 +141,7 @@
                                             <span class="w-1.5 h-1.5 rounded-full transition-shadow duration-300 group-hover:shadow-[0_0_8px_var(--hover-color)]" style="background-color: var(--hover-color);"></span>
                                             <span id={item.titleId}>{item.title}</span>
                                         </div>
-                                        <div class="text-xs text-slate-400 font-sans transition-colors duration-300 group-hover:text-white">{item.desc}</div>
+                                        <div id={item.subtitleId} class="text-xs text-slate-400 font-sans transition-colors duration-300 group-hover:text-white">{item.desc}</div>
                                     </div>
                                     
                                     <div class="flex items-baseline gap-1 text-right">
@@ -231,6 +232,37 @@
         0% { filter: drop-shadow(0 0 2px var(--hover-color)); }
         100% { filter: drop-shadow(0 0 15px var(--hover-color)); }
     }
+
+    @keyframes signalButtonFeedback {
+        0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+        38% { transform: translateY(-1px) scale(1.015); box-shadow: 0 0 28px rgba(251, 191, 36, 0.28); border-color: rgba(251, 191, 36, 0.9); }
+        100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+    }
+
+    @keyframes signalFlash {
+        0% { opacity: 0; transform: translateX(-100%); }
+        42% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(100%); }
+    }
+
+    @keyframes signalCountFeedback {
+        0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0)); }
+        45% { transform: scale(1.22); filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.55)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0)); }
+    }
+
+    #bonus-interaction-button.signal-feedback {
+        animation: signalButtonFeedback 560ms ease-out;
+    }
+
+    #bonus-interaction-button.signal-feedback #bonus-interaction-flash {
+        animation: signalFlash 560ms ease-out;
+    }
+
+    #bonus-interaction-count.signal-feedback {
+        display: inline-block;
+        animation: signalCountFeedback 560ms ease-out;
+    }
 </style>
 
 <script>
@@ -262,9 +294,13 @@
 
         function applyBonusContent() {
             setElementText('days-birth-title', bonusContent?.birthday_title || 'BIRTHDAY');
+            setElementText('days-birth-subtitle', bonusContent?.birthday_subtitle || '诞生之日');
             setElementText('days-love-title', bonusContent?.love_title || 'FALL_IN_LOVE');
+            setElementText('days-love-subtitle', bonusContent?.love_subtitle || '和小狼恋爱');
             setElementText('days-site-title', bonusContent?.site_title || 'WEBSITE_BIRTH');
+            setElementText('days-site-subtitle', bonusContent?.site_subtitle || '网站上线');
             setElementText('days-unknown-title', bonusContent?.future_title || 'FUTURE_X');
+            setElementText('days-unknown-subtitle', bonusContent?.future_subtitle || '观测未定');
         }
 
         function calculateDates() {
@@ -304,6 +340,19 @@
             if (interactionEl) interactionEl.innerText = formatCounter(stats.interaction_count);
         }
 
+        function playInteractionFeedback() {
+            const button = document.getElementById('bonus-interaction-button');
+            const interactionEl = document.getElementById('bonus-interaction-count');
+            [button, interactionEl].forEach((element) => element?.classList.remove('signal-feedback'));
+            void button?.offsetWidth;
+            button?.classList.add('signal-feedback');
+            interactionEl?.classList.add('signal-feedback');
+            window.setTimeout(() => {
+                button?.classList.remove('signal-feedback');
+                interactionEl?.classList.remove('signal-feedback');
+            }, 620);
+        }
+
         async function recordVisit() {
             const sessionKey = 'lingxun:bonus-visit-recorded';
             let shouldRecord = true;
@@ -338,6 +387,7 @@
                 if (pending) return;
                 pending = true;
                 button.disabled = true;
+                playInteractionFeedback();
                 button.classList.add('opacity-70', 'cursor-wait');
 
                 const stats = await postPublic<SiteStats>('/api/public/stats/interaction');

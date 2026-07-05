@@ -32,7 +32,7 @@ import Layout from '../layouts/Layout.astro';
                 </header>
 
                 <div id="post-cover-wrap" class="hidden mb-12 rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
-                    <img id="post-cover" class="w-full max-h-[460px] object-cover" alt="" />
+                    <img id="post-cover" class="w-full max-h-[460px] object-cover" alt="" loading="lazy" decoding="async" />
                 </div>
 
                 <div id="post-content" class="markdown-body"></div>
@@ -50,6 +50,9 @@ import Layout from '../layouts/Layout.astro';
                 <form id="comment-form" class="bg-[#091121]/70 border border-slate-800 p-5 md:p-6 mb-8">
                     <input type="hidden" name="parent_id" />
                     <div id="reply-context" class="hidden mb-4 text-xs text-amber-300 font-mono tracking-widest"></div>
+                    <p class="mb-5 border border-cyan-400/20 bg-cyan-400/5 px-4 py-3 text-xs leading-relaxed text-cyan-100/80">
+                        请友善发言，尊重彼此；评论中禁止发布色情、暴力、血腥或其他令人不适的内容。
+                    </p>
                     <div class="mb-4">
                         <label class="text-xs text-slate-400 font-mono tracking-widest">
                             留言 ID
@@ -259,15 +262,18 @@ import Layout from '../layouts/Layout.astro';
 
     function formatDate(value: string | null | undefined) {
         if (!value) return '';
-        const date = new Date(value);
+        const normalized = /([zZ]|[+-]\d{2}:?\d{2})$/.test(value) ? value : `${value}Z`;
+        const date = new Date(normalized);
         if (Number.isNaN(date.getTime())) return value;
-        return date.toLocaleString('zh-CN', {
+        return `${new Intl.DateTimeFormat('zh-CN', {
+            timeZone: 'Asia/Shanghai',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
             minute: '2-digit',
-        });
+            hour12: false,
+        }).format(date)} BJT`;
     }
 </script>
 

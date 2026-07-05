@@ -87,7 +87,7 @@ const friendsData = [
                                 <div style="width: 52px; height: 52px;" class="relative flex-shrink-0">
                                     <div class="absolute -inset-1 border border-dashed border-slate-600 rounded-lg group-hover:animate-spin-slow group-hover:border-amber-500/50 transition-colors opacity-0 group-hover:opacity-100"></div>
                                     <div class="w-full h-full rounded-lg overflow-hidden border border-slate-600 bg-[#050b14] relative z-10 group-hover:border-amber-400/50 transition-colors flex items-center justify-center shadow-lg">
-                                        <img src={friend.avatar} alt={friend.id} class="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" />
+                                        <img src={friend.avatar} alt={friend.id} class="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />
                                     </div>
                                 </div>
 
@@ -152,7 +152,7 @@ const friendsData = [
         const tag = friend.url ? 'a' : 'div';
         const attrs = friend.url ? `href="${escapeHtml(friend.url)}" target="_blank" rel="noopener noreferrer"` : '';
         const avatar = friend.avatar_url
-            ? `<img src="${escapeHtml(friend.avatar_url)}" alt="${escapeHtml(friend.display_id)}" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" />`
+            ? `<img src="${escapeHtml(friend.avatar_url)}" alt="${escapeHtml(friend.display_id)}" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" />`
             : `<span class="text-lg font-black text-slate-500 group-hover:text-amber-400 transition-colors">${escapeHtml(friend.display_id.slice(0, 1) || '?')}</span>`;
 
         return `

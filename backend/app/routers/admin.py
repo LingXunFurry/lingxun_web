@@ -102,7 +102,7 @@ async def create_gallery_photo(
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    file_url = await save_image_upload(file, "gallery")
+    file_url = await save_image_upload(file, "gallery", max_dimension=1280, quality=76)
     photo = GalleryPhoto(
         title=title,
         description=description,
@@ -201,7 +201,7 @@ async def upload_post_cover(
     file: UploadFile = File(...),
     _: str = Depends(require_admin),
 ):
-    return {"file_url": await save_image_upload(file, "post_covers")}
+    return {"file_url": await save_image_upload(file, "post_covers", max_dimension=1280, quality=76)}
 
 
 @router.get("/comments", response_model=list[PostCommentOut])
