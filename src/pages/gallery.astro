@@ -1,436 +1,413 @@
 ---
-// src/pages/gallery.astro
 import Layout from '../layouts/Layout.astro';
-import { Image } from 'astro:assets'; 
+import { Image } from 'astro:assets';
+import settingOne from '../assets/setting/Image_1774261272205_454.png';
+import settingTwo from '../assets/setting/Image_1777968000555_846.png';
+import { galleryCategories, galleryPhotos } from '../data/photos';
 
-// =================================================================
-// 1. 【全自动引擎】：读取所有本地相册资产
-// =================================================================
-const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/gallery/*.{jpeg,jpg,png,PNG,webp}');
-const imagePaths = Object.values(images);
-
-const galleryImages = await Promise.all(imagePaths.map(async (img) => {
-    const data = await img();
-    return data.default;
-}));
-
-// =================================================================
-// 2. 【自动发牌器 v2.0】：带高度保底的循环洗牌算法
-// =================================================================
-const col1 = [];
-const col2 = [];
-const col3 = [];
-const col4 = [];
-
-const minItemsPerColumn = 5;
-const totalNeeded = Math.max(galleryImages.length, minItemsPerColumn * 4);
-
-for (let i = 0; i < totalNeeded; i++) {
-    const img = galleryImages[i % galleryImages.length]; 
-    if (i % 4 === 0) col1.push(img);
-    else if (i % 4 === 1) col2.push(img);
-    else if (i % 4 === 2) col3.push(img);
-    else col4.push(img);
-}
-// =================================================================
+const localImages = import.meta.glob<{ default: ImageMetadata }>('/src/assets/gallery/*.{jpeg,jpg,png,PNG,webp}', { eager: true });
+const settingImages: Record<string, ImageMetadata> = {
+    'Image_1774261272205_454.png': settingOne,
+    'Image_1777968000555_846.png': settingTwo,
+};
+const localEntries = galleryPhotos.flatMap((meta) => {
+    const image = settingImages[meta.src] ?? localImages[`/src/assets/gallery/${meta.src}`]?.default;
+    return image ? [{ ...meta, image }] : [];
+});
+const filters = [...galleryCategories, '后台档案'];
 ---
 
-<Layout title="视觉画廊 | 凌巽的龙宫">
-    
-    <main style="padding-top: 140px;" class="relative min-h-screen bg-[#050b14] overflow-hidden z-0 flex flex-col pb-12">
-        
-        {/* ========================================================= */}
-        {/* 【画廊专用 - 光学镜头 (Cinematic Lens)】电影级纯享背景 */}
-        {/* ========================================================= */}
-        {/* 修复：使用 100dvh 锁定动态视口，彻底解决手机端高度乱跑问题 */}
-        <div class="fixed top-0 left-0 w-full h-[100dvh] z-0 pointer-events-none overflow-hidden bg-[#050505]">
-            
-            {/* 1. 光漏效果 (Light Leaks) - 修复：改用固定的超大 px 像素值，确保在手机端绝对可见且不会缩水 */}
-            <div class="absolute top-[-10%] left-[-20%] w-[600px] h-[600px] md:w-[1000px] md:h-[1000px] bg-red-700/10 rounded-full blur-[100px] mix-blend-screen animate-lens-drift"></div>
-            <div class="absolute bottom-[-10%] right-[-20%] w-[500px] h-[500px] md:w-[900px] md:h-[900px] bg-cyan-700/10 rounded-full blur-[100px] mix-blend-screen animate-lens-drift-reverse"></div>
+<Layout title="旅途留影 | 凌巽的酒馆" titleKey="site.gallery_title">
+    <main class="gallery-page" aria-labelledby="gallery-title">
+        <header class="site-container gallery-page__header" data-reveal>
+            <div class="eyebrow">旅途留影 / Visual Archive</div>
+            <div class="gallery-page__heading">
+                <div>
+                    <h1 id="gallery-title" class="section-title">照片墙上的<em>旅途</em></h1>
+                    <p class="section-copy">这里保存实拍、活动记录、装备和设定档案。选择一个类别，或打开照片查看完整记录。</p>
+                </div>
+                <div class="gallery-page__index"><span class="meta">ARCHIVE</span><strong id="gallery-count">{localEntries.length}</strong><span class="meta">张记录</span></div>
+            </div>
+        </header>
 
-            {/* 2. 电影胶片噪点 (Film Grain) */}
-            <div class="absolute inset-0 opacity-[0.08] mix-blend-overlay" style="background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');"></div>
-
-            {/* 3. 极致暗角 (Heavy Vignette) - 聚拢视觉中心 */}
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_120%)]"></div>
+        <div class="site-container gallery-page__filters" data-reveal style="--reveal-delay: 100ms">
+            <div class="gallery-filter-list" role="group" aria-label="画廊类别筛选">
+                {filters.map((filter) => (
+                    <button type="button" class={`gallery-filter ${filter === '全部' ? 'is-active' : ''}`} data-filter={filter} aria-pressed={filter === '全部'}>{filter}</button>
+                ))}
+            </div>
+            <div id="gallery-character-filters" class="gallery-character-filters hidden" role="group" aria-label="按角色筛选"></div>
         </div>
-        {/* ========================================================= */}
 
-        {/* ========================================================= */}
-        {/* 【单反级 HUD 取景框】 - 纯净自检版：全角顺时针显影，移除中央遮挡 */}
-        {/* ========================================================= */}
-        <div class="fixed inset-0 z-20 pointer-events-none pt-24 pb-6 px-4 md:pt-32 md:pb-10 md:px-10">
-            <div class="relative w-full h-full">
-
-                {/* --- 1. 左上角：系统挂载 (延迟 0.2s 开始) --- */}
-                <div class="absolute top-0 left-0 w-8 h-8 md:w-16 md:h-16 border-t-[1.5px] border-l-[1.5px] border-slate-300/50"></div>
-                <div class="absolute top-3 left-4 md:top-6 md:left-6 font-mono text-[10px] md:text-xs text-slate-300 tracking-widest flex flex-col gap-1 drop-shadow-md">
-                    <span class="text-red-500 flex items-center gap-1.5 mb-1 animate-hud-reveal" style="animation-delay: 0.2s;">
-                        <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></span> REC
-                    </span>
-                    <span class="animate-hud-reveal" style="animation-delay: 0.3s;">35MM LENS</span>
-                    <span class="animate-hud-reveal" style="animation-delay: 0.4s;">F/1.4</span>
-                </div>
-
-                {/* --- 2. 右上角：环境参数测定 (延迟 0.6s 开始) --- */}
-                <div class="absolute top-0 right-0 w-8 h-8 md:w-16 md:h-16 border-t-[1.5px] border-r-[1.5px] border-slate-300/50"></div>
-                <div class="absolute top-3 right-4 md:top-6 md:right-6 font-mono text-[10px] md:text-xs text-slate-300 tracking-widest text-right flex flex-col gap-1 drop-shadow-md">
-                    <span class="flex items-center justify-end gap-1.5 mb-1 animate-hud-reveal" style="animation-delay: 0.6s;">
-                        BAT <div class="w-4 h-2 md:w-5 md:h-2.5 border border-slate-300/80 p-[1px]"><div class="w-[80%] h-full bg-slate-300/80"></div></div>
-                    </span>
-                    <span class="animate-hud-reveal" style="animation-delay: 0.7s;">ISO_100</span>
-                    <span class="animate-hud-reveal" style="animation-delay: 0.8s;">EXP +0.3</span>
-                </div>
-
-                {/* --- 3. 左下角：档案读取 (延迟 1.0s 开始) --- */}
-                <div class="absolute bottom-0 left-0 w-8 h-8 md:w-16 md:h-16 border-b-[1.5px] border-l-[1.5px] border-slate-300/50"></div>
-                <div class="absolute bottom-3 left-4 md:bottom-6 md:left-6 font-mono text-[10px] md:text-xs text-slate-300 tracking-widest flex flex-col gap-1 drop-shadow-md">
-                    <span class="animate-hud-reveal" style="animation-delay: 1.0s;">RAW+JPEG</span>
-                    <span class="text-slate-400 animate-hud-reveal" style="animation-delay: 1.1s;">ARCHIVE_NO.042</span>
-                </div>
-
-                {/* --- 4. 右下角：焦点锁定确认 (延迟 1.3s 开始) --- */}
-                <div class="absolute bottom-0 right-0 w-8 h-8 md:w-16 md:h-16 border-b-[1.5px] border-r-[1.5px] border-slate-300/50"></div>
-                <div class="absolute bottom-3 right-4 md:bottom-6 md:right-6 font-mono text-[10px] md:text-xs text-slate-300 tracking-widest text-right flex flex-col gap-1 drop-shadow-md">
-                    <span class="animate-hud-reveal" style="animation-delay: 1.3s;">AF-S / WIDE</span>
-                    <span class="text-emerald-400/90 font-bold animate-hud-reveal" style="animation-delay: 1.4s;">FOCUS LOCKED</span>
-                </div>
-
-                {/* 中央的辅助线和十字对焦框已彻底粉碎，把视觉中心 100% 还给照片 */}
-
-            </div>
-        </div>
-        {/* ========================================================= */}
-
-        <div class="container mx-auto px-6 max-w-7xl relative z-10 flex flex-col h-full">
-            <div class="mb-10 text-center flex flex-col items-center flex-shrink-0">
-                <div class="flex items-center gap-4 mb-4">
-                    <span class="w-8 h-[2px] bg-amber-500"></span>
-                    <span class="text-slate-400 font-mono text-xs tracking-widest uppercase bg-slate-900 px-3 py-1 border border-slate-800 shadow-[0_0_15px_rgba(251,191,36,0.15)]">Visual Archive</span>
-                    <span class="w-8 h-[2px] bg-amber-500"></span>
-                </div>
-                <h1 class="text-4xl md:text-5xl font-bold text-white tracking-wider mb-6 drop-shadow-lg">
-                    视觉 <span class="text-slate-500 font-light">画廊</span>
-                </h1>
-                <p class="text-slate-400 font-light max-w-xl text-xs md:text-sm leading-relaxed tracking-wide">
-                    在这里，时间被切片，记忆被定格为像素。所有的旅途碎片，都在这条数据传送带上无尽循环。
-                </p>
-            </div>
-
-            <div class="w-full h-[55vh] lg:h-[65vh] relative overflow-hidden [mask-image:linear-gradient(to_bottom,black_90%,transparent_100%)]">
-                <div class="absolute inset-0 grid grid-cols-2 lg:grid-cols-4 gap-6 px-2">
-                    <div class="group h-full relative overflow-hidden">
-                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 25s;">
-                            {col1.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                            {col1.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_Clone_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
+        <section class="site-container gallery-page__content" aria-live="polite">
+            <div id="gallery-grid" class="gallery-grid" data-reveal style="--reveal-delay: 160ms">
+                {localEntries.map((entry, index) => (
+                    <article class="gallery-card paper-card" data-gallery-item data-index={index} data-category={entry.category} data-character-ids={(entry.character_ids ?? []).join(',')} data-src={entry.image.src} data-title={entry.title} data-date={entry.date ?? ''} data-location={entry.location ?? ''} data-description={entry.description ?? ''}>
+                        <button type="button" class="gallery-card__button" data-gallery-trigger data-index={index} aria-label={`打开${entry.title}`}>
+                            <Image src={entry.image} alt={entry.title} loading="lazy" decoding="async" />
+                            <span class="gallery-card__open" aria-hidden="true">打开记录 ↗</span>
+                        </button>
+                        <div class="gallery-card__details">
+                            <div class="gallery-card__line"><span class="tag">{entry.category}</span><span class="meta">{String(index + 1).padStart(2, '0')}</span></div>
+                            <h2>{entry.title}</h2>
+                            <p>{entry.location ?? '凌巽的旅途'}</p>
                         </div>
-                    </div>
-                    <div class="group h-full relative overflow-hidden">
-                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 35s; transform: translateY(-15%);">
-                            {col2.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                            {col2.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_Clone_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                        </div>
-                    </div>
-                    <div class="group h-full relative overflow-hidden hidden lg:block">
-                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 40s;">
-                            {col3.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                            {col3.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_Clone_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                        </div>
-                    </div>
-                    <div class="group h-full relative overflow-hidden hidden lg:block">
-                        <div class="animate-conveyor flex flex-col gap-6" style="animation-duration: 22s; transform: translateY(-10%);">
-                            {col4.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                            {col4.map((img, index) => (<div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video"><Image src={img} alt={`Archive_Clone_${index}`} class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" /></div>))}
-                        </div>
-                    </div>
-                </div>
+                    </article>
+                ))}
             </div>
+            <div id="gallery-loading" class="gallery-state hidden">正在整理照片……</div>
+            <div id="gallery-empty" class="gallery-state hidden">这个分类暂时没有照片记录。</div>
+        </section>
 
-            <div class="mt-8 flex justify-center z-20">
-                <a href="/#" class="group flex items-center gap-2 text-slate-500 hover:text-amber-400 transition-colors font-mono tracking-widest text-xs">
-                    <span class="transform rotate-180 inline-block group-hover:-translate-x-1 transition-transform">&gt;</span>
-                    RETURN_TO_MAIN_TERMINAL
-                </a>
-            </div>
+        <div class="site-container gallery-page__footer" data-reveal style="--reveal-delay: 220ms">
+            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回酒馆入口</a>
+            <span class="meta">PHOTO WALL / 旅途档案持续整理</span>
         </div>
     </main>
 
-    <div id="lightbox-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-50 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-500">
-        
-        <canvas id="lightbox-particles" class="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-60"></canvas>
-
-        <div class="absolute top-6 right-6 flex items-center gap-4 z-50">
-            <button id="modal-download" class="group flex items-center gap-2 text-amber-400/80 hover:text-amber-400 font-mono text-sm transition-all px-4 py-2 bg-slate-900/50 rounded-lg border border-amber-500/30 hover:border-amber-400 shadow-[0_0_10px_rgba(251,191,36,0)] hover:shadow-[0_0_15px_rgba(251,191,36,0.3)]">
-                <svg class="w-4 h-4 transform group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                // SAVE
-            </button>
-            <button id="modal-close" class="text-slate-400 hover:text-white font-mono text-sm transition-colors px-4 py-2 bg-slate-900/50 rounded-lg border border-slate-800">
-                // CLOSE ×
-            </button>
+    <div id="lightbox-modal" class="lightbox-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="lightbox-modal__backdrop" data-modal-close></div>
+        <div class="lightbox-modal__panel">
+            <div class="lightbox-modal__toolbar">
+                <div><span class="meta">PHOTO RECORD</span><span id="modal-position" class="lightbox-modal__position">01 / 01</span></div>
+                <div class="lightbox-modal__actions">
+                    <button id="modal-download" class="button button--accent" type="button">保存 <span aria-hidden="true">↓</span></button>
+                    <button id="modal-zoom" class="button" type="button" aria-pressed="false">缩放</button>
+                    <button id="modal-close" class="button" type="button" aria-label="关闭照片详情">关闭 <span aria-hidden="true">×</span></button>
+                </div>
+            </div>
+            <div class="lightbox-modal__body">
+                <button id="modal-prev" class="lightbox-modal__nav" type="button" aria-label="上一张照片">←</button>
+                <div class="lightbox-modal__stage">
+                    <div id="modal-status" class="lightbox-modal__status" role="status">正在加载照片……</div>
+                    <img id="modal-img" src="" alt="" />
+                </div>
+                <button id="modal-next" class="lightbox-modal__nav" type="button" aria-label="下一张照片">→</button>
+            </div>
+            <div class="lightbox-modal__info">
+                <div><span id="modal-category" class="tag"></span><h2 id="modal-title"></h2><p id="modal-description"></p></div>
+                <dl><div><dt>日期</dt><dd id="modal-date">-</dd></div><div><dt>地点</dt><dd id="modal-location">-</dd></div></dl>
+            </div>
+            <div id="modal-thumbs" class="lightbox-modal__thumbs" aria-label="照片缩略图导航"></div>
         </div>
-
-        <div class="relative z-10 max-w-[90vw] max-h-[85vh] rounded-xl border border-amber-500/30 bg-slate-950 animate-breath-glow">
-            <img id="modal-img" src="" alt="Enlarged Archive" class="w-full h-full object-contain max-h-[85vh] rounded-xl transform scale-95 transition-transform duration-500 ease-out" />
-        </div>
-
     </div>
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, toApiUrl, type CharacterProfile, type GalleryPhoto } from '../lib/publicContent';
+    import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const initGalleryPage = async () => {
+        const grid = document.getElementById('gallery-grid');
         const modal = document.getElementById('lightbox-modal');
-        const modalImg = document.getElementById('modal-img') as HTMLImageElement;
-        const closeBtn = document.getElementById('modal-close');
-        const downloadBtn = document.getElementById('modal-download');
-        appendBackendGalleryColumns();
-        
-        // -------------------------------------------------------------
-        // 按需渲染粒子系统
-        // -------------------------------------------------------------
-        const canvas = document.getElementById('lightbox-particles') as HTMLCanvasElement;
-        const ctx = canvas?.getContext('2d');
-        let particleAnimationId: number;
-        let particles: Array<{x: number, y: number, size: number, speedY: number, alpha: number}> = [];
+        const modalImg = document.getElementById('modal-img') as HTMLImageElement | null;
+        const modalStatus = document.getElementById('modal-status');
+        const modalTitle = document.getElementById('modal-title');
+        const modalCategory = document.getElementById('modal-category');
+        const modalDescription = document.getElementById('modal-description');
+        const modalDate = document.getElementById('modal-date');
+        const modalLocation = document.getElementById('modal-location');
+        const modalPosition = document.getElementById('modal-position');
+        const modalThumbs = document.getElementById('modal-thumbs');
+        const count = document.getElementById('gallery-count');
+        const empty = document.getElementById('gallery-empty');
+        const zoomButton = document.getElementById('modal-zoom');
+        const downloadButton = document.getElementById('modal-download');
+        const closeButton = document.getElementById('modal-close');
+        const previousButton = document.getElementById('modal-prev');
+        const nextButton = document.getElementById('modal-next');
+        if (!grid || !modal || !modalImg) return;
 
-        function initParticles() {
-            if (!ctx) return;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            particles = [];
-            for (let i = 0; i < 80; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2 + 0.5,
-                    speedY: Math.random() * 0.5 + 0.1,
-                    alpha: Math.random() * 0.5 + 0.1
+        const state: { items: GalleryItem[]; visible: GalleryItem[]; current: number; filter: string; characterFilter: number[]; lastTrigger: HTMLElement | null } = {
+            items: readLocalItems(), visible: [], current: 0, filter: '全部', characterFilter: [], lastTrigger: null,
+        };
+
+        type GalleryItem = { src: string; title: string; category: string; date: string; location: string; description: string; character_ids: number[] };
+
+        function readLocalItems(): GalleryItem[] {
+            return Array.from(grid.querySelectorAll<HTMLElement>('[data-gallery-item]')).map((item) => ({
+                src: item.dataset.src || '', title: item.dataset.title || '旅途留影', category: item.dataset.category || '未分类', date: item.dataset.date || '', location: item.dataset.location || '', description: item.dataset.description || '', character_ids: (item.dataset.characterIds || '').split(',').map(Number).filter(Boolean),
+            })).filter((item) => item.src);
+        }
+
+        function renderGrid() {
+            state.visible = state.items.map((item, index) => ({ ...item, _index: index } as GalleryItem & { _index: number })).filter((item) => (state.filter === '全部' || item.category === state.filter) && (!state.characterFilter.length || state.characterFilter.some((id) => item.character_ids.includes(id))));
+            grid.innerHTML = state.visible.map((item) => `
+                <article class="gallery-card paper-card" data-gallery-item data-index="${item._index}">
+                    <button type="button" class="gallery-card__button" data-gallery-trigger data-index="${item._index}" aria-label="${escapeHtml(siteFormat('gallery.open_label', '打开{title}', { title: item.title }))}">
+                        <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" />
+                        <span class="gallery-card__open" aria-hidden="true">打开记录 ↗</span>
+                    </button>
+                    <div class="gallery-card__details"><div class="gallery-card__line"><span class="tag">${escapeHtml(item.category)}</span><span class="meta">${String(item._index + 1).padStart(2, '0')}</span></div><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.location || '凌巽的旅途')}</p></div>
+                </article>
+            `).join('');
+            empty?.classList.toggle('hidden', state.visible.length > 0);
+            if (count) count.textContent = String(state.visible.length);
+            grid.querySelectorAll('img').forEach((image) => image.addEventListener('error', () => image.closest('.gallery-card')?.classList.add('is-error')));
+        }
+
+        function updateFilter(filter: string) {
+            state.filter = filter;
+            document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((button) => {
+                const active = button.dataset.filter === filter;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', String(active));
+            });
+            renderGrid();
+        }
+
+        function renderCharacterFilters(characters: CharacterProfile[]) {
+            const target = document.getElementById('gallery-character-filters');
+            if (!target || !characters.length) return;
+            target.classList.remove('hidden');
+            target.innerHTML = `<span class="gallery-character-label">角色</span><button type="button" class="gallery-filter gallery-character-filter is-active" data-character-filter="all" aria-pressed="true">全部角色</button>${characters.map((item) => `<button type="button" class="gallery-filter gallery-character-filter" data-character-filter="${item.id}" aria-pressed="false">${escapeHtml(item.name)}</button>`).join('')}`;
+            target.querySelectorAll<HTMLButtonElement>('[data-character-filter]').forEach((button) => button.addEventListener('click', () => {
+                const value = button.dataset.characterFilter || 'all';
+                if (value === 'all') state.characterFilter = [];
+                else {
+                    const id = Number(value);
+                    state.characterFilter = state.characterFilter.includes(id) ? state.characterFilter.filter((item) => item !== id) : [...state.characterFilter, id];
+                }
+                target.querySelectorAll<HTMLButtonElement>('[data-character-filter]').forEach((item) => {
+                    const active = item.dataset.characterFilter === 'all' ? state.characterFilter.length === 0 : state.characterFilter.includes(Number(item.dataset.characterFilter));
+                    item.classList.toggle('is-active', active);
+                    item.setAttribute('aria-pressed', String(active));
                 });
+                renderGrid();
+            }));
+        }
+
+        function currentVisiblePosition() {
+            return Math.max(0, state.visible.findIndex((item) => (item as GalleryItem & { _index?: number })._index === state.current));
+        }
+
+        function openLightbox(index: number, trigger: HTMLElement | null = null) {
+            state.current = index;
+            state.lastTrigger = trigger;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            zoomButton?.classList.remove('is-active');
+            zoomButton?.setAttribute('aria-pressed', 'false');
+            modalImg.classList.remove('is-zoomed');
+            updateModal();
+            closeButton?.focus();
+        }
+
+        function updateModal() {
+            const item = state.items[state.current];
+            if (!item) return;
+            modalImg.classList.remove('is-zoomed');
+            zoomButton?.classList.remove('is-active');
+            zoomButton?.setAttribute('aria-pressed', 'false');
+            modalImg.classList.remove('is-loaded', 'is-error');
+            modalStatus?.classList.remove('is-hidden');
+            if (modalStatus) modalStatus.textContent = siteText('gallery.image_loading', '正在加载照片……');
+            modalImg.src = item.src;
+            modalImg.alt = item.title;
+            if (modalTitle) modalTitle.textContent = item.title;
+            if (modalCategory) modalCategory.textContent = item.category;
+            if (modalDescription) modalDescription.textContent = item.description;
+            if (modalDate) modalDate.textContent = item.date || '-';
+            if (modalLocation) modalLocation.textContent = item.location || '-';
+            if (modalPosition) modalPosition.textContent = `${String(currentVisiblePosition() + 1).padStart(2, '0')} / ${String(state.visible.length).padStart(2, '0')}`;
+            renderThumbs();
+            preloadAround();
+        }
+
+        function renderThumbs() {
+            if (!modalThumbs) return;
+            modalThumbs.innerHTML = state.visible.map((item) => {
+                const originalIndex = (item as GalleryItem & { _index?: number })._index ?? state.items.indexOf(item);
+                return `<button type="button" class="lightbox-modal__thumb ${originalIndex === state.current ? 'is-active' : ''}" data-thumb-index="${originalIndex}" aria-label="${escapeHtml(siteFormat('gallery.thumb_label', '查看{title}', { title: item.title }))}"><img src="${escapeHtml(item.src)}" alt="" loading="lazy" /></button>`;
+            }).join('');
+        }
+
+        function preloadAround() {
+            const position = currentVisiblePosition();
+            [state.visible[(position + 1) % state.visible.length], state.visible[(position - 1 + state.visible.length) % state.visible.length]].forEach((item) => {
+                if (item?.src) { const image = new Image(); image.src = item.src; }
+            });
+        }
+
+        function moveLightbox(direction: number) {
+            if (!state.visible.length) return;
+            const position = currentVisiblePosition();
+            const next = (position + direction + state.visible.length) % state.visible.length;
+            state.current = (state.visible[next] as GalleryItem & { _index?: number })._index ?? state.items.indexOf(state.visible[next]);
+            modalImg.classList.remove('is-zoomed');
+            zoomButton?.setAttribute('aria-pressed', 'false');
+            updateModal();
+        }
+
+        function closeLightbox() {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            modalImg.removeAttribute('src');
+            state.lastTrigger?.focus();
+        }
+
+        document.querySelector('.gallery-filter-list')?.addEventListener('click', (event) => {
+            const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+            if (button) updateFilter(button.dataset.filter || '全部');
+        });
+        grid.addEventListener('click', (event) => {
+            const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-gallery-trigger]');
+            if (trigger) openLightbox(Number(trigger.dataset.index), trigger);
+        });
+        modalThumbs?.addEventListener('click', (event) => {
+            const thumb = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-thumb-index]');
+            if (thumb) { state.current = Number(thumb.dataset.thumbIndex); updateModal(); }
+        });
+        closeButton?.addEventListener('click', closeLightbox);
+        modal.querySelector('[data-modal-close]')?.addEventListener('click', closeLightbox);
+        previousButton?.addEventListener('click', () => moveLightbox(-1));
+        nextButton?.addEventListener('click', () => moveLightbox(1));
+        zoomButton?.addEventListener('click', () => {
+            const active = modalImg.classList.toggle('is-zoomed');
+            zoomButton.setAttribute('aria-pressed', String(active));
+            zoomButton.classList.toggle('is-active', active);
+        });
+        modalImg.addEventListener('load', () => { modalImg.classList.add('is-loaded'); modalStatus?.classList.add('is-hidden'); });
+        modalImg.addEventListener('error', () => { modalImg.classList.add('is-error'); if (modalStatus) modalStatus.textContent = siteText('gallery.image_error', '照片暂时无法打开，请稍后再试。'); });
+        document.addEventListener('keydown', (event) => {
+            if (!modal.classList.contains('is-open')) return;
+            if (event.key === 'Tab') {
+                const controls = Array.from(modal.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]')).filter(control => control.getClientRects().length);
+                const first = controls[0], last = controls[controls.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
             }
-        }
-
-        function animateParticles() {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            particles.forEach(p => {
-                p.y -= p.speedY; // 粒子向上漂浮
-                
-                // 绘制发光粒子
-                ctx.fillStyle = `rgba(251, 191, 36, ${p.alpha})`; // 琥珀色
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 越界重置到屏幕底部
-                if (p.y < 0) {
-                    p.y = canvas.height;
-                    p.x = Math.random() * canvas.width;
-                }
-            });
-            particleAnimationId = requestAnimationFrame(animateParticles);
-        }
-
-        if (modal && modalImg) {
-            // 打开模态框
-            document.addEventListener('click', (e) => {
-                    const target = (e.target as HTMLElement).closest('.gallery-trigger') as HTMLImageElement | null;
-                    if (!target) return;
-                    modalImg.src = target.src;
-                    
-                    // 解除隐藏
-                    modal.classList.remove('opacity-0', 'pointer-events-none');
-                    setTimeout(() => {
-                        modalImg.classList.remove('scale-95');
-                        modalImg.classList.add('scale-100');
-                    }, 50);
-
-                    // 点火：启动粒子系统
-                    initParticles();
-                    animateParticles();
-            });
-
-            // =========================================================
-            // 终极下载逻辑：通过 Blob 拦截，重命名并修正格式
-            // =========================================================
-            downloadBtn?.addEventListener('click', async () => {
-                if (!modalImg.src) return;
-                
-                // 1. 改变按钮状态，营造科技感
-                const originalContent = downloadBtn.innerHTML;
-                downloadBtn.innerHTML = '<span class="animate-pulse">// DOWNLOADING...</span>';
-                
-                try {
-                    // 2. 将图片作为纯二进制数据 (Blob) 抓取到浏览器内存中
-                    const response = await fetch(modalImg.src);
-                    const blob = await response.blob();
-                    
-                    // 3. 智能解析并清理文件名
-                    let fileName = 'lingxun_archive.webp'; // 默认保底名
-                    
-                    try {
-                        const urlObj = new URL(modalImg.src, window.location.origin);
-                        // 尝试剥离 Astro dev 模式下的复杂参数，提取原文件名
-                        const hrefParam = urlObj.searchParams.get('href'); 
-                        if (hrefParam) {
-                            fileName = hrefParam.split('/').pop()?.split('?')[0] || fileName;
-                        } else {
-                            // build 生产模式下的处理
-                            fileName = modalImg.src.split('/').pop()?.split('?')[0] || fileName; 
-                        }
-                    } catch (e) {
-                        // 如果解析失败，直接使用保底名
-                    }
-
-                    // 4. 强制后缀修正：因为 Astro 已经将其优化成了 webp 格式
-                    if (!fileName.toLowerCase().endsWith('.webp')) {
-                        fileName = fileName.replace(/\.[^/.]+$/, "") + ".webp";
-                    }
-
-                    // 5. 创建纯净的本地下载链接
-                    const blobUrl = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = fileName;
-                    
-                    document.body.appendChild(a);
-                    a.click();
-                    
-                    // 6. 过河拆桥，清理内存防泄漏
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(blobUrl);
-                    
-                } catch (error) {
-                    console.error("下载出错:", error);
-                    alert("档案提取失败，请重试");
-                } finally {
-                    // 恢复按钮原始状态
-                    downloadBtn.innerHTML = originalContent;
-                }
-            });
-            // =========================================================
-
-            // 关闭模态框函数
-            const closeModal = () => {
-                modalImg.classList.remove('scale-100');
-                modalImg.classList.add('scale-95');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                
-                // 熄火：停止粒子计算，释放 CPU
-                cancelAnimationFrame(particleAnimationId);
-                
-                setTimeout(() => { modalImg.src = ""; }, 500);
-            };
-
-            closeBtn?.addEventListener('click', closeModal);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal || e.target === canvas) closeModal();
-            });
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeModal();
-            });
-        }
-    });
-
-    async function appendBackendGalleryColumns() {
-        const photos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
-        if (!photos?.length) return;
-
-        const columns = Array.from(document.querySelectorAll('.animate-conveyor')) as HTMLElement[];
-        if (!columns.length) return;
-
-        columns.forEach((column) => {
-            column.innerHTML = '';
+            if (event.key === 'Escape') closeLightbox();
+            if (event.key === 'ArrowLeft') moveLightbox(-1);
+            if (event.key === 'ArrowRight') moveLightbox(1);
+        });
+        let touchStartX = 0;
+        let touchStartY = 0;
+        modalImg.addEventListener('touchstart', (event) => { touchStartX = event.changedTouches[0].clientX; touchStartY = event.changedTouches[0].clientY; }, { passive: true });
+        modalImg.addEventListener('touchend', (event) => {
+            const delta = touchStartX - event.changedTouches[0].clientX;
+            const vertical = touchStartY - event.changedTouches[0].clientY;
+            if (!modalImg.classList.contains('is-zoomed') && Math.abs(delta) > 48 && Math.abs(delta) > Math.abs(vertical) * 1.5) moveLightbox(delta > 0 ? 1 : -1);
+        }, { passive: true });
+        downloadButton?.addEventListener('click', async () => {
+            const item = state.items[state.current];
+            if (!item) return;
+            const original = downloadButton.innerHTML;
+            (downloadButton as HTMLButtonElement).disabled = true;
+            downloadButton.textContent = siteText('gallery.saving', '准备保存……');
+            try {
+                const response = await fetch(item.src);
+                if (!response.ok) throw new Error('download failed');
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${item.title || 'lingxun-photo'}.webp`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch { if (modalStatus) { modalStatus.textContent = siteText('gallery.save_error', '保存失败，请直接长按图片保存。'); modalStatus.classList.remove('is-hidden'); } }
+            downloadButton.innerHTML = original;
+            (downloadButton as HTMLButtonElement).disabled = false;
         });
 
-        const totalNeeded = Math.max(photos.length, 20);
-        for (let index = 0; index < totalNeeded; index++) {
-            const photo = photos[index % photos.length];
-            const column = columns[index % columns.length];
-            const item = renderBackendPhoto(photo, index);
-            column.insertAdjacentHTML('beforeend', item);
+        await loadSiteContent();
+        const backendPhotos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
+        if (backendPhotos) {
+            // An empty successful response is authoritative; only failed requests use local fallback.
+            state.items = backendPhotos.map((photo) => ({ src: toApiUrl(photo.file_url), title: photo.title || photo.original_filename || siteText('gallery.default_title', '旅途留影'), category: photo.category || siteText('gallery.uncategorized', '未分类'), date: photo.date || '', location: photo.location || '', description: photo.description || '', character_ids: photo.character_ids || [] }));
+            const categories = ['全部', ...new Set(state.items.map(item => item.category).filter(category => category !== '全部'))];
+            const filters = document.querySelector('.gallery-filter-list');
+            if (filters) filters.innerHTML = categories.map(category => `<button type="button" class="gallery-filter ${category === '全部' ? 'is-active' : ''}" data-filter="${escapeHtml(category)}" aria-pressed="${category === '全部'}">${escapeHtml(category)}</button>`).join('');
         }
-
-        columns.forEach((column) => {
-            column.insertAdjacentHTML('beforeend', column.innerHTML);
-        });
-    }
-
-    function renderBackendPhoto(photo: GalleryPhoto, index: number) {
-        const alt = escapeHtml(photo.title || photo.original_filename || `Backend_Archive_${index + 1}`);
-        return `
-            <div class="relative rounded-lg overflow-hidden border border-slate-800/80 bg-slate-900 cursor-pointer hover:z-50 aspect-video">
-                <img src="${toApiUrl(photo.file_url)}" alt="${alt}" class="gallery-trigger w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-300" loading="lazy" decoding="async" />
-            </div>
-        `;
-    }
+        renderGrid();
+        renderCharacterFilters(await fetchPublic<CharacterProfile[]>('/api/public/characters') || []);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGalleryPage, { once: true });
+    else initGalleryPage();
 </script>
 
-<style>
-    /* -------------------------------------------------------------
-       新增：HUD 文本终端启动动画 (Staggered Reveal)
-       ------------------------------------------------------------- */
-    @keyframes hudReveal {
-        0% { 
-            opacity: 0; 
-            transform: translateY(8px); /* 初始状态藏在下方 8px 处 */
-        }
-        100% { 
-            opacity: 0.9; 
-            transform: translateY(0); /* 归位 */
-        }
-    }
-    .animate-hud-reveal {
-        opacity: 0; /* 强制初始不可见，等待 delay 结束 */
-        /* 使用 cubic-bezier(0.16, 1, 0.3, 1) 实现非常干脆的“机械回弹”减速效果 */
-        animation: hudReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: transform, opacity;
-    }
+<style is:global>
+    .gallery-page { min-height: 100vh; padding-block: 8.5rem 3rem; background: var(--ink); color: var(--paper); }
+    .gallery-page__header .eyebrow { color: var(--red); }
+    .gallery-page__heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-top: 1rem; }
+    .gallery-page .section-title { color: var(--paper); }
+    .gallery-page .section-title em { color: var(--steel); }
+    .gallery-page .section-copy { color: var(--paper-muted); }
+    .gallery-page__index { display: flex; align-items: baseline; gap: 0.5rem; white-space: nowrap; }
+    .gallery-page__index strong { color: var(--red); font-family: var(--font-display); font-size: 3.5rem; font-weight: 600; line-height: 1; }
+    .gallery-page__filters { margin-top: 2.5rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .gallery-filter-list { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding-block: 0.65rem; }
+    .gallery-character-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; padding: 0.65rem 0; border-top: 1px solid var(--line-soft); }
+    .gallery-character-label { color: var(--steel-soft); font-size: 0.78rem; }
+    .gallery-filter { min-height: 44px; padding: 0.4rem 0; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--steel-soft); cursor: pointer; transition: color 180ms ease, border-color 180ms ease; }
+    .gallery-filter:hover, .gallery-filter.is-active { border-color: var(--red); color: var(--red); }
+    .gallery-page__content { margin-top: 2rem; }
+    .gallery-grid { column-count: 1; column-gap: 1rem; }
+    .gallery-card { display: inline-block; width: 100%; margin: 0 0 1rem; overflow: hidden; break-inside: avoid; background: var(--surface-paper); color: var(--paper); }
+    .gallery-card:hover { background: var(--surface-paper-hover); }
+    .gallery-card__button { position: relative; display: block; width: 100%; padding: 0; border: 0; background: var(--ink-blue); cursor: zoom-in; }
+    .gallery-card__button img { display: block; width: 100%; height: auto; filter: saturate(0.7) contrast(1.04); transition: filter 220ms ease, transform 500ms ease; }
+    .gallery-card__button:hover img { filter: saturate(1) contrast(1.05); transform: scale(1.025); }
+    .gallery-card__open { position: absolute; right: 0.75rem; bottom: 0.75rem; padding: 0.35rem 0.5rem; background: rgba(11, 13, 16, 0.78); color: var(--paper); font-size: 0.74rem; opacity: 0; transform: translateY(0.3rem); transition: opacity 180ms ease, transform 180ms ease; }
+    .gallery-card__button:hover .gallery-card__open, .gallery-card__button:focus-visible .gallery-card__open { opacity: 1; transform: translateY(0); }
+    .gallery-card__details { padding: 0.8rem; }
+    .gallery-card__line { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+    .gallery-page .tag { border-color: rgba(155, 39, 49, 0.5); color: var(--red); }
+    .gallery-card h2 { margin: 0.7rem 0 0.15rem; font-family: var(--font-serif); font-size: 1.15rem; line-height: 1.35; }
+    .gallery-card p { margin: 0; color: var(--steel-soft); font-size: 0.82rem; }
+    .gallery-card.is-error { opacity: 0.65; }
+    .gallery-state { padding: 3rem 1rem; border: 1px dashed var(--line); color: var(--steel-soft); text-align: center; }
+    .gallery-page__footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; }
+    .gallery-page .button--accent { border-color: var(--red); color: var(--red); }
+    .gallery-page .button--accent:hover { background: rgba(155, 39, 49, 0.08); }
 
-    /* -------------------------------------------------------------
-       新增：光学漏光缓慢漂移效果
-       ------------------------------------------------------------- */
-    @keyframes lensDrift {
-        0% { transform: translate(0, 0) scale(1); }
-        50% { transform: translate(3vw, -2vh) scale(1.05); }
-        100% { transform: translate(0, 0) scale(1); }
-    }
-    .animate-lens-drift {
-        animation: lensDrift 15s ease-in-out infinite alternate;
-        will-change: transform;
-    }
-    .animate-lens-drift-reverse {
-        animation: lensDrift 18s ease-in-out infinite alternate-reverse;
-        will-change: transform;
-    }
+    .lightbox-modal { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 1rem; visibility: hidden; opacity: 0; transition: opacity 220ms ease, visibility 220ms ease; }
+    .lightbox-modal.is-open { visibility: visible; opacity: 1; }
+    .lightbox-modal__backdrop { position: absolute; inset: 0; background: rgba(5, 7, 9, 0.92); }
+    .lightbox-modal__panel { position: relative; display: grid; width: min(1100px, 100%); max-height: calc(100svh - 2rem); overflow: auto; background: var(--ink-soft); color: var(--paper); box-shadow: 0 25px 90px rgba(0, 0, 0, 0.5); }
+    .lightbox-modal__toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.8rem 1rem; border-bottom: 1px solid var(--line-soft); }
+    .lightbox-modal__toolbar > div:first-child { display: flex; align-items: baseline; gap: 1rem; }
+    .lightbox-modal__position { color: var(--paper-muted); font-family: var(--font-mono); font-size: 0.75rem; }
+    .lightbox-modal__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .lightbox-modal__actions .button { min-height: 40px; padding: 0.5rem 0.7rem; font-size: 0.8rem; }
+    .lightbox-modal__actions .button.is-active { border-color: var(--red); color: var(--red-soft); }
+    .lightbox-modal__body { display: grid; grid-template-columns: 3rem minmax(0, 1fr) 3rem; align-items: center; gap: 0.5rem; padding: 1rem; }
+    .lightbox-modal__nav { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); background: transparent; color: var(--paper); font-size: 1.3rem; cursor: pointer; }
+    .lightbox-modal__nav:hover { border-color: var(--gold); color: var(--gold); }
+    .lightbox-modal__stage { position: relative; display: grid; min-height: min(55svh, 620px); place-items: center; overflow: auto; background: var(--ink); }
+    .lightbox-modal__stage img { display: block; max-width: 100%; max-height: min(62svh, 680px); object-fit: contain; transform: scale(1); transition: transform 220ms ease; }
+    .lightbox-modal__stage img.is-zoomed { max-width: none; transform: scale(1.55); cursor: zoom-out; }
+    .lightbox-modal__status { position: absolute; z-index: 1; padding: 0.5rem 0.7rem; background: rgba(11, 13, 16, 0.82); color: var(--paper-muted); font-size: 0.82rem; }
+    .lightbox-modal__status.is-hidden { display: none; }
+    .lightbox-modal__stage img.is-error { display: none; }
+    .lightbox-modal__info { display: flex; justify-content: space-between; gap: 2rem; padding: 1rem; border-top: 1px solid var(--line-soft); }
+    .lightbox-modal__info h2 { margin: 0.5rem 0 0.2rem; font-family: var(--font-serif); font-size: clamp(1.4rem, 3vw, 2rem); }
+    .lightbox-modal__info p { max-width: 36rem; margin: 0; color: var(--paper-muted); }
+    .lightbox-modal__info dl { display: flex; gap: 1.5rem; margin: 0; }
+    .lightbox-modal__info dt { color: var(--steel-soft); font-size: 0.72rem; }
+    .lightbox-modal__info dd { margin: 0.2rem 0 0; color: var(--paper); font-family: var(--font-mono); font-size: 0.75rem; }
+    .lightbox-modal__thumbs { display: flex; gap: 0.45rem; overflow-x: auto; padding: 0.7rem 1rem 1rem; }
+    .lightbox-modal__thumb { flex: 0 0 3.5rem; width: 3.5rem; height: 3.5rem; padding: 0.15rem; border: 1px solid transparent; background: transparent; opacity: 0.55; cursor: pointer; }
+    .lightbox-modal__thumb:hover, .lightbox-modal__thumb.is-active { border-color: var(--red); opacity: 1; }
+    .lightbox-modal__thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .modal-open { overflow: hidden; }
 
-    /* -------------------------------------------------------------
-       原有动画保持不变
-       ------------------------------------------------------------- */
-    /* 传送带动画 */
-    @keyframes conveyor {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(calc(-50% - 12px)); } 
-    }
-    .animate-conveyor {
-        animation: conveyor linear infinite;
-        will-change: transform;
-    }
-    .group:hover .animate-conveyor {
-        animation-play-state: paused;
-    }
-
-    /* 呼吸辉光动画 */
-    @keyframes breathGlow {
-        0% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.15); }
-        50% { box-shadow: 0 0 80px rgba(251, 191, 36, 0.4); }
-        100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.15); }
-    }
-    .animate-breath-glow {
-        animation: breathGlow 4s ease-in-out infinite;
+    @media (min-width: 620px) { .gallery-grid { column-count: 2; } }
+    @media (min-width: 980px) { .gallery-grid { column-count: 3; } }
+    @media (min-width: 1280px) { .gallery-grid { column-count: 4; } }
+    @media (max-width: 680px) {
+        .gallery-page { padding-top: 7.5rem; }
+        .gallery-page__heading, .gallery-page__footer { align-items: start; flex-direction: column; }
+        .gallery-page__index { margin-top: 0.5rem; }
+        .lightbox-modal { padding: 0; }
+        .lightbox-modal__panel { max-height: 100svh; }
+        .lightbox-modal__toolbar { align-items: start; flex-direction: column; }
+        .lightbox-modal__actions { width: 100%; }
+        .lightbox-modal__actions .button { flex: 1; }
+        .lightbox-modal__body { grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem; padding: 0.5rem; }
+        .lightbox-modal__stage { min-height: 46svh; }
+        .lightbox-modal__info { flex-direction: column; gap: 1rem; }
+        .lightbox-modal__info dl { justify-content: space-between; }
     }
 </style>

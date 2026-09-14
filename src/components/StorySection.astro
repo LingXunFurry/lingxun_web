@@ -1,0 +1,202 @@
+---
+import { Image } from 'astro:assets';
+import portrait from '../assets/setting/Image_1777968000555_846.png';
+---
+
+<section id="story-section" class="story-section" aria-labelledby="story-title">
+    <div class="site-container story-section__inner" data-reveal>
+        <header class="story-section__heading">
+            <div class="eyebrow">角色故事 / Character Stories</div>
+            <h2 id="story-title"><span id="story-title-main">翻开一页</span> <em id="story-title-accent">角色故事</em></h2>
+            <p id="story-intro" class="section-copy">公会登记只能写下眼前的样子，更早的风、旅途与选择，都收在这些篇章里。</p>
+        </header>
+        <p id="story-empty" class="section-copy" hidden>角色故事还没有放上书架。</p>
+        <div class="story-book" aria-roledescription="轮播" aria-label="角色故事书">
+            <div class="story-book__art">
+                <span id="story-folio" class="story-book__bookmark meta" aria-hidden="true">01</span>
+                <Image src={portrait} alt="凌巽角色设定" loading="lazy" decoding="async" />
+                <span class="meta">CHARACTER STORIES</span>
+            </div>
+            <div class="story-book__page">
+                <article id="story-page" aria-live="polite" aria-atomic="true">
+                    <span id="story-date" class="meta">2026.08.17</span>
+                    <h3 id="story-post-title">凌巽传（设定背景故事）</h3>
+                    <p id="story-summary">凌巽的背景故事，现在同步到个人网站。</p>
+                    <nav id="story-excerpts" class="story-book__chapters" aria-label="故事章节" hidden>
+                        <div class="story-book__chapter-heading"><span id="story-chapters-label">篇章摘目</span><span id="story-chapters-count" class="meta"></span></div>
+                        <ol id="story-excerpt-links"></ol>
+                    </nav>
+                    <a id="story-read" class="button button--accent" href="/post/?slug=post-lingxun-s_story">点击阅读 <span aria-hidden="true">→</span></a>
+                </article>
+                <nav class="story-book__pagination" aria-label="角色故事翻页">
+                    <button id="story-prev" type="button" aria-label="上一篇角色故事" disabled>←</button>
+                    <span id="story-position" class="meta">01 / 01</span>
+                    <button id="story-next" type="button" aria-label="下一篇角色故事" disabled>→</button>
+                </nav>
+                <p id="story-next-hint" class="story-book__hint">故事仍在续写</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    import { fetchPublic, toApiUrl, type PublicPost, type CharacterProfile } from '../lib/publicContent';
+    import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
+    import { renderStoryChapters } from '../lib/storyChapters';
+    const localImages = import.meta.glob<{ default: { src: string } }>('../assets/**/*.{png,jpg,jpeg,webp,avif}', { eager: true });
+    const resolveStoryImage = (url: string) => url.startsWith('/src/assets/')
+        ? localImages[url.replace('/src/', '../')]?.default.src || ''
+        : toApiUrl(url);
+
+    const initStories = async () => {
+        const section = document.getElementById('story-section');
+        const page = document.getElementById('story-page');
+        const previous = document.getElementById('story-prev') as HTMLButtonElement;
+        const next = document.getElementById('story-next') as HTMLButtonElement;
+        const link = document.getElementById('story-read') as HTMLAnchorElement;
+        const artwork = section?.querySelector<HTMLImageElement>('.story-book__art img');
+        if (!section || !page || !link) return;
+        const stories = await fetchPublic<PublicPost[]>('/api/public/stories');
+        if (!stories) return;
+        if (!stories.length) {
+            await loadSiteContent();
+            const empty = document.getElementById('story-empty');
+            if (empty) { empty.textContent = siteText('story.empty', '角色故事还没有放上书架。'); empty.hidden = false; }
+            const book = section.querySelector<HTMLElement>('.story-book');
+            if (book) book.hidden = true;
+            return;
+        }
+        const characters = await fetchPublic<CharacterProfile[]>('/api/public/characters') || [];
+        await loadSiteContent();
+        // Each story owns its art; never show another character's fixed portrait.
+        if (artwork) artwork.addEventListener('error', () => { artwork.hidden = true; });
+        let current = 0;
+        let changing = false;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const render = () => {
+            const post = stories[current];
+            const character = characters.find(item => item.id === post.story_character_id);
+            const imageUrl = resolveStoryImage(post.cover_url || character?.image_url || '');
+            if (artwork) {
+                artwork.hidden = !imageUrl;
+                if (imageUrl) {
+                    artwork.removeAttribute('srcset');
+                    artwork.src = imageUrl;
+                    artwork.alt = character?.name || post.title;
+                } else {
+                    artwork.removeAttribute('src');
+                }
+            }
+            document.getElementById('story-date')!.textContent = post.date;
+            document.getElementById('story-post-title')!.textContent = post.title;
+            document.getElementById('story-summary')!.textContent = post.story_summary || post.desc;
+            link.href = `/post/?slug=${encodeURIComponent(post.slug)}`;
+            document.getElementById('story-folio')!.textContent = String(current + 1).padStart(2, '0');
+            // Use the same renderer and heading order as the article's chapter directory.
+            const chapterDocument = new DOMParser().parseFromString(renderStoryChapters(post.content || ''), 'text/html');
+            const chapters = Array.from(chapterDocument.querySelectorAll('h2'));
+            document.getElementById('story-excerpts')!.hidden = !chapters.length;
+            document.getElementById('story-chapters-count')!.textContent = String(chapters.length).padStart(2, '0');
+            document.getElementById('story-excerpt-links')!.replaceChildren(...chapters.slice(0, 3).map((chapter, index) => {
+                const item = document.createElement('li');
+                const anchor = document.createElement('a');
+                anchor.href = `${link.href}#story-chapter-${index + 1}`;
+                anchor.textContent = chapter.textContent;
+                item.append(anchor);
+                return item;
+            }));
+            document.getElementById('story-position')!.textContent = `${String(current + 1).padStart(2, '0')} / ${String(stories.length).padStart(2, '0')}`;
+            document.getElementById('story-next-hint')!.textContent = stories.length > 1 ? siteFormat('story.next_hint', '下一篇 · {title}', { title: stories[(current + 1) % stories.length].title }) : siteText('story.continuing', '故事仍在续写');
+            previous.disabled = next.disabled = stories.length < 2;
+        };
+        const turn = async (direction: number) => {
+            if (changing || stories.length < 2) return;
+            changing = true;
+            try {
+                if (!reduced.matches) await page.animate([{ opacity: 1, transform: 'translateX(0)' }, { opacity: 0, transform: `translateX(${-direction * 16}px)` }], { duration: 150, easing: 'ease-in' }).finished;
+                current = (current + direction + stories.length) % stories.length;
+                render();
+                if (!reduced.matches) await page.animate([{ opacity: 0, transform: `translateX(${direction * 16}px)` }, { opacity: 1, transform: 'translateX(0)' }], { duration: 220, easing: 'ease-out' }).finished;
+            } finally { changing = false; }
+        };
+        previous.addEventListener('click', () => turn(-1));
+        next.addEventListener('click', () => turn(1));
+        section.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); turn(event.key === 'ArrowRight' ? 1 : -1); }
+        });
+        let touchX = 0;
+        let touchY = 0;
+        page.addEventListener('touchstart', (event) => { touchX = event.changedTouches[0].clientX; touchY = event.changedTouches[0].clientY; }, { passive: true });
+        page.addEventListener('touchend', (event) => {
+            const dx = event.changedTouches[0].clientX - touchX;
+            const dy = event.changedTouches[0].clientY - touchY;
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) turn(dx < 0 ? 1 : -1);
+        }, { passive: true });
+        render();
+    };
+    initStories();
+</script>
+
+<style is:global>
+    .story-section { background: var(--ink); color: var(--paper); padding-block: 4rem; }
+    .story-section__inner { display: grid; gap: 1.5rem; }
+    .story-section__heading h2 { margin: .5rem 0 0; font-family: var(--font-serif); font-size: 2rem; }
+    .story-section__heading h2 em { color: var(--steel-soft); font-style: normal; }
+    .story-section__heading .section-copy { margin: .6rem 0 0; font-size: .95rem; }
+    .story-book { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1fr); border-block: 1px solid var(--line); background: var(--surface-paper); box-shadow: var(--shadow-paper); }
+    .story-book[hidden], #story-empty[hidden] { display: none; }
+    .story-book__art { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; padding: 1.25rem; border-right: 1px solid var(--line); }
+    .story-book__bookmark { position: absolute; z-index: 1; right: 2rem; top: -1px; display: grid; place-items: start center; width: 2.4rem; height: 3.4rem; padding-top: .6rem; background: #9b2731; color: #fff; clip-path: polygon(0 0,100% 0,100% 100%,50% 83%,0 100%); pointer-events: none; }
+    .story-book__page { border-left: 5px double var(--line); }
+    .story-book__chapters[hidden] { display: none; }
+    .story-book__chapters { margin-block: 1.25rem .5rem; border-block: 1px solid var(--line); }
+    .story-book__chapter-heading { display: flex; justify-content: space-between; gap: 1rem; padding-block: .65rem; color: var(--steel-soft); font-size: .75rem; }
+    .story-book__chapters ol { list-style: none; padding: 0; margin: 0; counter-reset: chapter-preview; }
+    .story-book__chapters li { counter-increment: chapter-preview; border-top: 1px solid var(--line); }
+    .story-book__chapters a { display: flex; align-items: baseline; gap: .8rem; padding-block: .65rem; min-height: 44px; color: var(--paper); font-family: var(--font-serif); font-size: .95rem; overflow-wrap: anywhere; transition: color 180ms ease, padding 180ms ease; }
+    .story-book__chapters a::before { content: counter(chapter-preview, decimal-leading-zero); flex: 0 0 1.5rem; font-family: var(--font-mono); color: var(--steel-soft); font-size: .7rem; }
+    .story-book__chapters a:hover { color: var(--red); padding-left: .3rem; }
+    .story-book__chapters a:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+    .story-book__art img { display: block; width: 100%; height: 100%; max-height: 26rem; object-fit: contain; }
+    .story-book__art > .meta:not(.story-book__bookmark) { display: block; margin-top: .5rem; color: var(--steel-soft); }
+    .story-book__page { display: flex; flex-direction: column; min-width: 0; padding: 2rem; }
+    #story-page { flex: 1; min-height: 0; }
+    #story-post-title { font-family: var(--font-serif); font-size: 1.8rem; line-height: 1.4; margin: 1rem 0; overflow-wrap: anywhere; }
+    #story-summary { line-height: 1.9; color: var(--paper-muted); white-space: pre-line; overflow-wrap: anywhere; }
+    #story-read { margin-block: 1rem; }
+    .story-book__pagination { display: flex; align-items: center; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+    .story-book__pagination button { width: 44px; height: 44px; border: 1px solid var(--line); background: transparent; color: var(--paper); cursor: pointer; }
+    .story-book__pagination button:hover:not(:disabled) { color: var(--gold); border-color: var(--gold); }
+    .story-book__pagination button:disabled { opacity: .35; cursor: default; }
+    .story-book__hint { margin: .65rem 0 0; font-size: .8rem; color: var(--steel-soft); overflow-wrap: anywhere; }
+    @media (min-width: 900px) and (pointer: fine) {
+        .home-page.is-stage-controlled .story-section { display: grid; align-content: center; padding-block: 1rem; }
+        .home-page.is-stage-controlled .story-section__inner { height: 100%; min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+        .home-page.is-stage-controlled .story-book { height: 100%; min-height: 0; max-height: none; }
+        .home-page.is-stage-controlled .story-book__page { min-height: 0; }
+        .home-page.is-stage-controlled .story-book__art img { max-height: calc(100svh - 280px); }
+        .home-page.is-stage-controlled #story-page { overflow-y: auto; overscroll-behavior: contain; }
+    }
+    @media (min-width: 900px) and (pointer: fine) and (max-height: 800px) {
+        .home-page.is-stage-controlled .story-section__inner { gap: .8rem; }
+        .home-page.is-stage-controlled .story-section__heading h2 { font-size: 1.6rem; }
+        .home-page.is-stage-controlled .story-section__heading .section-copy { font-size: .85rem; }
+        .home-page.is-stage-controlled .story-book__page { padding: 1rem; }
+        .home-page.is-stage-controlled #story-post-title { font-size: 1.4rem; margin-block: .5rem; }
+        .home-page.is-stage-controlled #story-summary { font-size: .88rem; margin-block: .5rem; line-height: 1.65; }
+        .home-page.is-stage-controlled .story-book__chapters { margin-block: .6rem; }
+        .home-page.is-stage-controlled .story-book__chapters ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+        .home-page.is-stage-controlled .story-book__chapters a { display: block; font-size: .85rem; line-height: 1.5; }
+        .home-page.is-stage-controlled .story-book__chapters a::before { display: block; margin-bottom: .15rem; }
+        .home-page.is-stage-controlled #story-read { margin-block: .5rem; min-height: 40px; padding-block: .5rem; }
+        .home-page.is-stage-controlled .story-book__pagination { padding-top: .5rem; }
+        .home-page.is-stage-controlled .story-book__hint { margin-top: .35rem; }
+    }
+    @media (max-width: 700px) {
+        .story-book { grid-template-columns: 1fr; }
+        .story-book__art { border-right: 0; border-bottom: 1px solid var(--line); }
+        .story-book__art img { max-height: 19rem; }
+        .story-book__page { padding: 1.25rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { .story-book__chapters a { transition: none; } }
+</style>

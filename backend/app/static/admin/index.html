@@ -350,6 +350,76 @@
             background: #020306;
         }
 
+        .gallery-edit-fields {
+            display: grid;
+            min-width: 220px;
+            gap: 7px;
+        }
+
+        .gallery-edit-fields input,
+        .gallery-edit-fields textarea {
+            min-width: 0;
+            padding: 8px 9px;
+            border-radius: 0;
+            font-size: 12px;
+        }
+
+        .gallery-edit-fields textarea {
+            min-height: 52px;
+            resize: vertical;
+        }
+
+        .upload-preview {
+            display: block;
+            width: 100%;
+            height: 180px;
+            max-height: 180px;
+            object-fit: contain;
+            border: 1px solid var(--line);
+            background: rgba(2, 6, 23, 0.5);
+        }
+
+        .upload-preview--icon {
+            width: 56px;
+            height: 56px;
+            padding: 6px;
+            object-fit: contain;
+        }
+
+        [data-preview-status] { display: block; min-height: 1.5em; }
+        [data-content-form][data-has-image] [data-content-preview].hidden {
+            display: block !important;
+            visibility: hidden;
+        }
+
+        .home-image-options {
+            display: grid;
+            gap: 6px;
+            padding: 10px;
+            border: 1px solid var(--line);
+            background: rgba(211, 168, 61, 0.05);
+        }
+
+        .home-image-options > strong {
+            color: var(--amber);
+            font-family: var(--serif);
+            font-size: 15px;
+        }
+
+        .gallery-order-field {
+            display: grid;
+            grid-template-columns: auto 64px;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .gallery-order-field input {
+            width: 64px;
+            padding: 6px;
+        }
+
         .actions {
             display: flex;
             gap: 8px;
@@ -514,22 +584,103 @@
             }
         }
     </style>
+    <style>
+        @font-face { font-family: "Source Han Sans SC"; src: url("/fonts/SourceHanSansSC-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+        @font-face { font-family: "Source Han Sans SC"; src: url("/fonts/SourceHanSansSC-Bold.otf") format("opentype"); font-weight: 700; font-display: swap; }
+        @font-face { font-family: "Source Han Serif SC"; src: url("/fonts/SourceHanSerifSC-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+        @font-face { font-family: "Source Han Serif SC"; src: url("/fonts/SourceHanSerifSC-Bold.otf") format("opentype"); font-weight: 700; font-display: swap; }
+        @font-face { font-family: "Cormorant"; src: url("/fonts/Cormorant-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+        @font-face { font-family: "IBM Plex Mono"; src: url("/fonts/IBMPlexMono-Regular.otf") format("opentype"); font-weight: 400; font-display: swap; }
+
+        :root {
+            color-scheme: dark;
+            --bg: #0b0d10;
+            --panel: rgba(18, 24, 32, 0.94);
+            --panel-strong: #18263d;
+            --line: rgba(241, 240, 235, 0.16);
+            --line-hot: rgba(211, 168, 61, 0.72);
+            --text: #f1f0eb;
+            --muted: #a8a9a6;
+            --amber: #d3a83d;
+            --cyan: #8fa6bc;
+            --green: #a8c5ad;
+            --red: #9b2731;
+            --serif: "Source Han Serif SC", serif;
+            --sans: "Source Han Sans SC", sans-serif;
+            --display: "Cormorant", "Source Han Serif SC", serif;
+            --mono: "IBM Plex Mono", monospace;
+        }
+
+        body {
+            background: #0b0d10;
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.65;
+        }
+
+        body::before { display: none; }
+        .login-shell { min-height: 100svh; padding: 1.25rem; background: linear-gradient(135deg, #0b0d10, #18263d 55%, #0b0d10); }
+        .login-panel, .panel { border-color: var(--line); border-radius: 0; background: var(--panel); box-shadow: 0 24px 80px rgba(0,0,0,.3); }
+        .login-panel { padding: clamp(1.5rem, 5vw, 2.5rem); }
+        .login-panel::after, .panel::after { background: var(--amber); box-shadow: none; }
+        .eyebrow { color: var(--amber); font-family: var(--mono); letter-spacing: .12em; }
+        .eyebrow::before { background: var(--amber); box-shadow: none; }
+        .login-title, .page-title, h1, h2, h3 { font-family: var(--serif); letter-spacing: 0; }
+        .login-title { font-weight: 700; line-height: 1.05; }
+        .login-title span, .page-title span { color: #d36a70; }
+        label { color: var(--muted); font-family: var(--sans); letter-spacing: 0; text-transform: none; }
+        input, textarea, select { border-radius: 0; border-color: var(--line); background: #0f151c; color: var(--text); }
+        input:focus, textarea:focus, select:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(211,168,61,.1); }
+        .btn { border-radius: 0; background: var(--amber); color: #0b0d10; font-family: var(--sans); }
+        .btn:hover { box-shadow: 0 10px 24px rgba(211,168,61,.18); }
+        .btn.secondary, .btn.ghost { border-color: var(--line); background: transparent; color: var(--text); }
+        .btn.danger { background: var(--red); }
+        .app-shell { background: #0b0d10; }
+        aside { background: #111820; border-color: var(--line); }
+        .brand { border-color: var(--line); }
+        .brand-title { font-family: var(--serif); font-weight: 700; }
+        nav { gap: .45rem; }
+        .nav-btn { border-radius: 0; padding: .75rem .8rem; color: var(--muted); text-align: left; }
+        .nav-btn.active, .nav-btn:hover { border-color: var(--amber); background: rgba(211,168,61,.1); color: var(--text); }
+        main { padding: clamp(1rem, 3vw, 2.5rem); }
+        .topbar { margin-bottom: 2rem; }
+        .page-title { font-weight: 700; }
+        .panel { padding: clamp(1rem, 2vw, 1.4rem); }
+        th { color: var(--amber); font-family: var(--mono); }
+        td { color: #d5d6d1; }
+        .thumb { border-radius: 0; }
+        .status { right: 1rem; bottom: 1rem; border-radius: 0; background: #18263d; }
+        .empty { border-radius: 0; }
+        @media (max-width: 640px) {
+            .login-shell { padding-top: 7vh; }
+            .login-panel { width: min(100%, 30rem); }
+            .nav-btn { min-height: 46px; }
+            .panel-grid { gap: 1rem; }
+            .topbar { align-items: stretch; }
+            .topbar .btn { width: 100%; }
+            .actions .btn { width: 100%; }
+            table { min-width: 640px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+        }
+    </style>
 </head>
 <body>
     <section id="loginView" class="login-shell">
         <div class="login-panel">
-            <div class="eyebrow">LX Admin</div>
-            <h1 class="login-title">CONTROL<span> CORE</span></h1>
+            <div class="eyebrow">凌巽酒馆 / Admin</div>
+            <h1 class="login-title">后台<span>登记簿</span></h1>
             <form id="loginForm" class="login-form" autocomplete="off">
                 <label>
-                    Username
-                    <input id="loginUsername" autocomplete="username" placeholder="Admin username" />
+                    管理员账号
+                    <input id="loginUsername" autocomplete="username" placeholder="输入管理员账号" />
                 </label>
                 <label>
-                    Password
+                    管理员密码
                     <input id="loginPassword" type="password" autocomplete="new-password" data-1p-ignore="true" data-lpignore="true" />
                 </label>
-                <button class="btn" type="submit">⏎ 登录</button>
+                <button class="btn" type="submit">进入后台 <span aria-hidden="true">→</span></button>
             </form>
         </div>
     </section>
@@ -537,29 +688,31 @@
     <section id="appView" class="app-shell hidden">
         <aside>
             <div class="brand">
-                <div class="eyebrow">Lingxun</div>
-                <div class="brand-title">后台终端</div>
-                <div class="muted" style="margin-top:8px;font-size:12px;font-family:ui-monospace,monospace;">MYSQL / FASTAPI</div>
+                <div class="eyebrow">Lingxun's Tavern</div>
+                <div class="brand-title">后台登记簿</div>
+                <div class="muted" style="margin-top:8px;font-size:12px;">内容、照片与酒馆文案</div>
             </div>
             <nav>
-                <button class="nav-btn active" data-tab="gallery">▣ 画廊</button>
-                <button class="nav-btn" data-tab="posts">▤ 动态</button>
-                <button class="nav-btn" data-tab="comments">✧ 评论</button>
-                <button class="nav-btn" data-tab="bonus">✦ Bonus</button>
-                <button class="nav-btn" data-tab="final">⌁ 行程 / 联系</button>
-                <button class="nav-btn" data-tab="friends">◇ 友链</button>
-                <button class="nav-btn" data-tab="security">⚙ 安全</button>
-                <button class="nav-btn" id="logoutBtn">↩ 退出</button>
+                <button class="nav-btn active" data-tab="gallery">画廊</button>
+                <button class="nav-btn" data-tab="characters">登记簿</button>
+                <button class="nav-btn" data-tab="posts">动态</button>
+                <button class="nav-btn" data-tab="comments">评论</button>
+                <button class="nav-btn" data-tab="bonus">Bonus 文案</button>
+                <button class="nav-btn" data-tab="final">行程 / 联系</button>
+                <button class="nav-btn" data-tab="friends">友链</button>
+                <button class="nav-btn" data-tab="content">站点内容</button>
+                <button class="nav-btn" data-tab="security">安全设置</button>
+                <button class="nav-btn" id="logoutBtn">退出登录</button>
             </nav>
         </aside>
 
         <main>
             <div class="topbar">
                 <div>
-                    <div class="eyebrow">Dashboard</div>
+                    <div class="eyebrow">Tavern Ledger</div>
                     <h2 class="page-title" id="pageTitle">画廊<span>管理</span></h2>
                 </div>
-                <button class="btn secondary" id="refreshBtn">⟳ 刷新</button>
+                <button class="btn secondary" id="refreshBtn">刷新内容 <span aria-hidden="true">↻</span></button>
             </div>
 
             <section id="galleryTab" class="tab-view">
@@ -568,6 +721,22 @@
                         <h3>上传照片</h3>
                         <label>标题 <input name="title" placeholder="Archive title" /></label>
                         <label>描述 <textarea name="description" style="min-height:96px" placeholder="照片备注"></textarea></label>
+                        <div class="two">
+                            <label>分类 <input name="category" placeholder="凌巽 / 活动记录 / 设定图" /></label>
+                            <label>日期 <input name="date" type="date" /></label>
+                        </div>
+                        <label>地点 <input name="location" placeholder="城镇、会场或室内地点" /></label>
+                        <label>绑定角色 ID <input name="character_ids" placeholder="例如：1,2；留空表示未绑定" /></label>
+                        <div class="home-image-options">
+                            <strong>首页用途</strong>
+                            <label class="checkbox-row"><input name="is_home_hero" type="checkbox" /> 首屏背景轮播</label>
+                            <label class="checkbox-row"><input name="is_home_portrait" type="checkbox" /> 首屏右侧主照片</label>
+                            <label class="checkbox-row"><input name="is_home_gallery" type="checkbox" /> 首页旅途留影预览</label>
+                        </div>
+                        <div class="two">
+                            <label>首屏顺序 <input name="hero_order" type="number" value="0" /></label>
+                            <label>首页预览顺序 <input name="home_order" type="number" value="0" /></label>
+                        </div>
                         <div class="two">
                             <label>排序 <input name="sort_order" type="number" value="0" /></label>
                             <label>图片 <input name="file" type="file" accept="image/*" required /></label>
@@ -578,6 +747,47 @@
                     <div class="panel">
                         <h3>照片列表</h3>
                         <div id="galleryList" class="table-wrap" style="margin-top:16px"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="charactersTab" class="tab-view hidden">
+                <div class="panel-grid">
+                    <form id="characterForm" class="panel form-grid">
+                        <h3 id="characterFormTitle">新建冒险者登记</h3>
+                        <input type="hidden" name="id" />
+                        <div class="two">
+                            <label>姓名 <input name="name" required /></label>
+                            <label>英文名 / 别名 <input name="alias" /></label>
+                        </div>
+                        <div class="two">
+                            <label>种族 <input name="species" value="龙族" /></label>
+                            <label>身份 <input name="role" value="冒险者" /></label>
+                        </div>
+                        <label>活动区域 <input name="region" value="人类城镇" /></label>
+                        <label>主要工作 <input name="work" value="冒险者公会委托" /></label>
+                        <label>常去地点 <input name="places" value="公会 / 酒馆 / 家中" /></label>
+                        <label>当前状态 <input name="status" value="可接受委托" /></label>
+                        <label>介绍 <textarea name="introduction" style="min-height:130px"></textarea></label>
+                        <label>详细介绍 <textarea name="details" style="min-height:140px" placeholder="前台登记簿正文；每段之间空一行"></textarea></label>
+                        <label>自定义资料项 <textarea name="custom_fields" style="min-height:110px" placeholder="每行一项，格式：标签 | 内容&#10;例如：常用武器 | 长柄法杖、短剑"></textarea></label>
+                        <div class="two">
+                            <label>照片地址 <input name="image_url" placeholder="/uploads/... 或 /src/assets/gallery/..." /></label>
+                            <label>上传照片 <input id="characterImageFile" name="image_file" type="file" accept="image/*" /></label>
+                        </div>
+                        <img id="characterImagePreview" class="upload-preview hidden" alt="角色照片预览" />
+                        <div class="two">
+                            <label>排序 <input name="sort_order" type="number" value="0" /></label>
+                            <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
+                        </div>
+                        <div class="actions">
+                            <button class="btn" type="submit">◆ 保存登记</button>
+                            <button class="btn ghost" type="button" id="resetCharacterBtn">清空</button>
+                        </div>
+                    </form>
+                    <div class="panel">
+                        <h3>冒险者列表</h3>
+                        <div id="characterList" class="table-wrap" style="margin-top:16px"></div>
                     </div>
                 </div>
             </section>
@@ -597,9 +807,23 @@
                         <label>正文 <textarea name="content" placeholder="支持基础 Markdown"></textarea></label>
                         <div class="two">
                             <label>封面地址 <input name="cover_url" placeholder="/uploads/post_covers/..." /></label>
-                            <label>上传封面 <input id="coverFile" type="file" accept="image/*" /></label>
+                            <label>上传配图 <input id="coverFile" type="file" accept="image/*" multiple /></label>
                         </div>
+                        <label>配图地址（每行一条） <textarea name="image_urls" style="min-height:84px" placeholder="/uploads/post_covers/..."></textarea></label>
+                        <label>附件地址（每行一条） <textarea name="attachments" style="min-height:72px" placeholder="/uploads/... 或 https://..."></textarea></label>
+                        <label>上传附件 <input id="attachmentFiles" type="file" accept=".pdf,.txt,.md,.zip,.rar,.7z,.doc,.docx,.xls,.xlsx,.ppt,.pptx" multiple /></label>
+                        <label>网页链接（每行：名称 | URL） <textarea name="links" style="min-height:72px" placeholder="活动页面 | https://..."></textarea></label>
                         <label class="checkbox-row"><input name="is_published" type="checkbox" checked /> 发布到前台</label>
+                        <div class="two">
+                            <label class="checkbox-row"><input name="is_pinned" type="checkbox" /> 置顶动态</label>
+                            <label>置顶顺序 <input name="pin_order" type="number" value="0" /></label>
+                        </div>
+                        <div class="two">
+                            <label class="checkbox-row"><input name="is_character_story" type="checkbox" /> 展示为首页角色故事</label>
+                            <label>故事顺序 <input name="story_order" type="number" value="0" /></label>
+                        </div>
+                        <label>所属角色 <select name="story_character_id"><option value="">不关联角色</option></select></label>
+                        <label>书页简介 <textarea name="story_summary" rows="3" placeholder="留空使用动态摘要"></textarea></label>
                         <div class="actions">
                             <button class="btn" type="submit">◆ 保存</button>
                             <button class="btn ghost" type="button" id="resetPostBtn">清空</button>
@@ -696,7 +920,12 @@
                             <input type="hidden" name="id" />
                             <div class="two">
                                 <label>名称 <input name="name" required /></label>
-                                <label>图标字母 <input name="icon" maxlength="8" placeholder="QQ / X / B" /></label>
+                                <label>预设图标 <select name="icon_preset"><option value="">使用下方自定义值</option><option value="QQ">QQ</option><option value="X">X</option><option value="B">Bilibili</option><option value="D">抖音</option><option value="R">小红书</option></select></label>
+                            </div>
+                            <label>图标地址 / 标识 <input name="icon" maxlength="500" placeholder="QQ / X / B / D / R，或 /uploads/social_icons/...、https://..." /></label>
+                            <div class="two">
+                                <label>上传图标 <input id="socialIconFile" name="icon_file" type="file" accept="image/*" /></label>
+                                <img id="socialIconPreview" class="upload-preview upload-preview--icon hidden" alt="联系方式图标预览" />
                             </div>
                             <label>说明 <input name="desc" placeholder="动态 / 日常" /></label>
                             <label>链接 <input name="link" placeholder="https://..." /></label>
@@ -725,6 +954,11 @@
                             <label>排序 <input name="sort_order" type="number" value="0" /></label>
                         </div>
                         <label>头像 URL <input name="avatar_url" placeholder="https://.../avatar.png，可留空" /></label>
+                        <div class="two">
+                            <label>上传头像 <input id="friendAvatarFile" type="file" accept="image/*" /></label>
+                            <img id="friendAvatarPreview" class="upload-preview upload-preview--icon hidden" alt="友链头像预览" />
+                        </div>
+                        <button class="btn ghost" type="button" id="clearFriendAvatarBtn">清除头像</button>
                         <label>站点 URL <input name="url" placeholder="https://...，可留空" /></label>
                         <label>介绍 <textarea name="comment" style="min-height:140px" placeholder="展示在友链卡片里的介绍"></textarea></label>
                         <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
@@ -740,6 +974,10 @@
                 </div>
             </section>
 
+            <section id="contentTab" class="tab-view hidden">
+                <label>页面 <select id="contentGroup" aria-label="选择编辑页面"></select></label>
+                <div id="contentFields" class="form-grid" style="margin-top:20px"></div>
+            </section>
             <section id="securityTab" class="tab-view hidden">
                 <form id="passwordForm" class="panel form-grid">
                     <h3>修改后台密码</h3>
@@ -763,9 +1001,10 @@
         const LEGACY_TOKEN_KEY = "lingxun_admin_token";
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         const REFRESH_WINDOW_MS = 10 * 60 * 1000;
-        const state = { tab: "gallery", gallery: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
+        const state = { tab: "gallery", gallery: [], characters: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
         let sessionTimer = 0;
         let refreshPromise = null;
+        let sessionRevision = 0;
         let currentAdminUsername = "";
 
         const $ = (selector) => document.querySelector(selector);
@@ -788,6 +1027,7 @@
         }
 
         function saveSession(accessToken, expiresIn = 1800) {
+            sessionRevision += 1;
             const maxAge = Math.min(Number(expiresIn || 1800) * 1000, SESSION_TIMEOUT_MS);
             localStorage.setItem(TOKEN_KEY, JSON.stringify({
                 accessToken,
@@ -798,6 +1038,7 @@
         }
 
         function clearSession() {
+            sessionRevision += 1;
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(LEGACY_TOKEN_KEY);
             window.clearTimeout(sessionTimer);
@@ -842,6 +1083,8 @@
             const session = readSession();
             if (!session || session.expiresAt - Date.now() > REFRESH_WINDOW_MS) return;
             if (refreshPromise) return refreshPromise;
+            const revision = sessionRevision;
+            const isCurrent = () => revision === sessionRevision && readSession()?.accessToken === session.accessToken;
 
             refreshPromise = fetch(`${API}/api/admin/session/refresh`, {
                 method: "POST",
@@ -850,9 +1093,11 @@
                 .then(async (response) => {
                     if (!response.ok) throw new Error("登录状态已失效");
                     const data = await response.json();
+                    if (!isCurrent()) return;
                     saveSession(data.access_token, data.expires_in);
                 })
                 .catch((error) => {
+                    if (!isCurrent()) return;
                     clearSession();
                     showLogin();
                     showStatus(error.message, true);
@@ -951,7 +1196,9 @@
         }
 
         async function loadAll() {
+            if (state.tab === "content") await loadSiteContent();
             if (state.tab === "gallery") await loadGallery();
+            if (state.tab === "characters") await loadCharacters();
             if (state.tab === "posts") await loadPosts();
             if (state.tab === "comments") await loadComments();
             if (state.tab === "bonus") await loadBonus();
@@ -960,6 +1207,7 @@
         }
 
         function setTab(tab) {
+            if (state.tab === tab) return;
             state.tab = tab;
             document.querySelectorAll(".nav-btn[data-tab]").forEach((btn) => {
                 btn.classList.toggle("active", btn.dataset.tab === tab);
@@ -968,21 +1216,115 @@
             $(`#${tab}Tab`).classList.remove("hidden");
             const titles = {
                 gallery: "画廊<span>管理</span>",
+                characters: "登记簿<span>管理</span>",
                 posts: "动态<span>编辑</span>",
                 comments: "评论<span>审核</span>",
                 bonus: "Bonus<span>文案</span>",
                 final: "行程<span>联系</span>",
                 friends: "友链<span>管理</span>",
                 security: "安全<span>设置</span>",
+                content: "站点<span>内容</span>",
             };
             $("#pageTitle").innerHTML = titles[tab] || titles.gallery;
             loadAll().catch((error) => showStatus(error.message, true));
         }
 
         async function loadGallery() {
-            state.gallery = await request("/api/admin/gallery", { headers: authHeaders() });
+            const [gallery, characters] = await Promise.all([
+                request("/api/admin/gallery", { headers: authHeaders() }),
+                request("/api/admin/characters", { headers: authHeaders() }),
+            ]);
+            state.gallery = gallery;
+            state.characters = characters;
             renderGallery();
         }
+
+        let siteContent = [];
+        const contentDrafts = new Map();
+        function rememberContentDraft(form) {
+            form.dataset.draftRevision = String(Number(form.dataset.draftRevision || 0) + 1);
+            const id = Number(form.dataset.contentForm);
+            const saved = siteContent.find(item => item.id === id);
+            const value = form.elements.value.value;
+            form.toggleAttribute('data-has-image', Boolean(form.querySelector('[data-content-preview]') && value.trim()));
+            if (saved && saved.value === value) contentDrafts.delete(id);
+            else contentDrafts.set(id, value);
+            const label = form.querySelector('[data-content-state]');
+            if (label) label.textContent = contentDrafts.has(id) ? '未保存' : '已保存';
+        }
+        async function loadSiteContent() {
+            siteContent = await request('/api/admin/site-content', { headers: authHeaders() });
+            const group = $('#contentGroup');
+            const selected = group.value;
+            group.innerHTML = [...new Set(siteContent.map(item => item.group_name))].map(name => `<option>${escapeHtml(name)}</option>`).join('');
+            if (siteContent.some(item => item.group_name === selected)) group.value = selected;
+            renderSiteContent();
+        }
+
+        function renderSiteContent() {
+            $('#contentFields').innerHTML = siteContent.filter(item => item.group_name === $('#contentGroup').value).map(item => `
+                <form class="form-grid" data-content-form="${item.id}" style="padding-block:16px;border-bottom:1px solid var(--line)">
+                    <label>${escapeHtml(item.label)}<textarea name="value" rows="${item.content_type === 'textarea' ? 4 : 2}" style="min-height:64px">${escapeHtml(contentDrafts.get(item.id) ?? item.value)}</textarea></label>
+                    ${item.content_type === 'image' ? `<img data-content-preview class="upload-preview hidden" alt="${escapeHtml(item.label)}预览"><label>上传图片<input type="file" name="image" accept="image/*"></label>` : ''}
+                    <div class="actions"><button class="btn" type="submit">保存</button><button class="btn ghost" type="button" data-content-clear>清空</button><span class="muted" data-content-state role="status">${contentDrafts.has(item.id) ? '未保存' : '已保存'}</span></div>
+                </form>`).join('');
+            $('#contentFields').querySelectorAll('form').forEach(form => {
+                rememberContentDraft(form);
+                const value = form.elements.value.value;
+                setPreview(form.querySelector('[data-content-preview]'), value);
+            });
+        }
+
+        $('#contentGroup').addEventListener('change', renderSiteContent);
+        $('#contentFields').addEventListener('input', event => {
+            if (event.target.name === 'value') rememberContentDraft(event.target.closest('form'));
+        });
+        window.addEventListener('beforeunload', event => {
+            if (contentDrafts.size) { event.preventDefault(); event.returnValue = ''; }
+        });
+        $('#contentFields').addEventListener('click', event => {
+            if (event.target.closest('[data-content-clear]')) {
+                const form = event.target.closest('form');
+                form.elements.value.value = '';
+                rememberContentDraft(form);
+                setPreview(form.querySelector('[data-content-preview]'), '');
+            }
+        });
+        $('#contentFields').addEventListener('change', async event => {
+            const form = event.target.closest('form');
+            if (!form) return;
+            if (event.target.name === 'value') setPreview(form.querySelector('[data-content-preview]'), event.target.value);
+            if (event.target.name !== 'image' || !event.target.files?.length) return;
+            const body = new FormData();
+            body.append('file', event.target.files[0]);
+            event.target.disabled = true;
+            const revision = form.dataset.draftRevision;
+            try {
+                const result = await request('/api/admin/site-content/upload-image', { method: 'POST', headers: authHeaders(), body });
+                if (!form.isConnected || form.dataset.draftRevision !== revision) {
+                    showStatus('草稿已更改，本次上传未替换当前内容');
+                    return;
+                }
+                form.elements.value.value = result.file_url;
+                rememberContentDraft(form);
+                setPreview(form.querySelector('[data-content-preview]'), result.file_url);
+                showStatus('图片已上传，保存后生效');
+            } catch (error) { showStatus(error.message, true); }
+            finally { event.target.disabled = false; }
+        });
+        $('#contentFields').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.target;
+            const button = form.querySelector('[type="submit"]');
+            button.disabled = true;
+            try {
+                const item = await request(`/api/admin/site-content/${form.dataset.contentForm}`, { method: 'PATCH', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ value: form.elements.value.value }) });
+                siteContent = siteContent.map(existing => existing.id === item.id ? item : existing);
+                rememberContentDraft(form);
+                showStatus('站点内容已保存');
+            } catch (error) { showStatus(error.message, true); }
+            finally { button.disabled = false; }
+        });
 
         function renderGallery() {
             const target = $("#galleryList");
@@ -996,17 +1338,34 @@
                     <tbody>
                         ${state.gallery.map((item) => `
                             <tr>
-                                <td><img class="thumb" src="${absoluteUrl(item.file_url)}" alt=""></td>
-                                <td>
-                                    <strong>${escapeHtml(item.title || item.original_filename || "Untitled")}</strong>
-                                    <div class="muted">${escapeHtml(item.description || "")}</div>
+                                <td><img class="thumb" data-gallery-preview="${item.id}" src="${absoluteUrl(item.file_url)}" alt="${escapeHtml(item.title || item.original_filename || "画廊照片")}">
+                                    <label>选择替换照片<input type="file" accept="image/*" data-gallery-file="${item.id}"></label>
+                                    <img class="thumb" data-gallery-new-preview="${item.id}" alt="待替换照片预览" hidden>
+                                    <button type="button" class="btn secondary mini" data-gallery-replace="${item.id}">替换照片</button>
                                 </td>
-                                <td><input data-gallery-order="${item.id}" type="number" value="${item.sort_order}" style="width:86px"></td>
+                                <td>
+                                    <div class="gallery-edit-fields">
+                                        <input data-gallery-title="${item.id}" value="${escapeHtml(item.title || "")}" placeholder="照片标题" aria-label="照片标题">
+                                        <textarea data-gallery-description="${item.id}" rows="2" placeholder="照片描述" aria-label="照片描述">${escapeHtml(item.description || "")}</textarea>
+                                        <input data-gallery-category="${item.id}" value="${escapeHtml(item.category || "")}" placeholder="分类" aria-label="照片分类">
+                                        <input data-gallery-date="${item.id}" type="date" value="${escapeHtml(item.date || "")}" aria-label="照片日期">
+                                        <input data-gallery-location="${item.id}" value="${escapeHtml(item.location || "")}" placeholder="地点" aria-label="照片地点">
+                                        <input data-gallery-characters="${item.id}" value="${escapeHtml((item.character_ids || []).join(","))}" placeholder="角色 ID，例如 1,2" aria-label="绑定角色 ID">
+                                        <label class="checkbox-row"><input data-gallery-hero="${item.id}" type="checkbox" ${item.is_home_hero ? "checked" : ""}> 首屏轮播</label>
+                                        <label class="checkbox-row"><input data-gallery-portrait="${item.id}" type="checkbox" ${item.is_home_portrait ? "checked" : ""}> 首屏主照片</label>
+                                        <label class="checkbox-row"><input data-gallery-home="${item.id}" type="checkbox" ${item.is_home_gallery ? "checked" : ""}> 首页预览</label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <label class="gallery-order-field">画廊 <input data-gallery-order="${item.id}" type="number" value="${item.sort_order}"></label>
+                                    <label class="gallery-order-field">首屏 <input data-gallery-hero-order="${item.id}" type="number" value="${item.hero_order ?? 0}"></label>
+                                    <label class="gallery-order-field">首页 <input data-gallery-home-order="${item.id}" type="number" value="${item.home_order ?? 0}"></label>
+                                </td>
                                 <td>${item.is_visible ? "显示" : "隐藏"}</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn secondary mini" data-gallery-toggle="${item.id}">${item.is_visible ? "隐藏" : "显示"}</button>
-                                        <button class="btn secondary mini" data-gallery-save="${item.id}">排序</button>
+                                        <button class="btn secondary mini" data-gallery-save="${item.id}">保存编辑</button>
                                         <button class="btn danger mini" data-gallery-delete="${item.id}">删除</button>
                                     </div>
                                 </td>
@@ -1017,8 +1376,38 @@
             `;
         }
 
+        async function loadCharacters() {
+            state.characters = await request("/api/admin/characters", { headers: authHeaders() });
+            renderCharacters();
+        }
+
+        function renderCharacters() {
+            const target = $("#characterList");
+            if (!state.characters.length) {
+                target.innerHTML = `<div class="empty">暂无登记簿记录</div>`;
+                return;
+            }
+            target.innerHTML = `
+                <table>
+                    <thead><tr><th>角色</th><th>设定</th><th>状态</th><th>Actions</th></tr></thead>
+                    <tbody>${state.characters.map((item) => `
+                        <tr>
+                            <td><strong>${escapeHtml(item.name)}</strong><div class="muted">#${item.id} ${escapeHtml(item.alias || "")}</div></td>
+                            <td>${escapeHtml(item.species)} / ${escapeHtml(item.role)}<div class="muted">${escapeHtml(item.region)}</div></td>
+                            <td>${escapeHtml(item.status)}<div class="muted">${item.is_visible ? "显示" : "隐藏"}</div></td>
+                            <td><div class="actions"><button class="btn secondary mini" data-character-edit="${item.id}">编辑</button><button class="btn danger mini" data-character-delete="${item.id}">删除</button></div></td>
+                        </tr>`).join("")}
+                    </tbody>
+                </table>`;
+        }
+
         async function loadPosts() {
             state.posts = await request("/api/admin/posts", { headers: authHeaders() });
+            state.characters = await request("/api/admin/characters", { headers: authHeaders() });
+            const select = $("#postForm").elements.story_character_id;
+            const selected = select.value;
+            select.innerHTML = '<option value="">不关联角色</option>' + state.characters.map((item) => `<option value="${item.id}">${escapeHtml(item.name)}</option>`).join("");
+            select.value = selected;
             renderPosts();
         }
 
@@ -1040,7 +1429,7 @@
                                     <div class="muted">/post/?slug=${escapeHtml(post.slug)}</div>
                                 </td>
                                 <td>${escapeHtml(post.tag)}</td>
-                                <td>${post.is_published ? "已发布" : "草稿"}</td>
+                                <td>${post.is_published ? "已发布" : "草稿"}${post.is_pinned ? '<div class="muted">置顶 · ' + escapeHtml(post.pin_order) + '</div>' : ''}${post.is_character_story ? '<div class="muted">角色故事 · ' + escapeHtml(post.story_order) + '</div>' : ''}</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn secondary mini" data-post-edit="${post.id}">编辑</button>
@@ -1161,7 +1550,7 @@
                     <tbody>
                         ${state.socials.map((item) => `
                             <tr>
-                                <td><strong>${escapeHtml(item.name)}</strong><div class="muted">${escapeHtml(item.icon || "")}</div></td>
+                                <td><strong>${escapeHtml(item.name)}</strong><div class="muted">${escapeHtml(item.icon || "未设置")}</div></td>
                                 <td>${escapeHtml(item.desc || "")}<div class="muted">${escapeHtml(item.number || "")}</div></td>
                                 <td class="muted">${escapeHtml(item.link || "")}</td>
                                 <td>${item.is_visible ? "显示" : "隐藏"}</td>
@@ -1195,7 +1584,7 @@
                     <tbody>
                         ${state.friends.map((item) => `
                             <tr>
-                                <td>${item.avatar_url ? `<img class="thumb" src="${escapeHtml(item.avatar_url)}" alt="">` : `<div class="thumb" style="display:grid;place-items:center;color:var(--muted);font-weight:900">${escapeHtml((item.display_id || "?").slice(0, 1))}</div>`}</td>
+                                <td>${item.avatar_url ? `<img class="thumb" src="${escapeHtml(item.avatar_url)}" alt="${escapeHtml(item.display_id)}">` : `<div class="thumb" style="display:grid;place-items:center;color:var(--muted);font-weight:900">${escapeHtml(Array.from(item.display_id || "?")[0])}</div>`}</td>
                                 <td>
                                     <strong>${escapeHtml(item.display_id)}</strong>
                                     <div class="muted">${escapeHtml(item.comment || "")}</div>
@@ -1215,6 +1604,19 @@
             `;
         }
 
+        $("#friendList").addEventListener("error", (event) => {
+            const image = event.target;
+            if (!(image instanceof HTMLImageElement)) return;
+            const placeholder = document.createElement("div");
+            placeholder.className = "thumb";
+            placeholder.style.cssText = "display:grid;place-items:center;color:var(--muted);font-weight:900";
+            placeholder.textContent = Array.from(image.alt || "?")[0];
+            placeholder.title = "头像暂时无法加载，可编辑原地址后重试";
+            placeholder.setAttribute("role", "img");
+            placeholder.setAttribute("aria-label", `${image.alt}：头像加载失败`);
+            image.replaceWith(placeholder);
+        }, true);
+
         function fillPostForm(post) {
             const form = $("#postForm");
             form.elements.id.value = post?.id || "";
@@ -1225,7 +1627,16 @@
             form.elements.desc.value = post?.desc || "";
             form.elements.content.value = post?.content || "";
             form.elements.cover_url.value = post?.cover_url || "";
+            form.elements.image_urls.value = (post?.image_urls || []).join("\n");
+            form.elements.attachments.value = (post?.attachments || []).join("\n");
+            form.elements.links.value = (post?.links || []).map((item) => `${item.label || ""} | ${item.url || ""}`).join("\n");
             form.elements.is_published.checked = post?.is_published ?? true;
+            form.elements.is_pinned.checked = post?.is_pinned ?? false;
+            form.elements.pin_order.value = post?.pin_order ?? 0;
+            form.elements.is_character_story.checked = post?.is_character_story ?? false;
+            form.elements.story_order.value = post?.story_order ?? 0;
+            form.elements.story_summary.value = post?.story_summary || "";
+            form.elements.story_character_id.value = post?.story_character_id ?? "";
             $("#postFormTitle").textContent = post ? "编辑动态" : "新建动态";
         }
 
@@ -1275,15 +1686,19 @@
             form.elements.id.value = item?.id || "";
             form.elements.name.value = item?.name || "";
             form.elements.icon.value = item?.icon || "";
+            form.elements.icon_preset.value = ["QQ", "X", "B", "D", "R"].includes(item?.icon) ? item.icon : "";
             form.elements.desc.value = item?.desc || "";
             form.elements.link.value = item?.link || "";
             form.elements.number.value = item?.number || "";
             form.elements.sort_order.value = item?.sort_order ?? 0;
             form.elements.is_visible.checked = item?.is_visible ?? true;
+            setPreview($("#socialIconPreview"), item?.icon || "", true);
             $("#socialFormTitle").textContent = item ? "编辑联系方式" : "新建联系方式";
         }
 
+        let friendDraftRevision = 0;
         function fillFriendForm(item) {
+            friendDraftRevision += 1;
             const form = $("#friendForm");
             form.elements.id.value = item?.id || "";
             form.elements.display_id.value = item?.display_id || "";
@@ -1292,7 +1707,101 @@
             form.elements.comment.value = item?.comment || "";
             form.elements.sort_order.value = item?.sort_order ?? 0;
             form.elements.is_visible.checked = item?.is_visible ?? true;
+            $("#friendAvatarFile").value = "";
+            setPreview($("#friendAvatarPreview"), item?.avatar_url || "");
             $("#friendFormTitle").textContent = item ? "编辑友链" : "新建友链";
+        }
+
+        function parseLines(value) {
+            return String(value || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        }
+
+        function parseCustomFields(value) {
+            return parseLines(value).map((line) => {
+                const [label, ...rest] = line.split("|");
+                return { label: label.trim(), value: rest.join("|").trim() };
+            }).filter((item) => item.label && item.value);
+        }
+
+        function formatCustomFields(value) {
+            return (Array.isArray(value) ? value : []).map((item) => `${item.label || ""} | ${item.value || ""}`).filter((line) => line !== " | ").join("\n");
+        }
+
+        let assetPreviewRequest;
+        function loadAssetPreviews() {
+            return assetPreviewRequest ||= fetch(absoluteUrl('/asset-previews.json')).then(response => {
+                if (!response.ok) throw new Error('preview_manifest_unavailable');
+                return response.json();
+            }).catch(error => {
+                assetPreviewRequest = undefined;
+                throw error;
+            });
+        }
+
+        async function setPreview(target, value, isIcon = false) {
+            if (!target) return;
+            let url = String(value || "").trim();
+            const revision = String(Number(target.dataset.previewRevision || 0) + 1);
+            target.dataset.previewRevision = revision;
+            let status = target.nextElementSibling;
+            if (!status?.hasAttribute('data-preview-status')) {
+                status = document.createElement('small');
+                status.dataset.previewStatus = '';
+                status.className = 'muted';
+                status.setAttribute('role', 'status');
+                target.after(status);
+            }
+            target.onload = target.onerror = null;
+            target.classList.add('hidden');
+            target.removeAttribute('src');
+            status.textContent = '';
+            if (!url) {
+                return;
+            }
+            if (url.startsWith('/src/assets/')) {
+                status.textContent = '正在读取内置图片…';
+                try {
+                    const images = await loadAssetPreviews();
+                    if (target.dataset.previewRevision !== revision) return;
+                    url = Object.hasOwn(images, url) ? images[url] : '';
+                    if (!url) throw new Error('preview_asset_missing');
+                } catch {
+                    if (target.dataset.previewRevision === revision) status.textContent = '暂时无法预览内置图片，原地址仍保留，可上传替换。';
+                    return;
+                }
+            }
+            status.textContent = '正在加载预览…';
+            target.onload = () => { if (target.dataset.previewRevision === revision) status.textContent = ''; };
+            target.onerror = () => {
+                if (target.dataset.previewRevision !== revision) return;
+                target.classList.add('hidden');
+                status.textContent = '图片无法加载，请检查地址或重新上传。';
+            };
+            target.src = absoluteUrl(url);
+            target.classList.remove("hidden");
+            target.classList.toggle("upload-preview--icon", isIcon);
+        }
+
+        function parseLinks(value) {
+            return parseLines(value).map((line) => {
+                const [label, ...rest] = line.split("|");
+                const url = rest.join("|").trim() || label.trim();
+                return { label: rest.length ? label.trim() : "", url };
+            }).filter((item) => item.url);
+        }
+
+        function fillCharacterForm(item) {
+            const form = $("#characterForm");
+            form.elements.id.value = item?.id || "";
+            const defaults = { species: "龙族", role: "冒险者", region: "人类城镇", work: "冒险者公会委托", places: "公会 / 酒馆 / 家中", status: "可接受委托" };
+            ["name", "alias", "species", "role", "region", "work", "places", "status", "introduction", "details", "image_url"].forEach((name) => {
+                form.elements[name].value = item ? (item[name] ?? "") : (defaults[name] ?? "");
+            });
+            form.elements.custom_fields.value = formatCustomFields(item?.custom_fields);
+            form.elements.sort_order.value = item?.sort_order ?? 0;
+            form.elements.is_visible.checked = item?.is_visible ?? true;
+            setPreview($("#characterImagePreview"), item?.image_url || "");
+            $("#characterFormTitle").textContent = item ? `编辑登记 #${item.id}` : "新建冒险者登记";
         }
 
         function escapeHtml(value) {
@@ -1327,6 +1836,8 @@
         });
 
         $("#logoutBtn").addEventListener("click", () => {
+            if (contentDrafts.size && !window.confirm('还有未保存的站点内容，退出将丢弃这些修改。确定退出？')) return;
+            contentDrafts.clear();
             clearSession();
             clearPasswordFields();
             showLogin();
@@ -1343,6 +1854,7 @@
             const form = event.currentTarget;
             const data = new FormData(form);
             data.set("is_visible", form.elements.is_visible.checked ? "true" : "false");
+            data.set("character_ids", JSON.stringify(parseLines(form.elements.character_ids.value).flatMap((value) => /^\d+$/.test(value) ? [Number(value)] : [])));
             try {
                 await request("/api/admin/gallery", { method: "POST", headers: authHeaders(), body: data });
                 form.reset();
@@ -1354,11 +1866,44 @@
             }
         });
 
+        $("#galleryList").addEventListener("change", (event) => {
+            const id = event.target.dataset.galleryFile;
+            if (!id) return;
+            const preview = document.querySelector(`[data-gallery-new-preview="${id}"]`);
+            if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+            const file = event.target.files?.[0];
+            preview.hidden = !file;
+            if (file) {
+                preview.dataset.objectUrl = URL.createObjectURL(file);
+                preview.src = preview.dataset.objectUrl;
+            } else preview.removeAttribute("src");
+        });
+
         $("#galleryList").addEventListener("click", async (event) => {
+            const replaceId = event.target.dataset.galleryReplace;
             const toggleId = event.target.dataset.galleryToggle;
             const deleteId = event.target.dataset.galleryDelete;
             const saveId = event.target.dataset.gallerySave;
             try {
+                if (replaceId) {
+                    const input = document.querySelector(`[data-gallery-file="${replaceId}"]`);
+                    if (!input.files?.[0]) { showStatus("请先选择替换照片", true); return; }
+                    const button = event.target;
+                    const body = new FormData();
+                    body.append("file", input.files[0]);
+                    button.disabled = true;
+                    try {
+                        const updated = await request(`/api/admin/gallery/${replaceId}/image`, { method: "POST", headers: authHeaders(), body });
+                        state.gallery = state.gallery.map(item => String(item.id) === replaceId ? updated : item);
+                        document.querySelector(`[data-gallery-preview="${replaceId}"]`).src = absoluteUrl(updated.file_url);
+                        input.value = "";
+                        const preview = document.querySelector(`[data-gallery-new-preview="${replaceId}"]`);
+                        if (preview.dataset.objectUrl) URL.revokeObjectURL(preview.dataset.objectUrl);
+                        preview.removeAttribute("src");
+                        preview.hidden = true;
+                        showStatus("照片已替换，标题、排序与首页用途保持不变");
+                    } finally { button.disabled = false; }
+                }
                 if (toggleId) {
                     const item = state.gallery.find((photo) => String(photo.id) === toggleId);
                     await request(`/api/admin/gallery/${toggleId}`, {
@@ -1370,14 +1915,25 @@
                     showStatus("显示状态已更新");
                 }
                 if (saveId) {
+                    const title = document.querySelector(`[data-gallery-title="${saveId}"]`).value;
+                    const description = document.querySelector(`[data-gallery-description="${saveId}"]`).value;
+                    const category = document.querySelector(`[data-gallery-category="${saveId}"]`).value;
+                    const date = document.querySelector(`[data-gallery-date="${saveId}"]`).value;
+                    const location = document.querySelector(`[data-gallery-location="${saveId}"]`).value;
                     const order = document.querySelector(`[data-gallery-order="${saveId}"]`).value;
+                    const heroOrder = document.querySelector(`[data-gallery-hero-order="${saveId}"]`).value;
+                    const homeOrder = document.querySelector(`[data-gallery-home-order="${saveId}"]`).value;
+                    const characters = document.querySelector(`[data-gallery-characters="${saveId}"]`).value;
+                    const isHomeHero = document.querySelector(`[data-gallery-hero="${saveId}"]`).checked;
+                    const isHomePortrait = document.querySelector(`[data-gallery-portrait="${saveId}"]`).checked;
+                    const isHomeGallery = document.querySelector(`[data-gallery-home="${saveId}"]`).checked;
                     await request(`/api/admin/gallery/${saveId}`, {
                         method: "PATCH",
                         headers: authHeaders({ "Content-Type": "application/json" }),
-                        body: JSON.stringify({ sort_order: Number(order) }),
+                        body: JSON.stringify({ title, description, category, date, location, sort_order: Number(order), character_ids: parseLines(characters).flatMap((value) => value.split(",").map((item) => item.trim()).filter((item) => /^\d+$/.test(item)).map(Number)), is_home_hero: isHomeHero, hero_order: Number(heroOrder), is_home_portrait: isHomePortrait, is_home_gallery: isHomeGallery, home_order: Number(homeOrder) }),
                     });
                     await loadGallery();
-                    showStatus("排序已保存");
+                    showStatus("照片信息已保存");
                 }
                 if (deleteId && confirm("确认删除这张照片？")) {
                     await request(`/api/admin/gallery/${deleteId}`, { method: "DELETE", headers: authHeaders() });
@@ -1390,14 +1946,32 @@
         });
 
         $("#coverFile").addEventListener("change", async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
             const data = new FormData();
-            data.append("file", file);
+            files.forEach((file) => data.append("files", file));
             try {
-                const result = await request("/api/admin/posts/upload-cover", { method: "POST", headers: authHeaders(), body: data });
-                $("#postForm").elements.cover_url.value = result.file_url;
-                showStatus("封面已上传");
+                const result = await request("/api/admin/posts/upload-images", { method: "POST", headers: authHeaders(), body: data });
+                const form = $("#postForm");
+                const current = parseLines(form.elements.image_urls.value);
+                form.elements.image_urls.value = [...current, ...result.file_urls].join("\n");
+                if (!form.elements.cover_url.value) form.elements.cover_url.value = result.file_urls[0] || "";
+                showStatus(`${result.file_urls.length} 张配图已上传`);
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#attachmentFiles").addEventListener("change", async (event) => {
+            const files = Array.from(event.target.files || []);
+            if (!files.length) return;
+            const data = new FormData();
+            files.forEach((file) => data.append("files", file));
+            try {
+                const result = await request("/api/admin/posts/upload-attachments", { method: "POST", headers: authHeaders(), body: data });
+                const form = $("#postForm");
+                form.elements.attachments.value = [...parseLines(form.elements.attachments.value), ...result.file_urls].join("\n");
+                showStatus(`${result.file_urls.length} 个附件已上传`);
             } catch (error) {
                 showStatus(error.message, true);
             }
@@ -1415,7 +1989,16 @@
                 desc: form.elements.desc.value,
                 content: form.elements.content.value,
                 cover_url: form.elements.cover_url.value || null,
+                image_urls: parseLines(form.elements.image_urls.value),
+                attachments: parseLines(form.elements.attachments.value),
+                links: parseLinks(form.elements.links.value),
                 is_published: form.elements.is_published.checked,
+                is_pinned: form.elements.is_pinned.checked,
+                pin_order: Number(form.elements.pin_order.value || 0),
+                is_character_story: form.elements.is_character_story.checked,
+                story_order: Number(form.elements.story_order.value || 0),
+                story_summary: form.elements.story_summary.value,
+                story_character_id: form.elements.story_character_id.value ? Number(form.elements.story_character_id.value) : null,
             };
             try {
                 await request(id ? `/api/admin/posts/${id}` : "/api/admin/posts", {
@@ -1432,6 +2015,76 @@
         });
 
         $("#resetPostBtn").addEventListener("click", () => fillPostForm(null));
+
+        $("#characterForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const id = form.elements.id.value;
+            const payload = {
+                name: form.elements.name.value,
+                alias: form.elements.alias.value,
+                species: form.elements.species.value,
+                role: form.elements.role.value,
+                region: form.elements.region.value,
+                work: form.elements.work.value,
+                places: form.elements.places.value,
+                status: form.elements.status.value,
+                introduction: form.elements.introduction.value,
+                details: form.elements.details.value,
+                custom_fields: parseCustomFields(form.elements.custom_fields.value),
+                image_url: form.elements.image_url.value,
+                sort_order: Number(form.elements.sort_order.value || 0),
+                is_visible: form.elements.is_visible.checked,
+            };
+            try {
+                await request(id ? `/api/admin/characters/${id}` : "/api/admin/characters", {
+                    method: id ? "PATCH" : "POST",
+                    headers: authHeaders({ "Content-Type": "application/json" }),
+                    body: JSON.stringify(payload),
+                });
+                fillCharacterForm(null);
+                await loadCharacters();
+                showStatus("登记簿已保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#resetCharacterBtn").addEventListener("click", () => fillCharacterForm(null));
+
+        $("#characterImageFile").addEventListener("change", async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const data = new FormData();
+            data.append("file", file);
+            try {
+                const result = await request("/api/admin/characters/upload-image", { method: "POST", headers: authHeaders(), body: data });
+                const form = $("#characterForm");
+                form.elements.image_url.value = result.file_url;
+                setPreview($("#characterImagePreview"), result.file_url);
+                showStatus("角色照片已上传，可继续保存登记");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
+        $("#characterList").addEventListener("click", async (event) => {
+            const editId = event.target.dataset.characterEdit;
+            const deleteId = event.target.dataset.characterDelete;
+            if (editId) {
+                fillCharacterForm(state.characters.find((item) => String(item.id) === editId));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (deleteId && confirm("确认删除这条登记簿记录？已绑定照片会保留，但解除绑定后不再属于该角色。")) {
+                try {
+                    await request(`/api/admin/characters/${deleteId}`, { method: "DELETE", headers: authHeaders() });
+                    await loadCharacters();
+                    showStatus("登记簿记录已删除");
+                } catch (error) {
+                    showStatus(error.message, true);
+                }
+            }
+        });
 
         $("#postList").addEventListener("click", async (event) => {
             const editId = event.target.dataset.postEdit;
@@ -1639,6 +2292,33 @@
 
         $("#resetSocialBtn").addEventListener("click", () => fillSocialForm(null));
 
+        $("#socialForm").elements.icon_preset.addEventListener("change", (event) => {
+            if (event.target.value) $("#socialForm").elements.icon.value = event.target.value;
+            setPreview($("#socialIconPreview"), $("#socialForm").elements.icon.value, true);
+        });
+
+        $("#socialForm").elements.icon.addEventListener("input", (event) => {
+            $("#socialForm").elements.icon_preset.value = ["QQ", "X", "B", "D", "R"].includes(event.target.value) ? event.target.value : "";
+            setPreview($("#socialIconPreview"), event.target.value, true);
+        });
+
+        $("#socialIconFile").addEventListener("change", async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const data = new FormData();
+            data.append("file", file);
+            try {
+                const result = await request("/api/admin/socials/upload-icon", { method: "POST", headers: authHeaders(), body: data });
+                const form = $("#socialForm");
+                form.elements.icon.value = result.file_url;
+                form.elements.icon_preset.value = "";
+                setPreview($("#socialIconPreview"), result.file_url, true);
+                showStatus("联系方式图标已上传，可继续保存");
+            } catch (error) {
+                showStatus(error.message, true);
+            }
+        });
+
         $("#socialList").addEventListener("click", async (event) => {
             const editId = event.target.dataset.socialEdit;
             const deleteId = event.target.dataset.socialDelete;
@@ -1654,6 +2334,33 @@
                 } catch (error) {
                     showStatus(error.message, true);
                 }
+            }
+        });
+
+        $("#friendForm").elements.avatar_url.addEventListener("input", event => {
+            friendDraftRevision += 1;
+            setPreview($("#friendAvatarPreview"), event.target.value);
+        });
+        $("#clearFriendAvatarBtn").addEventListener("click", () => {
+            friendDraftRevision += 1;
+            $("#friendForm").elements.avatar_url.value = "";
+            $("#friendAvatarFile").value = "";
+            setPreview($("#friendAvatarPreview"), "");
+        });
+        $("#friendAvatarFile").addEventListener("change", async event => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const revision = ++friendDraftRevision;
+            const data = new FormData();
+            data.append("file", file);
+            try {
+                const result = await request("/api/admin/site-content/upload-image", { method: "POST", headers: authHeaders(), body: data });
+                if (revision !== friendDraftRevision) return;
+                $("#friendForm").elements.avatar_url.value = result.file_url;
+                setPreview($("#friendAvatarPreview"), result.file_url);
+                showStatus("头像已上传");
+            } catch (error) {
+                if (revision === friendDraftRevision) showStatus(error.message, true);
             }
         });
 
@@ -1704,6 +2411,7 @@
         });
 
         fillPostForm(null);
+        fillCharacterForm(null);
         fillScheduleForm(null);
         fillSocialForm(null);
         fillFriendForm(null);

@@ -1,93 +1,310 @@
 ---
-// src/components/Character.astro
-import { Image } from 'astro:assets';
-import dragonImg from '../assets/character.png'; 
+import { Image } from "astro:assets";
+import characterPhoto from "../assets/gallery/photo3.webp";
 ---
 
-<section class="snap-start relative w-full min-h-screen bg-[#050b14] flex items-center justify-center py-24 overflow-hidden z-0">
-    
-    <div class="absolute top-0 left-0 w-[60vw] h-[60vw] md:w-[800px] md:h-[800px] bg-blue-600/30 rounded-full blur-[120px] md:blur-[150px] animate-pulse mix-blend-screen -z-10" style="animation-duration: 4s;"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] md:w-[600px] md:h-[600px] bg-amber-500/20 rounded-full blur-[100px] md:blur-[150px] animate-pulse mix-blend-screen -z-10" style="animation-duration: 7s;"></div>
-
-    <div class="container mx-auto px-6 relative z-10">
-        <div class="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-20">
-
-            <div class="w-full lg:w-5/12 [perspective:1200px] relative group py-8">
-                
-                <div class="relative w-full max-w-[500px] mx-auto aspect-square transition-all duration-1000 ease-out [transform-style:preserve-3d] [transform:rotateY(-12deg)_rotateX(6deg)] group-hover:[transform:rotateY(-4deg)_rotateX(2deg)]">
-                    
-                    <div class="absolute -inset-4 border border-slate-700/40 transition-all duration-700 group-hover:border-amber-500/40 pointer-events-none [transform:translateZ(40px)]"></div>
-                    <div class="absolute -inset-4 border-l-2 border-t-2 border-amber-400 w-8 h-8 -translate-x-1 -translate-y-1 pointer-events-none [transform:translateZ(45px)]"></div>
-                    <div class="absolute -inset-4 border-r-2 border-b-2 border-blue-500 w-8 h-8 right-0 bottom-0 translate-x-1 translate-y-1 pointer-events-none [transform:translateZ(45px)]"></div>
-                    <div class="absolute bottom-6 left-2 font-mono text-amber-400/80 text-xs tracking-widest uppercase pointer-events-none [transform:translateZ(50px)]">
-                        // Character_Profile
-                    </div>
-
-                    <div class="absolute inset-0 w-full h-full overflow-hidden shadow-[2px_10px_30px_rgba(0,0,0,0.7)] bg-slate-900 [transform:translateZ(0px)]">
-                        <Image 
-                            src={dragonImg} 
-                            alt="凌巽" 
-                            class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000 ease-out" 
-                        />
-                        <div class="absolute inset-0 bg-gradient-to-t from-[#050b14] via-transparent to-transparent opacity-90"></div>
-                    </div>
-
-                    <div class="absolute -inset-2 bg-blue-600/5 blur-2xl rounded-full [transform:translateZ(-20px)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none"></div>
-
-                </div>
-            </div>
-
-            <div class="w-full lg:w-7/12 relative">
-                
-                <div class="absolute top-0 left-0 -translate-y-12 -translate-x-8 md:-translate-x-20 text-[6rem] md:text-[10rem] font-black text-slate-800/30 select-none z-0 pointer-events-none tracking-tighter leading-none">
-                    LINGXUN
-                </div>
-
-                <div class="relative z-10">
-                    <div class="flex items-center gap-4 mb-6">
-                        <span class="w-10 h-[2px] bg-amber-400"></span>
-                        <span class="text-slate-400 font-mono text-sm tracking-widest uppercase">Character Profile</span>
-                    </div>
-
-                    <h2 class="text-5xl md:text-6xl font-bold text-white mb-2 tracking-wider flex items-end gap-4 drop-shadow-lg">
-                        凌巽
-                        <span class="text-2xl text-slate-500 font-light pb-1 border-l border-slate-700 pl-4">LingXun</span>
-                    </h2>
-
-                    <p class="text-lg md:text-xl text-blue-400 font-medium mb-10 tracking-widest border-l-4 border-blue-500 pl-4">
-                        世间的冒险者
-                    </p>
-
-                    <div class="space-y-6 text-slate-300 leading-relaxed font-light text-base md:text-lg max-w-2xl">
-                        <p>
-                            曾经的风族长子。毛发如同深邃的夜空，而角与眼瞳中拥有着火焰般的红色光芒，那是心中永不熄灭的力量。
-                        </p>
-                        <p>
-                            平日里性格沉稳，喜欢独处与观察。以接取冒险者公会的委托维生，喜欢去酒馆喝酒。
-                        </p>
-                    </div>
-
-                    <div class="mt-12 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
-                        <div class="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden group hover:border-amber-400/50 transition-colors backdrop-blur-sm">
-                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-800 group-hover:bg-amber-400 transition-colors"></div>
-                            <div class="text-[10px] text-slate-500 font-mono mb-1 tracking-wider uppercase">物种 //</div>
-                            <div class="text-white font-medium tracking-wide">龙族</div>
-                        </div>
-                        <div class="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden group hover:border-blue-500/50 transition-colors backdrop-blur-sm">
-                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-800 group-hover:bg-blue-500 transition-colors"></div>
-                            <div class="text-[10px] text-slate-500 font-mono mb-1 tracking-wider uppercase">属性 //</div>
-                            <div class="text-white font-medium tracking-wide">风属性</div>
-                        </div>
-                        <div class="border border-slate-800 bg-slate-900/40 p-4 relative overflow-hidden group hover:border-purple-500/50 transition-colors backdrop-blur-sm">
-                            <div class="absolute top-0 left-0 w-1 h-full bg-slate-800 group-hover:bg-purple-500 transition-colors"></div>
-                            <div class="text-[10px] text-slate-500 font-mono mb-1 tracking-wider uppercase">特质 //</div>
-                            <div class="text-white font-medium tracking-wide">可靠 外冷内热</div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-            
-        </div>
+<section
+  id="character-section"
+  class="character-section"
+  aria-labelledby="character-title"
+>
+  <div class="site-container character-section__inner">
+    <div class="character-section__photo paper-card" data-reveal>
+      <div class="character-section__photo-label meta">
+        FIELD RECORD / 城镇实拍
+      </div>
+      <Image
+        id="character-image"
+        src={characterPhoto}
+        alt="凌巽在城镇绿荫间的毛毛实拍照片"
+        class="character-section__image"
+        data-default-src={characterPhoto.src}
+        loading="lazy"
+        decoding="async"
+      />
+      <p id="character-image-state" class="character-section__image-state" role="status" hidden></p>
+      <div class="character-section__photo-caption">
+        <span>同行记录 · 03</span>
+        <span class="meta">城镇生活</span>
+      </div>
     </div>
+
+    <div
+      id="character-profile"
+      class="character-section__copy"
+      data-reveal
+      style="--reveal-delay: 120ms"
+    >
+      <div class="eyebrow">冒险者登记簿 / Current Record</div>
+      <div class="character-section__heading">
+        <h2 id="character-title" class="section-title">
+          凌巽 <em>Lingxun</em>
+        </h2><div
+          id="character-switcher"
+          class="character-section__switcher hidden"
+        >
+          <button
+            id="character-prev"
+            type="button"
+            aria-label="查看上一位登记角色">←</button
+          ><span id="character-position" class="meta">01 / 01</span><button
+            id="character-next"
+            type="button"
+            aria-label="查看下一位登记角色">→</button>
+        </div>
+      </div>
+      <p class="character-section__role">
+        一条住在人类城镇里的龙，接公会委托谋生，平时喜欢在家读魔法书。
+      </p>
+      <div class="character-section__text">
+        <p>
+          凌巽是一条风龙，职业是法师，同时也擅长使用各种武器战斗
+        </p>
+        <p>
+          他穿着适合人类城镇生活的冒险者服装，做事可靠，习惯先观察再行动。委托结束后，最常去的地方是公会、酒馆或是自己的小家。
+        </p>
+      </div>
+
+      <dl class="character-section__facts">
+        <div><dt>姓名</dt><dd>凌巽 Lingxun</dd></div>
+        <div><dt>种族</dt><dd>风龙</dd></div>
+        <div><dt>身份</dt><dd>法师 / 冒险者</dd></div>
+        <div><dt>活动区域</dt><dd>人类城镇</dd></div>
+        <div><dt>主要工作</dt><dd>冒险者公会委托</dd></div>
+        <div><dt>常去地点</dt><dd>公会 / 酒馆 / 家中</dd></div>
+        <div>
+          <dt>当前状态</dt><dd class="character-section__status">可接受委托</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
 </section>
+
+<script>
+  import {
+    escapeHtml,
+    fetchPublic,
+    type CharacterProfile,
+  } from "../lib/publicContent";
+  import { loadSiteContent, resolveSiteImage, siteText } from "../lib/siteContent";
+
+  const initCharacterRegistry = async () => {
+    const profile = document.getElementById("character-profile");
+    const image = document.getElementById(
+      "character-image",
+    ) as HTMLImageElement | null;
+    const characters = await fetchPublic<CharacterProfile[]>(
+      "/api/public/characters",
+    );
+    if (!profile || !characters) return;
+    if (!characters.length) {
+      const section = document.getElementById('character-section');
+      section?.classList.add('hidden');
+      section?.setAttribute('hidden', '');
+      return;
+    }
+    await loadSiteContent();
+    let current = 0;
+
+    const render = () => {
+      const item = characters[current];
+      const details = item.details?.trim() || '';
+      const detailHtml = details.split(/\n{2,}/).map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br>")}</p>`).join("");
+      const customFields = (item.custom_fields || []).filter((field) => field.label?.trim() && field.value?.trim());
+      const customFacts = customFields.map((field) => `<div><dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(field.value)}</dd></div>`).join("");
+      const facts = [
+        ['name', '姓名', `${item.name} ${item.alias || ''}`],
+        ['species', '种族', item.species], ['role', '身份', item.role],
+        ['region', '活动区域', item.region], ['work', '主要工作', item.work],
+        ['places', '常去地点', item.places], ['status', '当前状态', item.status],
+      ].filter(([, , value]) => value?.trim()).map(([key, label, value]) =>
+        `<div><dt>${escapeHtml(siteText(`character.field_${key}`, label))}</dt><dd${key === 'status' ? ' class="character-section__status"' : ''}>${escapeHtml(value)}</dd></div>`,
+      ).join('');
+      profile.innerHTML = `
+                <div class="eyebrow">冒险者登记簿 / Current Record</div>
+                <div class="character-section__heading"><h2 id="character-title" class="section-title">${escapeHtml(item.name)} <em>${escapeHtml(item.alias || "")}</em></h2><div class="character-section__switcher"><button id="character-prev" type="button" aria-label="查看上一位登记角色">←</button><span class="meta">${String(current + 1).padStart(2, "0")} / ${String(characters.length).padStart(2, "0")}</span><button id="character-next" type="button" aria-label="查看下一位登记角色">→</button></div></div>
+                ${item.introduction ? `<p class="character-section__role">${escapeHtml(item.introduction)}</p>` : ''}
+                ${details ? `<div class="character-section__text">${detailHtml}</div>` : ''}
+                <dl class="character-section__facts">${facts}${customFacts}</dl>`;
+      if (image) {
+        const url = resolveSiteImage(item.image_url || '');
+        const status = document.getElementById('character-image-state');
+        image.removeAttribute('srcset');
+        image.hidden = !url;
+        if (status) { status.hidden = Boolean(url); status.textContent = siteText('character.no_photo', '暂未放入登记照片'); }
+        image.onerror = () => {
+          image.hidden = true;
+          if (status) { status.hidden = false; status.textContent = siteText('character.image_error', '登记照片暂时无法打开'); }
+        };
+        if (url) image.src = url;
+        else image.removeAttribute('src');
+        image.alt = `${item.name} 登记照片`;
+      }
+      const switcher = profile.querySelector<HTMLElement>('.character-section__switcher');
+      if (switcher) switcher.hidden = characters.length < 2;
+      profile
+        .querySelector("#character-prev")
+        ?.addEventListener("click", () => {
+          current = (current - 1 + characters.length) % characters.length;
+          render();
+        });
+      profile
+        .querySelector("#character-next")
+        ?.addEventListener("click", () => {
+          current = (current + 1) % characters.length;
+          render();
+        });
+    };
+    render();
+  };
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", initCharacterRegistry, {
+      once: true,
+    });
+  else initCharacterRegistry();
+</script>
+
+<style is:global>
+  #character-section[hidden], #character-image[hidden], #character-image-state[hidden], .character-section__switcher[hidden] { display: none; }
+  .character-section__image-state { display: grid; place-items: center; min-height: 15rem; margin: 0; padding: 2rem; border: 1px dashed var(--line); color: var(--paper-muted); text-align: center; }
+  .character-section {
+    padding-block: clamp(5rem, 12vw, 10rem);
+    background: var(--ink-soft);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .character-section__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(2.5rem, 7vw, 7rem);
+    align-items: center;
+  }
+
+  .character-section__photo {
+    width: min(100%, 31rem);
+    margin-inline: auto;
+    padding: 0.7rem;
+    background: var(--surface-paper);
+    box-shadow: var(--shadow-paper);
+    transform: rotate(-1.5deg);
+  }
+
+  .character-section__photo-label,
+  .character-section__photo-caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0.2rem 0.65rem;
+  }
+
+  .character-section__photo-caption {
+    padding: 0.65rem 0.2rem 0.15rem;
+    color: var(--paper-muted);
+    font-size: 0.78rem;
+  }
+
+  .character-section__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    filter: saturate(0.7) contrast(1.08);
+  }
+
+  .character-section__copy {
+    max-width: 42rem;
+  }
+  .character-section__heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .character-section__heading .section-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    flex: 1 1 16rem;
+  }
+  .character-section__switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+  }
+  .character-section__switcher button {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--paper);
+    cursor: pointer;
+  }
+  .character-section__switcher button:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .character-section__role {
+    margin: 1.35rem 0 0;
+    color: var(--red-soft);
+    font-family: var(--font-serif);
+    font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+    line-height: 1.45;
+  }
+  .character-section__text {
+    margin-top: 1.5rem;
+    color: var(--paper-muted);
+    line-height: 1.9;
+  }
+  .character-section__text p {
+    margin: 0 0 1rem;
+  }
+
+  .character-section__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 2rem 0 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .character-section__facts div {
+    padding: 0.95rem 0.8rem 0.95rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .character-section__facts dt {
+    color: var(--steel-soft);
+    font-size: 0.75rem;
+  }
+  .character-section__facts dd {
+    margin: 0.2rem 0 0;
+    color: var(--paper);
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
+  .character-section__status {
+    color: var(--gold) !important;
+  }
+
+  @media (min-width: 860px) {
+    .character-section__inner {
+      grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+    }
+  }
+
+  @media (max-width: 540px) {
+    .character-section__heading {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .character-section__heading .section-title {
+      flex: auto;
+      max-width: 100%;
+    }
+    .character-section__facts {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

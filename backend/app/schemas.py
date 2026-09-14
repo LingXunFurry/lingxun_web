@@ -26,17 +26,35 @@ class GalleryPhotoOut(BaseModel):
     id: int
     title: str = ""
     description: str = ""
+    category: str = ""
+    date: str = ""
+    location: str = ""
     file_url: str
     original_filename: str = ""
     sort_order: int = 0
     is_visible: bool = True
+    character_ids: list[int] | None = None
+    is_home_hero: bool = False
+    hero_order: int = 0
+    is_home_portrait: bool = False
+    is_home_gallery: bool = False
+    home_order: int = 0
 
 
 class GalleryPhotoUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
+    category: str | None = None
+    date: str | None = None
+    location: str | None = None
     sort_order: int | None = None
     is_visible: bool | None = None
+    character_ids: list[int] | None = None
+    is_home_hero: bool | None = None
+    hero_order: int | None = None
+    is_home_portrait: bool | None = None
+    is_home_gallery: bool | None = None
+    home_order: int | None = None
 
 
 class PostIn(BaseModel):
@@ -47,7 +65,16 @@ class PostIn(BaseModel):
     desc: str = ""
     content: str = ""
     cover_url: str | None = None
+    image_urls: list[str] = Field(default_factory=list)
+    attachments: list[str] = Field(default_factory=list)
+    links: list[dict[str, str]] = Field(default_factory=list)
     is_published: bool = True
+    is_pinned: bool = False
+    pin_order: int = 0
+    is_character_story: bool = False
+    story_order: int = 0
+    story_summary: str = ""
+    story_character_id: int | None = None
 
 
 class PostPatch(BaseModel):
@@ -58,7 +85,16 @@ class PostPatch(BaseModel):
     desc: str | None = None
     content: str | None = None
     cover_url: str | None = None
+    image_urls: list[str] | None = None
+    attachments: list[str] | None = None
+    links: list[dict[str, str]] | None = None
     is_published: bool | None = None
+    is_pinned: bool | None = None
+    pin_order: int | None = None
+    is_character_story: bool | None = None
+    story_order: int | None = None
+    story_summary: str | None = None
+    story_character_id: int | None = None
 
 
 class PostOut(BaseModel):
@@ -72,7 +108,16 @@ class PostOut(BaseModel):
     desc: str
     content: str = ""
     cover_url: str | None = None
+    image_urls: list[str] | None = None
+    attachments: list[str] | None = None
+    links: list[dict[str, str]] | None = None
     is_published: bool
+    is_pinned: bool = False
+    pin_order: int = 0
+    is_character_story: bool = False
+    story_order: int = 0
+    story_summary: str = ""
+    story_character_id: int | None = None
 
 
 class PostCommentOut(BaseModel):
@@ -99,7 +144,7 @@ class PostCommentPatch(BaseModel):
 
 
 class BonusContentIn(BaseModel):
-    typewriter_message: str = Field(..., min_length=1)
+    typewriter_message: str
     birthday_title: str = "BIRTHDAY"
     birthday_subtitle: str = "诞生之日"
     birthday_date: str = "2005-12-13"
@@ -157,7 +202,7 @@ class ScheduleItemOut(ScheduleItemIn):
 
 class SocialLinkIn(BaseModel):
     name: str = Field(..., min_length=1)
-    icon: str = ""
+    icon: str = Field(default="", max_length=500)
     desc: str = ""
     link: str = ""
     number: str = ""
@@ -167,7 +212,7 @@ class SocialLinkIn(BaseModel):
 
 class SocialLinkPatch(BaseModel):
     name: str | None = None
-    icon: str | None = None
+    icon: str | None = Field(default=None, max_length=500)
     desc: str | None = None
     link: str | None = None
     number: str | None = None
@@ -203,3 +248,59 @@ class FriendLinkOut(FriendLinkIn):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+
+
+class CharacterProfileIn(BaseModel):
+    name: str = Field(..., min_length=1)
+    alias: str = ""
+    species: str = "龙族"
+    role: str = "冒险者"
+    region: str = "人类城镇"
+    work: str = "冒险者公会委托"
+    places: str = "公会 / 酒馆 / 家中"
+    status: str = "可接受委托"
+    introduction: str = ""
+    details: str = ""
+    custom_fields: list[dict[str, str]] | None = None
+    image_url: str = ""
+    sort_order: int = 0
+    is_visible: bool = True
+
+
+class CharacterProfilePatch(BaseModel):
+    name: str | None = None
+    alias: str | None = None
+    species: str | None = None
+    role: str | None = None
+    region: str | None = None
+    work: str | None = None
+    places: str | None = None
+    status: str | None = None
+    introduction: str | None = None
+    details: str | None = None
+    custom_fields: list[dict[str, str]] | None = None
+    image_url: str | None = None
+    sort_order: int | None = None
+    is_visible: bool | None = None
+
+
+class CharacterProfileOut(CharacterProfileIn):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+
+
+class SiteContentPatch(BaseModel):
+    value: str
+
+
+class SiteContentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    key: str
+    group_name: str
+    label: str
+    value: str
+    content_type: str
+    sort_order: int

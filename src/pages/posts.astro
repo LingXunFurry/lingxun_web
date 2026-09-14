@@ -1,147 +1,170 @@
 ---
-// src/pages/posts.astro
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
+import { postTagLabel } from '../lib/postLabels';
 
-// 获取全量动态，并按时间降序排列
 const allPosts = await getCollection('posts');
-const sortedPosts = allPosts.sort((a, b) => {
-    return new Date(b.data.date.replace(/\./g, '-')).valueOf() - new Date(a.data.date.replace(/\./g, '-')).valueOf();
-});
+const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, '-')).valueOf() - new Date(a.data.date.replace(/\./g, '-')).valueOf());
 ---
 
-<Layout title="动态日志 | 凌巽的龙宫">
-    
-    <main style="padding-top: 160px;" class="relative min-h-screen bg-[#050b14] overflow-x-hidden z-0 pb-32 flex flex-col">
-        
-        <div class="absolute inset-0 bg-[radial-gradient(rgba(148,163,184,0.1)_1px,transparent_1px)] bg-[size:3rem_3rem] pointer-events-none z-0"></div>
-        <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[130px] pointer-events-none z-0 animate-breath-slow"></div>
-        <div class="absolute bottom-[10%] right-[-10%] w-[500px] h-[500px] bg-amber-500/[0.06] rounded-full blur-[120px] pointer-events-none z-0 animate-breath-slower"></div>
-        
-        <div class="container mx-auto px-6 max-w-4xl relative z-10 flex-grow flex flex-col gap-16">
-            
-            <div class="text-center flex flex-col items-center">
-                <div class="flex items-center gap-4 mb-4">
-                    <span class="w-8 h-[2px] bg-amber-500"></span>
-                    <span class="text-slate-400 font-mono text-xs tracking-widest uppercase bg-slate-900 px-3 py-1 border border-slate-800 shadow-[0_0_15px_rgba(251,191,36,0.15)]">Data Stream</span>
-                    <span class="w-8 h-[2px] bg-amber-500"></span>
-                </div>
-                <h1 class="text-4xl md:text-5xl font-bold text-white tracking-wider mb-6">
-                    最新 <span class="text-slate-500 font-light">动态</span>
-                </h1>
-                <p class="text-slate-400 font-light max-w-xl text-xs md:text-sm leading-relaxed tracking-wide">
-                    此处的频率与现实同步。记录程序更迭、生活切片与灵感掉落。所有未公开的归档都在这里无尽流淌。
-                </p>
-            </div>
+<Layout title="最近手记 | 凌巽的酒馆" titleKey="site.posts_title">
+    <main class="archive-page" aria-labelledby="posts-title">
+        <header class="site-container archive-page__header" data-reveal>
+            <div class="eyebrow">最近手记 / Tavern Notes</div>
+            <h1 id="posts-title" class="section-title">公告板上的<em>新消息</em></h1>
+            <p class="section-copy">旅途、活动和网站更新会先写成一张手记，贴在酒馆门口，留给后来进门的人。</p>
+        </header>
 
-            <div id="posts-list" class="flex flex-col gap-6 w-full">
-                {sortedPosts.map((post) => (
-                    // 同样使用 <a> 标签并指向自动生成的路由
-                    <a href={`/posts/${post.id}`} class="group relative block w-full overflow-hidden bg-[#091121]/60 backdrop-blur-md border border-slate-800 rounded-xl transition-all duration-300 hover:border-slate-700 hover:bg-[#0c182e]/80 shadow-lg">
-                        
-                        <div class="absolute top-0 left-6 w-8 h-[2px] bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        <div class="h-44 bg-slate-950 border-b border-slate-800 flex items-center justify-center">
-                            <span class="text-slate-600 font-mono text-xs tracking-widest">NO_COVER_SIGNAL</span>
-                        </div>
-
-                        <div class="p-6">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800/60">
-                                <div class="flex items-center gap-4">
-                                    <span class="text-xs font-mono text-slate-500 tracking-widest">
-                                        {post.data.date}
-                                    </span>
-                                    <span class="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 border rounded text-amber-500 border-amber-500/30 bg-amber-500/5">
-                                        // {post.data.tag}
-                                    </span>
-                                </div>
-                                <span class="text-[10px] font-mono text-slate-600 hidden md:inline-block select-none">
-                                    LOG_INDEX // #{post.id.toUpperCase().substring(0, 4)}
-                                </span>
-                            </div>
-
-                            <h2 class="text-xl font-bold text-white mb-2 group-hover:text-amber-300 transition-colors duration-300">
-                                {post.data.title}
-                            </h2>
-                            <p class="text-sm text-slate-400 font-light leading-relaxed tracking-wide text-justify group-hover:text-slate-300 transition-colors line-clamp-2">
-                                {post.data.desc}
-                            </p>
+        <section class="site-container archive-page__list" aria-live="polite">
+            <form id="post-search-form" class="post-search" role="search" data-reveal style="--reveal-delay: 60ms">
+                <label class="post-search__field">
+                    <span>关键词</span>
+                    <input id="post-search-keyword" name="keyword" type="search" placeholder="搜索标题、摘要或标签" autocomplete="off" />
+                </label>
+                <label class="post-search__field">
+                    <span>日期</span>
+                    <input id="post-search-date" name="date" type="date" />
+                </label>
+                <button id="post-search-reset" class="button button--quiet" type="button">清空筛选</button>
+                <span id="post-search-summary" class="post-search__summary" role="status" aria-live="polite"></span>
+            </form>
+            <div id="posts-list" class="post-list" data-reveal style="--reveal-delay: 120ms">
+                {sortedPosts.map((post, index) => (
+                    <a href={`/posts/${post.id}`} class="post-card paper-card" data-post-card data-title={post.data.title} data-date={post.data.date} data-search={`${post.data.title} ${post.data.desc} ${post.data.tag} ${postTagLabel(post.data.tag)} ${post.data.date}`} style={`--card-delay: ${index * 60}ms`}>
+                        <div class="post-card__cover"><span class="post-card__cover-empty">暂未配图</span></div>
+                        <div class="post-card__body">
+                            <div class="post-card__meta"><span class="meta">{post.data.date}</span><span class="tag">{postTagLabel(post.data.tag)}</span></div>
+                            <h2>{post.data.title}</h2>
+                            <p>{post.data.desc}</p>
+                            <span class="post-card__more">阅读手记 <span aria-hidden="true">→</span></span>
                         </div>
                     </a>
                 ))}
             </div>
+            <div id="posts-empty" class="archive-state hidden">暂时还没有公开的手记。</div>
+        </section>
 
-            <div class="mt-8 flex justify-center">
-                <a href="/#" class="group flex items-center gap-2 text-slate-500 hover:text-amber-400 transition-colors font-mono tracking-widest text-xs">
-                    <span class="transform rotate-180 inline-block group-hover:-translate-x-1 transition-transform">&gt;</span>
-                    RETURN_TO_MAIN_TERMINAL
-                </a>
-            </div>
-
-        </div>
+        <footer class="site-container archive-page__footer" data-reveal style="--reveal-delay: 220ms">
+            <span class="meta">NOTES / 记录持续更新</span>
+            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回酒馆入口</a>
+        </footer>
     </main>
 </Layout>
 
 <script>
     import { escapeHtml, fetchPublic, toApiUrl, type PublicPost } from '../lib/publicContent';
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    import { postTagLabel } from '../lib/postLabels';
+    import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
+
+    const initPostsPage = async () => {
         const list = document.getElementById('posts-list');
+        const empty = document.getElementById('posts-empty');
         if (!list) return;
-
+        setupPostSearch();
+        await loadSiteContent();
         const posts = await fetchPublic<PublicPost[]>('/api/public/posts');
-        if (!posts?.length) return;
+        if (!posts) {
+            if (!list.querySelector('[data-post-card]')) empty?.classList.remove('hidden');
+            applyPostSearch();
+            return;
+        }
+        list.innerHTML = posts.map(renderPostCard).join('');
+        applyPostSearch();
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPostsPage, { once: true });
+    else initPostsPage();
 
-        list.innerHTML = posts.map(renderPostRow).join('');
-    });
+    function setupPostSearch() {
+        const form = document.getElementById('post-search-form') as HTMLFormElement | null;
+        const keyword = document.getElementById('post-search-keyword') as HTMLInputElement | null;
+        const date = document.getElementById('post-search-date') as HTMLInputElement | null;
+        const reset = document.getElementById('post-search-reset');
+        if (!form || !keyword || !date) return;
+        keyword.addEventListener('input', applyPostSearch);
+        date.addEventListener('change', applyPostSearch);
+        form.addEventListener('submit', (event) => { event.preventDefault(); applyPostSearch(); });
+        reset?.addEventListener('click', () => { keyword.value = ''; date.value = ''; applyPostSearch(); keyword.focus(); });
+    }
 
-    function renderPostRow(post: PublicPost) {
-        const cover = post.cover_url
-            ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="${escapeHtml(post.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low" />`
-            : `<div class="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_50%_50%,rgba(251,191,36,0.12),transparent_58%),linear-gradient(135deg,rgba(15,23,42,1),rgba(2,6,23,1))]"><span class="text-slate-600 font-mono text-xs tracking-widest">NO_COVER_SIGNAL</span></div>`;
+    function applyPostSearch() {
+        const keyword = (document.getElementById('post-search-keyword') as HTMLInputElement | null)?.value.trim().toLocaleLowerCase() || '';
+        const date = (document.getElementById('post-search-date') as HTMLInputElement | null)?.value || '';
+        const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-post-card]'));
+        const empty = document.getElementById('posts-empty');
+        const summary = document.getElementById('post-search-summary');
+        let visible = 0;
+        cards.forEach((card) => {
+            const searchable = (card.dataset.search || '').toLocaleLowerCase();
+            const normalizedDate = (card.dataset.date || '').replaceAll('.', '-');
+            const matches = (!keyword || searchable.includes(keyword)) && (!date || normalizedDate === date);
+            card.hidden = !matches;
+            if (matches) visible += 1;
+        });
+        const hasFilter = Boolean(keyword || date);
+        if (summary) summary.textContent = hasFilter ? siteFormat('posts.found', '找到 {count} 条手记', { count: visible }) : siteFormat('posts.total', '{count} 条手记', { count: cards.length });
+        if (empty) {
+            empty.textContent = hasFilter ? siteText('posts.no_results', '没有符合条件的手记，换个关键词或日期试试。') : siteText('posts.empty', '暂时还没有公开的手记。');
+            empty.classList.toggle('hidden', visible > 0);
+        }
+    }
+
+    function renderPostCard(post: PublicPost, index: number) {
+        const coverUrl = post.cover_url || post.image_urls?.[0] || '';
+        const cover = coverUrl
+            ? `<img src="${escapeHtml(toApiUrl(coverUrl))}" alt="${escapeHtml(post.title)}" loading="lazy" decoding="async" />`
+            : `<span class="post-card__cover-empty">暂未配图</span>`;
+        const tag = postTagLabel(post.tag);
         return `
-            <a href="/post/?slug=${encodeURIComponent(post.slug)}" class="group relative block w-full overflow-hidden bg-[#091121]/60 backdrop-blur-md border border-slate-800 rounded-xl transition-all duration-300 hover:border-slate-700 hover:bg-[#0c182e]/80 shadow-lg">
-                <div class="absolute top-0 left-6 w-8 h-[2px] bg-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div class="h-44 bg-slate-950 border-b border-slate-800 overflow-hidden">${cover}</div>
-                <div class="p-6">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800/60">
-                        <div class="flex items-center gap-4">
-                            <span class="text-xs font-mono text-slate-500 tracking-widest">${escapeHtml(post.date)}</span>
-                            <span class="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 border rounded text-amber-500 border-amber-500/30 bg-amber-500/5">
-                                // ${escapeHtml(post.tag)}
-                            </span>
-                        </div>
-                        <span class="text-[10px] font-mono text-slate-600 hidden md:inline-block select-none">
-                            DB_STREAM // #${escapeHtml(String(post.id).padStart(4, '0'))}
-                        </span>
-                    </div>
-                    <h2 class="text-xl font-bold text-white mb-2 group-hover:text-amber-300 transition-colors duration-300">
-                        ${escapeHtml(post.title)}
-                    </h2>
-                    <p class="text-sm text-slate-400 font-light leading-relaxed tracking-wide text-justify group-hover:text-slate-300 transition-colors line-clamp-2">
-                        ${escapeHtml(post.desc)}
-                    </p>
+            <a href="/post/?slug=${encodeURIComponent(post.slug)}" class="post-card paper-card" data-post-card data-title="${escapeHtml(post.title)}" data-date="${escapeHtml(post.date)}" data-search="${escapeHtml(`${post.title} ${post.desc} ${post.tag} ${tag} ${post.date}`)}" style="--card-delay: ${index * 60}ms">
+                <div class="post-card__cover">${cover}</div>
+                <div class="post-card__body">
+                    <div class="post-card__meta"><span class="meta">${escapeHtml(post.date)}</span>${post.is_pinned ? `<span class="tag">${escapeHtml(siteText('posts.pinned', '置顶'))}</span>` : ''}<span class="tag">${escapeHtml(tag)}</span></div>
+                    <h2>${escapeHtml(post.title)}</h2>
+                    <p>${escapeHtml(post.desc)}</p>
+                            <span class="post-card__more">${escapeHtml(siteText('posts.read', '阅读手记'))}${(post.image_urls?.length || 0) > 1 ? escapeHtml(siteFormat('posts.images_count', ' · {count} 张图', { count: post.image_urls!.length })) : ''} <span aria-hidden="true">→</span></span>
                 </div>
             </a>
         `;
     }
 </script>
 
-<style>
-    @keyframes breath-blue {
-        0%, 100% { transform: scale(1) translate(0px, 0px); opacity: 0.8; }
-        50% { transform: scale(1.15) translate(20px, 15px); opacity: 1; }
-    }
-    @keyframes breath-amber {
-        0%, 100% { transform: scale(1.1) translate(0px, 0px); opacity: 0.9; }
-        50% { transform: scale(0.95) translate(-15px, -10px); opacity: 0.7; }
-    }
-    .animate-breath-slow {
-        animation: breath-blue 9s ease-in-out infinite;
-        will-change: transform, opacity;
-    }
-    .animate-breath-slower {
-        animation: breath-amber 14s ease-in-out infinite;
-        will-change: transform, opacity;
+<style is:global>
+    .archive-page { min-height: 100vh; padding-block: 9rem 3rem; background: var(--ink); color: var(--paper); }
+    .archive-page__header { max-width: 1180px; }
+    .archive-page__header .eyebrow { color: var(--gold); }
+    .archive-page__header .section-title { margin-top: 1rem; }
+    .archive-page__list { margin-top: 3.25rem; }
+    .post-search { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(180px, 0.65fr) auto; align-items: end; gap: 0.75rem; margin-bottom: 1rem; padding: 0.9rem; border: 1px solid var(--line-soft); background: var(--surface-card); }
+    .post-search__field { display: grid; gap: 0.35rem; color: var(--steel-soft); font-size: 0.78rem; }
+    .post-search__field input { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--ink-soft); color: var(--paper); outline: none; padding: 0.6rem 0.75rem; }
+    .post-search__field input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(211, 168, 61, 0.1); }
+    .post-search__summary { grid-column: 1 / -1; color: var(--steel-soft); font-family: var(--font-mono); font-size: 0.72rem; }
+    .post-list { display: grid; gap: 1rem; }
+    .post-card { display: grid; grid-template-columns: minmax(180px, 0.38fr) minmax(0, 1fr); min-height: 190px; overflow: hidden; color: var(--paper); }
+    .post-card__cover { display: grid; min-height: 190px; place-items: center; overflow: hidden; background: linear-gradient(135deg, #18263d, #0b0d10); }
+    .post-card__cover img { width: 100%; height: 100%; object-fit: cover; filter: saturate(0.65) contrast(1.05); transition: transform 500ms ease, filter 220ms ease; }
+    .post-card:hover .post-card__cover img { transform: scale(1.04); filter: saturate(0.9) contrast(1.05); }
+    .post-card__cover-empty { color: var(--steel-soft); font-family: var(--font-serif); font-size: 0.95rem; }
+    .post-card__body { display: flex; flex-direction: column; padding: 1.35rem 1.5rem; }
+    .post-card__meta { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--line-soft); }
+    .post-card .tag { border-color: rgba(211, 168, 61, 0.48); }
+    .post-card h2 { margin: 1rem 0 0.45rem; color: var(--paper); font-family: var(--font-serif); font-size: clamp(1.3rem, 2.3vw, 1.8rem); line-height: 1.35; }
+    .post-card p { margin: 0; color: var(--paper-muted); line-height: 1.8; }
+    .post-card__more { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: auto; padding-top: 1.25rem; color: var(--gold); font-size: 0.88rem; }
+    .post-card:hover .post-card__more { color: var(--paper); }
+    .post-card[hidden] { display: none; }
+    .archive-state { padding: 2rem; border: 1px dashed var(--line); color: var(--paper-muted); text-align: center; }
+    .archive-page__footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 2.5rem; }
+
+    @media (max-width: 680px) {
+        .archive-page { padding-top: 7.5rem; }
+        .post-search { grid-template-columns: 1fr; align-items: stretch; }
+        .post-search .button { width: 100%; }
+        .post-search__summary { grid-column: auto; }
+        .post-card { grid-template-columns: 1fr; }
+        .post-card__cover { min-height: 145px; max-height: 220px; }
+        .post-card__body { min-height: 210px; padding: 1.1rem; }
+        .archive-page__footer { align-items: flex-start; flex-direction: column; }
     }
 </style>

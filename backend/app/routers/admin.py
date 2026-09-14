@@ -1,14 +1,19 @@
+import json
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.orm import Session
 
 from ..auth import authenticate_admin, change_admin_password, create_access_token, require_admin
 from ..config import settings
 from ..database import get_db
-from ..models import AdminAccount, BonusContent, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SocialLink
+from ..models import AdminAccount, BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteContent, SocialLink
 from ..schemas import (
     BonusContentIn,
     BonusContentOut,
+    CharacterProfileIn,
+    CharacterProfileOut,
+    CharacterProfilePatch,
     FriendLinkIn,
     FriendLinkOut,
     FriendLinkPatch,
@@ -24,12 +29,14 @@ from ..schemas import (
     ScheduleItemIn,
     ScheduleItemOut,
     ScheduleItemPatch,
+    SiteContentOut,
+    SiteContentPatch,
     SocialLinkIn,
     SocialLinkOut,
     SocialLinkPatch,
     TokenResponse,
 )
-from ..utils import save_image_upload, slugify
+from ..utils import save_attachment_upload, save_image_upload, slugify
 
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -55,6 +62,16 @@ def unique_slug(db: Session, value: str, current_id: int | None = None) -> str:
             return slug
         slug = f"{base}-{index}"
         index += 1
+
+
+def parse_character_ids(value: str) -> list[int]:
+    try:
+        parsed = json.loads(value or "[]")
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail="角色绑定数据格式不正确。") from exc
+    if not isinstance(parsed, list) or any(not isinstance(item, int) for item in parsed):
+        raise HTTPException(status_code=400, detail="角色绑定数据格式不正确。")
+    return sorted(set(parsed))
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -96,8 +113,17 @@ def admin_list_gallery(_: str = Depends(require_admin), db: Session = Depends(ge
 async def create_gallery_photo(
     title: str = Form(""),
     description: str = Form(""),
+    category: str = Form(""),
+    date: str = Form(""),
+    location: str = Form(""),
     sort_order: int = Form(0),
     is_visible: bool = Form(True),
+    character_ids: str = Form("[]"),
+    is_home_hero: bool = Form(False),
+    hero_order: int = Form(0),
+    is_home_portrait: bool = Form(False),
+    is_home_gallery: bool = Form(False),
+    home_order: int = Form(0),
     file: UploadFile = File(...),
     _: str = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -106,15 +132,40 @@ async def create_gallery_photo(
     photo = GalleryPhoto(
         title=title,
         description=description,
+        category=category,
+        date=date,
+        location=location,
         sort_order=sort_order,
         is_visible=is_visible,
         file_url=file_url,
         original_filename=file.filename or "",
+        character_ids=parse_character_ids(character_ids),
+        is_home_hero=is_home_hero,
+        hero_order=hero_order,
+        is_home_portrait=is_home_portrait,
+        is_home_gallery=is_home_gallery,
+        home_order=home_order,
     )
     db.add(photo)
     db.commit()
     db.refresh(photo)
     return photo
+
+
+@router.post("/characters/upload-image")
+async def upload_character_image(
+    file: UploadFile = File(...),
+    _: str = Depends(require_admin),
+):
+    return {"file_url": await save_image_upload(file, "character_profiles", max_dimension=1600, quality=80)}
+
+
+@router.post("/socials/upload-icon")
+async def upload_social_icon(
+    file: UploadFile = File(...),
+    _: str = Depends(require_admin),
+):
+    return {"file_url": await save_image_upload(file, "social_icons", max_dimension=256, quality=88)}
 
 
 @router.patch("/gallery/{photo_id}", response_model=GalleryPhotoOut)
@@ -144,14 +195,34 @@ def delete_gallery_photo(photo_id: int, _: str = Depends(require_admin), db: Ses
     return {"ok": True}
 
 
+@router.post("/gallery/{photo_id}/image", response_model=GalleryPhotoOut)
+async def replace_gallery_image(
+    photo_id: int,
+    file: UploadFile = File(...),
+    _: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    photo = db.get(GalleryPhoto, photo_id)
+    if not photo:
+        raise HTTPException(status_code=404, detail="照片不存在。")
+    # Keep the old file for rollback and other records that may still reference it.
+    photo.file_url = await save_image_upload(file, "gallery", max_dimension=1280, quality=76)
+    photo.original_filename = file.filename or ""
+    db.commit()
+    db.refresh(photo)
+    return photo
+
+
 @router.get("/posts", response_model=list[PostOut])
 def admin_list_posts(_: str = Depends(require_admin), db: Session = Depends(get_db)):
-    query = select(Post).order_by(Post.date.desc(), Post.id.desc())
+    query = select(Post).order_by(Post.is_pinned.desc(), case((Post.is_pinned.is_(True), Post.pin_order), else_=0).asc(), Post.date.desc(), Post.id.desc())
     return db.scalars(query).all()
 
 
 @router.post("/posts", response_model=PostOut)
 def create_post(payload: PostIn, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    if payload.story_character_id is not None and db.get(CharacterProfile, payload.story_character_id) is None:
+        raise HTTPException(status_code=422, detail="关联角色不存在，请重新选择。")
     slug_source = payload.slug or payload.title
     post = Post(
         slug=unique_slug(db, slug_source),
@@ -161,7 +232,16 @@ def create_post(payload: PostIn, _: str = Depends(require_admin), db: Session = 
         desc=payload.desc,
         content=payload.content,
         cover_url=payload.cover_url,
+        image_urls=payload.image_urls,
+        attachments=payload.attachments,
+        links=payload.links,
         is_published=payload.is_published,
+        is_pinned=payload.is_pinned,
+        pin_order=payload.pin_order,
+        is_character_story=payload.is_character_story,
+        story_order=payload.story_order,
+        story_summary=payload.story_summary,
+        story_character_id=payload.story_character_id,
     )
     db.add(post)
     db.commit()
@@ -175,10 +255,14 @@ def update_post(post_id: int, payload: PostPatch, _: str = Depends(require_admin
     if not post:
         raise HTTPException(status_code=404, detail="动态不存在。")
     data = payload.model_dump(exclude_unset=True)
+    if any(value is None for field, value in data.items() if field not in {"cover_url", "story_character_id", "image_urls", "attachments", "links"}):
+        raise HTTPException(status_code=422, detail="动态文本、状态和排序字段不能为 null。")
+    if any(field in data and not data[field].strip() for field in ("title", "date", "slug")):
+        raise HTTPException(status_code=422, detail="标题、日期和地址不能为空。")
+    if data.get("story_character_id") is not None and db.get(CharacterProfile, data["story_character_id"]) is None:
+        raise HTTPException(status_code=422, detail="关联角色不存在，请重新选择。")
     if "slug" in data and data["slug"]:
         data["slug"] = unique_slug(db, data["slug"], current_id=post.id)
-    elif "title" in data and post.slug.startswith("post-"):
-        data["slug"] = unique_slug(db, data["title"], current_id=post.id)
     for field, value in data.items():
         setattr(post, field, value)
     db.commit()
@@ -202,6 +286,52 @@ async def upload_post_cover(
     _: str = Depends(require_admin),
 ):
     return {"file_url": await save_image_upload(file, "post_covers", max_dimension=1280, quality=76)}
+
+
+@router.post("/posts/upload-images")
+async def upload_post_images(
+    files: list[UploadFile] = File(...),
+    _: str = Depends(require_admin),
+):
+    return {"file_urls": [await save_image_upload(file, "post_covers", max_dimension=1280, quality=76) for file in files]}
+
+
+@router.post("/posts/upload-attachments")
+async def upload_post_attachments(
+    files: list[UploadFile] = File(...),
+    _: str = Depends(require_admin),
+):
+    return {"file_urls": [await save_attachment_upload(file) for file in files]}
+
+
+@router.get("/site-content", response_model=list[SiteContentOut])
+def admin_list_site_content(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    query = select(SiteContent).order_by(SiteContent.sort_order.asc(), SiteContent.id.asc())
+    return db.scalars(query).all()
+
+
+@router.patch("/site-content/{content_id}", response_model=SiteContentOut)
+def update_site_content(
+    content_id: int,
+    payload: SiteContentPatch,
+    _: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    item = db.get(SiteContent, content_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="站点内容项不存在。")
+    item.value = payload.value
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.post("/site-content/upload-image")
+async def upload_site_content_image(
+    file: UploadFile = File(...),
+    _: str = Depends(require_admin),
+):
+    return {"file_url": await save_image_upload(file, "site_content", max_dimension=1920, quality=82)}
 
 
 @router.get("/comments", response_model=list[PostCommentOut])
@@ -374,6 +504,43 @@ def delete_social(social_id: int, _: str = Depends(require_admin), db: Session =
 def admin_list_friends(_: str = Depends(require_admin), db: Session = Depends(get_db)):
     query = select(FriendLink).order_by(FriendLink.sort_order.asc(), FriendLink.id.asc())
     return db.scalars(query).all()
+
+
+@router.get("/characters", response_model=list[CharacterProfileOut])
+def admin_list_characters(_: str = Depends(require_admin), db: Session = Depends(get_db)):
+    query = select(CharacterProfile).order_by(CharacterProfile.sort_order.asc(), CharacterProfile.id.asc())
+    return db.scalars(query).all()
+
+
+@router.post("/characters", response_model=CharacterProfileOut)
+def create_character(payload: CharacterProfileIn, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    item = CharacterProfile(**payload.model_dump())
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.patch("/characters/{character_id}", response_model=CharacterProfileOut)
+def update_character(character_id: int, payload: CharacterProfilePatch, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    item = db.get(CharacterProfile, character_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="登记簿记录不存在。")
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(item, field, value)
+    db.commit()
+    db.refresh(item)
+    return item
+
+
+@router.delete("/characters/{character_id}")
+def delete_character(character_id: int, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    item = db.get(CharacterProfile, character_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="登记簿记录不存在。")
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
 
 
 @router.post("/friends", response_model=FriendLinkOut)

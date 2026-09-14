@@ -2,10 +2,19 @@ export type GalleryPhoto = {
     id: number;
     title: string;
     description: string;
+    category?: string;
+    date?: string;
+    location?: string;
     file_url: string;
     original_filename: string;
     sort_order: number;
     is_visible: boolean;
+    character_ids?: number[] | null;
+    is_home_hero?: boolean;
+    hero_order?: number;
+    is_home_portrait?: boolean;
+    is_home_gallery?: boolean;
+    home_order?: number;
 };
 
 export type PublicPost = {
@@ -17,7 +26,34 @@ export type PublicPost = {
     desc: string;
     content: string;
     cover_url?: string | null;
+    image_urls?: string[] | null;
+    attachments?: string[] | null;
+    links?: { label?: string; url: string }[] | null;
     is_published: boolean;
+    is_pinned?: boolean;
+    pin_order?: number;
+    is_character_story?: boolean;
+    story_order?: number;
+    story_summary?: string;
+    story_character_id?: number | null;
+};
+
+export type CharacterProfile = {
+    id: number;
+    name: string;
+    alias: string;
+    species: string;
+    role: string;
+    region: string;
+    work: string;
+    places: string;
+    status: string;
+    introduction: string;
+    details?: string;
+    custom_fields?: { label?: string; value?: string }[] | null;
+    image_url: string;
+    sort_order: number;
+    is_visible: boolean;
 };
 
 export type PostComment = {
@@ -90,7 +126,10 @@ export type FriendLink = {
 export function getApiBase() {
     const configured = document.documentElement.dataset.apiBase;
     if (configured) return configured;
-    if (window.location.port === "4321") return "http://127.0.0.1:8000";
+    // Astro dev runs separately from FastAPI; production/local FastAPI pages are same-origin.
+    if (["4321", "8080"].includes(window.location.port) && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+        return "http://127.0.0.1:8000";
+    }
     return window.location.origin;
 }
 

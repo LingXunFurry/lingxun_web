@@ -1,153 +1,244 @@
 ---
-// Navbar.astro 导航栏组件
+const links = [
+    { href: '/', label: '首页' },
+    { href: '/gallery/', label: '旅途留影' },
+    { href: '/posts/', label: '最近手记' },
+    { href: '/friends/', label: '同行者' },
+];
+const fallbackSocials = [
+    { name: 'QQ', icon: 'QQ', link: 'https://qm.qq.com/q/v6P80LZUdM', number: '1651388504' },
+    { name: 'QQ 群', icon: 'QQ', link: 'https://qm.qq.com/q/hrqvQDmSjK', number: '1105367000' },
+    { name: 'X (Twitter)', icon: 'X', link: 'https://x.com/furrylingx' },
+    { name: 'BiliBili', icon: 'B', link: 'https://space.bilibili.com/362846640' },
+    { name: '抖音', icon: 'D', link: 'https://v.douyin.com/LsGqWRTDUKc/' },
+    { name: '小红书', icon: 'R', link: 'https://www.xiaohongshu.com/user/profile/69c665ea0000000034019dd1' },
+];
+const socialIconPath = (icon: string) => {
+    if (icon === 'QQ') return '/icons/social/qq.png';
+    if (icon === 'B') return '/icons/social/bilibili.png';
+    if (icon === 'D') return '/icons/social/douyin.png';
+    if (icon === 'R') return '/icons/social/xiaohongshu.png';
+    return '/icons/social/x.png';
+};
+const currentPath = Astro.url.pathname;
 ---
 
-<nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 bg-transparent text-white py-4">
-    <div class="container mx-auto px-6 flex justify-between items-center relative">
-        
-        {/* 1. 左侧 Logo：注入 animate-nav-reveal，0.1s 率先降落 */}
-        <a href="/" class="group flex items-center gap-3 text-xl font-bold tracking-widest hover:scale-105 transition-all duration-300 z-20 animate-nav-reveal" style="animation-delay: 0.1s;">
-            <img src="/logo.png" alt="logo" class="w-10 h-10 rounded-full" />
-            <span class="group-hover:text-amber-400 transition-colors duration-300">凌巽的龙窝</span>
+<nav id="navbar" class="site-nav" aria-label="主导航">
+    <div class="site-nav__inner">
+        <a href="/" class="site-brand">
+            <img src="/logo.png" alt="" />
+            <span>
+                凌巽的酒馆
+                <span class="site-brand__en">LINGXUN'S TAVERN</span>
+            </span>
         </a>
 
-        {/* 2. 右侧按钮：作为整体包裹层注入 animate-nav-reveal，0.3s 随后降落 */}
-        <div class="hidden md:flex items-center gap-6 font-medium animate-nav-reveal" style="animation-delay: 0.3s;">
-            <a href="/" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">首 页</a>
-            
-            <span class="text-slate-400/70 font-mono font-bold transform -skew-x-12 select-none text-sm pointer-events-none mx-1">//</span>
-            
-            {/* 修复：补齐 / */}
-            <a href="/gallery/" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">画 廊</a>
-            
-            <span class="text-slate-400/70 font-mono font-bold transform -skew-x-12 select-none text-sm pointer-events-none mx-1">//</span>
-            
-            {/* 修复：补齐 / */}
-            <a href="/posts/" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">动 态</a>
-            
-            <span class="text-slate-400/70 font-mono font-bold transform -skew-x-12 select-none text-sm pointer-events-none mx-1">//</span>
-            
-            {/* 修复：补齐 / */}
-            <a href="/friends/" class="magnetic-item px-3 py-2 hover:text-amber-400 transition-colors duration-200">友 链</a>
+        <div class="site-nav__links">
+            {links.map((link) => (
+                <a href={link.href} class="site-nav__link" aria-current={currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href)) ? 'page' : undefined}>
+                    {link.label}
+                </a>
+            ))}
+            <div class="site-nav__contact-wrap">
+                <button id="contact-menu-btn" class="site-nav__contact-button site-nav__link" type="button" aria-expanded="false" aria-controls="contact-menu">酒馆入口 <span aria-hidden="true">⌄</span></button>
+                <div id="contact-menu" class="site-nav__contact-menu" aria-hidden="true" inert>
+                    <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
+                    {fallbackSocials.map((social) => (
+                        <a href={social.link} target="_blank" rel="noopener noreferrer" title={`打开${social.name}外部页面`}>
+                            <img src={socialIconPath(social.icon)} alt="" loading="lazy" />
+                            <span>{social.name}</span>
+                            <span aria-hidden="true">↗</span>
+                        </a>
+                    ))}
+                </div>
+            </div>
+            <button id="theme-toggle" class="site-nav__theme-button" type="button" aria-label="切换昼夜主题" aria-pressed="false"><span aria-hidden="true">◐</span><span class="theme-toggle__label">昼夜</span></button>
         </div>
 
-        {/* 3. 手机端菜单按钮：同步降落动画，0.3s 出现 */}
-        <button id="mobile-menu-btn" class="md:hidden flex items-center justify-center p-2 z-20 focus:outline-none text-white hover:text-amber-400 animate-nav-reveal" style="animation-delay: 0.3s;">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
+        <button id="mobile-menu-btn" class="site-nav__menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="打开导航菜单">
+            <span aria-hidden="true">☰</span>
         </button>
     </div>
 
-    <div id="mobile-menu" class="absolute top-full left-0 w-full bg-slate-900/95 backdrop-blur-md shadow-lg transform -translate-y-[150%] opacity-0 transition-all duration-300 -z-10 md:hidden flex flex-col items-center py-6 gap-6 font-medium border-t border-slate-800">
-        <a href="/" class="hover:text-amber-400 transition-colors">首 页</a>
-        {/* 修复：补齐 / */}
-        <a href="/gallery/" class="hover:text-amber-400 transition-colors">画 廊</a>
-        {/* 修复：补齐 / */}
-        <a href="/posts/" class="hover:text-amber-400 transition-colors">动 态</a>
-        {/* 修复：补齐 / */}
-        <a href="/friends/" class="hover:text-amber-400 transition-colors">友 链</a>
+    <div id="mobile-menu" class="site-nav__mobile" aria-hidden="true" inert>
+        {links.map((link) => (
+            <a href={link.href} class="site-nav__link" aria-current={currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href)) ? 'page' : undefined}>
+                {link.label}
+            </a>
+        ))}
+        <div class="site-nav__mobile-group">
+            <button id="mobile-contact-btn" class="site-nav__link site-nav__mobile-parent" type="button" aria-expanded="false" aria-controls="mobile-contact-menu">酒馆入口 <span aria-hidden="true">⌄</span></button>
+            <div id="mobile-contact-menu" class="site-nav__mobile-submenu" aria-hidden="true" inert>
+                <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
+                {fallbackSocials.map((social) => (
+                    <a href={social.link} target="_blank" rel="noopener noreferrer" title={`打开${social.name}外部页面`}>
+                        <img src={socialIconPath(social.icon)} alt="" loading="lazy" />
+                        <span>{social.name}</span>
+                        <span aria-hidden="true">↗</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+        <button id="mobile-theme-toggle" class="site-nav__link site-nav__mobile-theme" type="button"><span aria-hidden="true">◐</span> 昼夜主题</button>
     </div>
 </nav>
 
-<style>
-    .magnetic-item {
-        display: inline-block;
-        transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), color 0.2s;
-        will-change: transform;
-    }
-
-    /* -------------------------------------------------------------
-       新增：导航栏“天幕降临”专属加载动画
-       ------------------------------------------------------------- */
-    @keyframes navReveal {
-        0% {
-            opacity: 0;
-            transform: translateY(-20px); /* 初始状态藏在上方 20px 处 */
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0); /* 稳稳落位 */
-        }
-    }
-    
-    .animate-nav-reveal {
-        opacity: 0; /* 强制初始隐身，等待 delay 结束 */
-        /* 使用和首屏标题一模一样的阻尼贝塞尔曲线，保证物理质感统一 */
-        animation: navReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: transform, opacity;
-    }
-</style>
-
 <script>
-    document.addEventListener('DOMContentLoaded', ()=>{
+    import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
+    const initNavbar = () => {
         const navbar = document.getElementById('navbar');
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const menuButton = document.getElementById('mobile-menu-btn') as HTMLButtonElement | null;
         const mobileMenu = document.getElementById('mobile-menu');
-        
-        // 磁吸按钮算法 (Magnetic Hover)
-        const magneticItems = document.querySelectorAll('.magnetic-item');
-        
-        magneticItems.forEach(item => {
-            item.addEventListener('mousemove', (e) => {
-                const el = e.currentTarget as HTMLElement;
-                const rect = el.getBoundingClientRect();
-                
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                
-                const deltaX = e.clientX - centerX;
-                const deltaY = e.clientY - centerY;
-                
-                const forceX = deltaX * 0.2;
-                const forceY = deltaY * 0.2;
-                
-                el.style.transform = `translate(${forceX}px, ${forceY}px)`;
-            });
+        const scrollRoot = document.getElementById('fullpage-container');
+        const contactButton = document.getElementById('contact-menu-btn');
+        const contactMenu = document.getElementById('contact-menu');
+        const mobileContactButton = document.getElementById('mobile-contact-btn');
+        const mobileContactMenu = document.getElementById('mobile-contact-menu');
+        const themeButtons = [document.getElementById('theme-toggle'), document.getElementById('mobile-theme-toggle')].filter(Boolean) as HTMLElement[];
 
-            item.addEventListener('mouseleave', (e) => {
-                const el = e.currentTarget as HTMLElement;
-                el.style.transform = `translate(0px, 0px)`;
-            });
-        });
-
-        // 导航栏滚动与手机菜单逻辑
-        let isMenuOpen = false;
-
-        const checkScroll = () => {
-            const container = document.getElementById('fullpage-container');
-            const scrollPos = Math.max(window.scrollY || 0, container ? container.scrollTop : 0);
-
-            if (scrollPos > 50 || isMenuOpen) {
-                navbar?.classList.remove('bg-transparent', 'py-4');
-                navbar?.classList.add('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
-            } else {
-                navbar?.classList.remove('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
-                navbar?.classList.add('bg-transparent', 'py-4');
-            }
+        const syncNav = () => {
+            const scrollTop = Math.max(window.scrollY, scrollRoot?.scrollTop || 0);
+            navbar?.classList.toggle('is-scrolled', scrollTop > 24);
+            navbar?.classList.toggle('is-page-nav', Boolean(document.querySelector('.gallery-page, .friends-page, .archive-page, .dynamic-post-page, .article-page')));
         };
 
-        window.addEventListener('scroll', checkScroll, { passive: true });
-        
-        const fullpageContainer = document.getElementById('fullpage-container');
-        if (fullpageContainer) {
-            fullpageContainer.addEventListener('scroll', checkScroll, { passive: true });
-        }
+        const closeMenu = () => {
+            mobileMenu?.classList.remove('is-open');
+            mobileMenu?.setAttribute('aria-hidden', 'true');
+            mobileMenu?.setAttribute('inert', '');
+            menuButton?.setAttribute('aria-expanded', 'false');
+            menuButton?.setAttribute('aria-label', siteText('navbar.menu_open', '打开导航菜单'));
+            navbar?.classList.remove('is-open');
+            closeContactMenu();
+        };
 
-        mobileMenuBtn?.addEventListener('click', () => {
-            isMenuOpen = !isMenuOpen;
-            
-            if (isMenuOpen) {
-                mobileMenu?.classList.remove('-translate-y-[150%]', 'opacity-0', '-z-10');
-                mobileMenu?.classList.add('translate-y-0', 'opacity-100', 'z-10');
-                
-                navbar?.classList.remove('bg-transparent', 'py-4');
-                navbar?.classList.add('bg-slate-900/90', 'backdrop-blur-md', 'py-2', 'shadow-lg');
-            } else {
-                mobileMenu?.classList.remove('translate-y-0', 'opacity-100', 'z-10');
-                mobileMenu?.classList.add('-translate-y-[150%]', 'opacity-0', '-z-10');
-                checkScroll();
+        const closeContactMenu = () => {
+            [contactMenu, mobileContactMenu].forEach((menu) => {
+                menu?.classList.remove('is-open');
+                menu?.setAttribute('aria-hidden', 'true');
+                menu?.setAttribute('inert', '');
+            });
+            [contactButton, mobileContactButton].forEach((button) => button?.setAttribute('aria-expanded', 'false'));
+        };
+
+        const toggleContactMenu = (button: HTMLElement | null, menu: HTMLElement | null) => {
+            const isOpen = menu?.classList.toggle('is-open') ?? false;
+            menu?.setAttribute('aria-hidden', String(!isOpen));
+            menu?.toggleAttribute('inert', !isOpen);
+            button?.setAttribute('aria-expanded', String(isOpen));
+        };
+
+        const syncTheme = () => {
+            const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+            themeButtons.forEach((button) => {
+                button.setAttribute('aria-pressed', String(theme === 'light'));
+                const label = button.querySelector('.theme-toggle__label');
+                if (label) label.textContent = theme === 'light' ? siteText('navbar.to_dark', '夜间') : siteText('navbar.to_light', '白天');
+            });
+        };
+        const syncContactTitles = () => {
+            [contactMenu, mobileContactMenu].forEach(menu => menu?.querySelectorAll('a').forEach(link => {
+                link.title = siteFormat('navbar.external_title', '打开{name}外部页面', { name: link.querySelector('span')?.textContent || '' });
+            }));
+        };
+        loadSiteContent().then(() => {
+            syncTheme();
+            menuButton?.setAttribute('aria-label', mobileMenu?.classList.contains('is-open')
+                ? siteText('navbar.menu_close', '关闭导航菜单') : siteText('navbar.menu_open', '打开导航菜单'));
+            document.getElementById('theme-toggle')?.setAttribute('aria-label', siteText('navbar.theme', '昼夜主题'));
+            syncContactTitles();
+        });
+
+        const toggleTheme = () => {
+            const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+            document.documentElement.dataset.theme = next;
+            localStorage.setItem('lingxun-theme', next);
+            syncTheme();
+        };
+
+        const renderContacts = async () => {
+            try {
+                const configuredBase = document.documentElement.dataset.apiBase;
+                const localBackend = ['4321', '8080', '8765'].includes(window.location.port) && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+                    ? 'http://127.0.0.1:8000'
+                    : window.location.origin;
+                const apiBase = (configuredBase || localBackend).replace(/\/$/, '');
+                const response = await fetch(`${apiBase}/api/public/socials`, { headers: { Accept: 'application/json' } });
+                if (!response.ok) return;
+                const socials = await response.json();
+                if (!Array.isArray(socials)) return;
+                const html = socials.map((social: { link: string; name: string; icon?: string }) => {
+                    const icon = getSocialIconUrl(social.icon, social.name, apiBase);
+                    return `<a href="${escapeHtml(social.link)}" target="_blank" rel="noopener noreferrer" title="打开${escapeHtml(social.name)}外部页面">${icon ? `<img src="${escapeHtml(icon)}" alt="" loading="lazy" />` : ''}<span>${escapeHtml(social.name)}</span><span aria-hidden="true">↗</span></a>`;
+                }).join('');
+                [contactMenu, mobileContactMenu].forEach((menu) => {
+                    if (menu) menu.innerHTML = `<span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>${html || '<span class="site-nav__contact-empty">暂无入口</span>'}`;
+                });
+                syncContactTitles();
+            } catch { /* keep navigation usable when the API is unavailable */ }
+        };
+
+        menuButton?.addEventListener('click', () => {
+            const isOpen = mobileMenu?.classList.toggle('is-open') ?? false;
+            mobileMenu?.setAttribute('aria-hidden', String(!isOpen));
+            mobileMenu?.toggleAttribute('inert', !isOpen);
+            menuButton.setAttribute('aria-expanded', String(isOpen));
+            menuButton.setAttribute('aria-label', isOpen ? siteText('navbar.menu_close', '关闭导航菜单') : siteText('navbar.menu_open', '打开导航菜单'));
+            navbar?.classList.toggle('is-open', isOpen);
+        });
+
+        contactButton?.addEventListener('click', () => toggleContactMenu(contactButton, contactMenu));
+        mobileContactButton?.addEventListener('click', () => toggleContactMenu(mobileContactButton, mobileContactMenu));
+        themeButtons.forEach((button) => button.addEventListener('click', toggleTheme));
+        document.addEventListener('click', (event) => {
+            if (!(event.target as HTMLElement).closest('.site-nav__contact-wrap, .site-nav__mobile-group')) closeContactMenu();
+        });
+        navbar?.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            const activeContact = contactMenu?.classList.contains('is-open') ? contactButton
+                : mobileContactMenu?.classList.contains('is-open') ? mobileContactButton : null;
+            if (activeContact) {
+                event.preventDefault();
+                closeContactMenu();
+                activeContact.focus();
+            } else if (mobileMenu?.classList.contains('is-open')) {
+                event.preventDefault();
+                closeMenu();
+                menuButton?.focus();
             }
         });
-    });
+
+        mobileMenu?.addEventListener('click', event => {
+            if (event.target instanceof Element && event.target.closest('a')) closeMenu();
+        });
+        window.addEventListener('scroll', syncNav, { passive: true });
+        scrollRoot?.addEventListener('scroll', syncNav, { passive: true });
+        syncNav();
+        syncTheme();
+        renderContacts();
+    };
+
+    function escapeHtml(value: string) {
+        return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    }
+    function getSocialIcon(icon: string | undefined, name: string) {
+        const key = `${icon ?? ''} ${name}`.toLowerCase();
+        if (key.includes('qq')) return 'qq';
+        if (key.includes('bilibili') || key.includes('b站') || key.trim() === 'b') return 'bilibili';
+        if (key.includes('douyin') || key.includes('抖音') || key.trim() === 'd') return 'douyin';
+        if (key.includes('xiaohongshu') || key.includes('小红书') || key.trim() === 'r') return 'xiaohongshu';
+        if (key.includes('x')) return 'x';
+        return 'x';
+    }
+    function getSocialIconUrl(icon: string | undefined, name: string, apiBase: string) {
+        const value = String(icon || '').trim();
+        if (!value) return '';
+        const preset = { QQ: 'qq', X: 'x', B: 'bilibili', D: 'douyin', R: 'xiaohongshu' }[value];
+        if (preset) return `/icons/social/${preset}.png`;
+        if (/^https?:\/\//i.test(value)) return value;
+        if (value.startsWith('/')) return `${apiBase}${value}`;
+        return `/icons/social/${getSocialIcon(value, name)}.png`;
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initNavbar, { once: true });
+    else initNavbar();
 </script>

@@ -1,195 +1,91 @@
 ---
-// src/components/GallerySection.astro
 import { Image } from 'astro:assets';
 
-// =================================================================
-// 【全自动引擎】：自动扫描 src/assets/gallery 目录下的所有图片
-// =================================================================
 const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/gallery/*.{jpeg,jpg,png,PNG,webp}');
 const imagePaths = Object.values(images);
-
-const galleryImages = await Promise.all(imagePaths.map(async (img) => {
-    const data = await img();
-    return data.default;
-}));
-// =================================================================
+const galleryImages = await Promise.all(imagePaths.map(async (img) => (await img()).default));
+const previewImages = galleryImages.slice(0, 3);
 ---
 
-<section id="gallery-section" class="relative w-full py-32 bg-[#050b14] overflow-hidden z-0">
-    <div class="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
-        
-        {/* ========================================================= */}
-        {/* 【全新解构设计】：无边框全息数据轴，彻底解决图片遮挡问题 */}
-        {/* ========================================================= */}
-        <div class="w-full lg:w-1/3 flex flex-col justify-center z-20 relative pl-6 lg:pl-10">
-            
-            {/* 1. 空间巨型暗纹水印：用极低的透明度填补空间，增加景深 */}
-            <div class="absolute top-1/2 left-0 -translate-y-1/2 text-[10rem] lg:text-[14rem] font-black text-white/[0.02] -z-10 pointer-events-none select-none tracking-tighter leading-none">
-                0X
-            </div>
-
-            {/* 2. 垂直光剑数据轴：取代边框，作为视觉锚点 */}
-            <div class="absolute left-0 top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-amber-500/30 to-transparent">
-                {/* 轴线上的高亮数据节点 */}
-                <div class="absolute top-[20%] -left-[2px] w-[5px] h-[5px] bg-amber-400 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)]"></div>
-                <div class="absolute top-[50%] -left-[1.5px] w-[4px] h-[20px] bg-amber-500/60"></div>
-                <div class="absolute bottom-[30%] -left-[2px] w-[5px] h-[5px] bg-slate-500 rounded-full"></div>
-            </div>
-
-            <div class="flex items-center gap-4 mb-6">
-                <span class="w-10 h-[2px] bg-amber-400"></span>
-                <span class="text-slate-400 font-mono text-sm tracking-widest uppercase flex items-center gap-2">
-                    Visual Archive
-                </span>
-            </div>
-            
-            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 tracking-wider leading-tight relative">
-                {/* 增加闪烁光标，模拟正在输入的终端指令 */}
-                <span class="absolute -top-6 left-0 font-mono text-xl text-slate-600 font-light select-none tracking-tighter flex items-center">
-                    > SYS_STREAM <span class="w-2 h-4 bg-amber-500/70 ml-2 animate-pulse"></span>
-                </span>
-                定格 <br /> 
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
-                    瞬间的光影
-                </span>
-            </h2>
-
-            {/* 3. 保留高质感的 monospace 档案元数据 */}
-            <div class="font-mono text-xs text-slate-500 mb-4 ml-1 tracking-wider space-y-1.5 border-l border-slate-800/50 pl-4">
-                <div class="flex items-center gap-2">
-                    <span class="text-amber-500/80">[Status:]</span>
-                    <span>LOCKED // ARCHIVAL_GRADE</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-amber-500/80">[Format:]</span>
-                    <span>RAW, WEBP (Lossless)</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-amber-500/80">[Limit:]</span>
-                    <span class="text-slate-600">HIGHEST AUTHORITY</span>
-                </div>
-            </div>
-            
-            <p class="text-slate-400 leading-relaxed font-light mb-10 max-w-md">
-                这里收录了凌巽在不同维度的影像档案。每一张图片都是时间的切片，被定格在这一特定的数据流中，等待被再次读取。
-            </p>
-            
-            <a href="/gallery" class="group relative inline-flex items-center justify-center px-8 py-3 w-max font-medium text-amber-400 border border-amber-400/30 rounded-full overflow-hidden transition-all duration-300 hover:border-amber-400 bg-slate-900/40">
-                <span class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-amber-400 pointer-events-none group-hover:translate-y-[-100%] transition-transform duration-500 ease-in-out"></span>
-                <span class="relative flex items-center gap-2">
-                    进入完整画廊
-                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                    </svg>
-                </span>
-            </a>
+<section id="gallery-section" class="home-gallery-section" aria-labelledby="home-gallery-title">
+    <div class="site-container home-gallery-section__inner">
+        <div class="home-gallery-section__intro" data-reveal>
+            <div class="eyebrow">旅途留影 / Visual Archive</div>
+            <h2 id="home-gallery-title" class="section-title">把路上的光，<em>留在墙上</em></h2>
+            <p class="section-copy">公会委托、城镇生活和酒馆片段，都先在这里留下一个位置。完整档案可以按类别慢慢翻看。</p>
+            <a href="/gallery/" class="button button--accent">进入旅途留影 <span aria-hidden="true">→</span></a>
         </div>
-        {/* ========================================================= */}
 
-        {/* ========================================================= */}
-        {/* 右侧图片部分 (严格保持原样，没有任何修改！) */}
-        {/* ========================================================= */}
-        <div class="w-full lg:w-2/3 overflow-hidden mask-edges relative -rotate-6 scale-110 mt-12 lg:mt-0">
-            
-            <div id="filmstrip-track" class="flex w-max gap-6 opacity-0 hover:[animation-play-state:paused]">
-                
-                {[...galleryImages, ...galleryImages].map((img, index) => (
-                    <div class={`w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group ${index % 2 !== 0 ? 'translate-y-8' : ''}`}>
-                        <Image 
-                            src={img} 
-                            alt={`画廊展示_${index}`} 
-                            class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
-                            loading="lazy"
-                            decoding="async"
-                        />
-                    </div>
-                ))}
-
-            </div>
+        <div id="homepage-gallery-grid" class="home-gallery-section__grid" data-reveal style="--reveal-delay: 120ms">
+            {previewImages.map((img, index) => (
+                <a href="/gallery/" class={`home-gallery-card paper-card ${index === 1 ? 'home-gallery-card--offset' : ''}`}>
+                    <Image src={img} alt={`凌巽旅途留影 ${index + 1}`} loading="lazy" decoding="async" />
+                    <span class="home-gallery-card__caption"><span>{['城镇生活', '活动记录', '酒馆片段'][index] ?? '旅途留影'}</span><span class="meta">0{index + 1}</span></span>
+                </a>
+            ))}
         </div>
-        {/* ========================================================= */}
     </div>
 </section>
 
 <script>
     import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+    import { loadSiteContent, siteText } from '../lib/siteContent';
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const track = document.getElementById('filmstrip-track');
-        const section = document.getElementById('gallery-section');
-
-        if (!track || !section) return;
-
-        appendBackendGallery(track);
-
-        // 1. 架设雷达 (Intersection Observer)
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    track.classList.add('animate-intro');
-                    track.classList.remove('opacity-0');
-                    observer.unobserve(section);
-                }
-            });
-        }, { threshold: 0.2 });
-
-        observer.observe(section);
-
-        // 2. 监听交接棒时刻
-        track.addEventListener('animationend', (e) => {
-            if (e.animationName === 'fastSlideIn') {
-                track.classList.remove('animate-intro');
-                track.classList.add('animate-filmstrip'); 
-            }
-        });
-    });
-
-    async function appendBackendGallery(track: HTMLElement) {
+    const initHomepageGallery = async () => {
+        const grid = document.getElementById('homepage-gallery-grid');
         const photos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
-        if (!photos?.length) return;
+        if (!grid || !photos) return;
+        await loadSiteContent();
+        const managedPhotos = photos.some((photo) => photo.is_home_gallery)
+            ? photos.filter((photo) => photo.is_home_gallery).sort((a, b) => (a.home_order ?? 0) - (b.home_order ?? 0) || a.id - b.id)
+            : photos;
 
-        track.innerHTML = [...photos, ...photos].map((photo, index) => `
-            <div class="w-[300px] h-[400px] md:w-[400px] md:h-[550px] flex-shrink-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 group ${index % 2 !== 0 ? 'translate-y-8' : ''}">
-                <img
-                    src="${toApiUrl(photo.file_url)}"
-                    alt="${escapeHtml(photo.title || photo.original_filename || `后台画廊_${index + 1}`)}"
-                    class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
-                    loading="lazy"
-                    decoding="async"
-                />
-            </div>
+        grid.innerHTML = managedPhotos.slice(0, 3).map((photo, index) => `
+            <a href="/gallery/" class="home-gallery-card paper-card ${index === 1 ? 'home-gallery-card--offset' : ''}">
+                <img src="${escapeHtml(toApiUrl(photo.file_url))}" alt="${escapeHtml(photo.title || photo.original_filename || `凌巽旅途留影 ${index + 1}`)}" loading="lazy" decoding="async" />
+                <span class="home-gallery-card__caption"><span>${escapeHtml(photo.title || siteText('gallery.default_title', '旅途留影'))}</span><span class="meta">0${index + 1}</span></span>
+                ${[photo.category, photo.date, photo.location].filter(Boolean).length ? `<span class="home-gallery-card__note">${[photo.category, photo.date, photo.location].filter(Boolean).map(value => `<span>${escapeHtml(value!)}</span>`).join('')}</span>` : ''}
+            </a>
         `).join('');
-    }
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHomepageGallery, { once: true });
+    else initHomepageGallery();
 </script>
 
-<style>
-    /* ========================================== */
-    /* 一级火箭：冲刺动画 (从极右侧飞入，并伴随透明度渐现) */
-    /* ========================================== */
-    @keyframes fastSlideIn {
-        0% { transform: translateX(50vw); opacity: 0; }
-        100% { transform: translateX(0); opacity: 1; }
+<style is:global>
+    .home-gallery-section { padding-block: clamp(5rem, 12vw, 10rem); background: var(--ink); color: var(--paper); }
+    .home-gallery-section .eyebrow { color: var(--red); }
+    .home-gallery-section .section-title { color: var(--paper); }
+    .home-gallery-section .section-title em { color: var(--steel); }
+    .home-gallery-section .section-copy { color: var(--paper-muted); }
+    .home-gallery-section .button--accent { border-color: var(--red); color: var(--red); }
+    .home-gallery-section .button--accent:hover { background: rgba(155, 39, 49, 0.08); }
+
+    .home-gallery-section__inner { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: clamp(2.5rem, 7vw, 7rem); align-items: center; }
+    .home-gallery-section__intro { max-width: 30rem; }
+    .home-gallery-section__intro .button { margin-top: 2rem; }
+    .home-gallery-section__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; align-items: start; }
+    .home-gallery-card { position: relative; display: block; overflow: hidden; padding: 0.65rem; border-color: var(--line); background: var(--surface-card); color: var(--paper); }
+    .home-gallery-card::before, .home-gallery-card::after { content: ''; position: absolute; inset: auto; z-index: 1; width: 1.25rem; height: 1.25rem; pointer-events: none; border-color: var(--gold); border-style: solid; }
+    .home-gallery-card::before { top: .25rem; left: .25rem; border-width: 2px 0 0 2px; }
+    .home-gallery-card::after { bottom: .25rem; right: .25rem; border-width: 0 2px 2px 0; }
+    .home-gallery-card__note { display: flex; flex-wrap: wrap; gap: .3rem .75rem; margin: .55rem .2rem .25rem; padding-top: .55rem; border-top: 1px solid var(--line); color: var(--steel-soft); font-size: .72rem; line-height: 1.6; overflow-wrap: anywhere; }
+    .home-gallery-card__caption > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+    .home-gallery-card:hover { background: var(--surface-card-hover); border-color: var(--red); }
+    .home-gallery-card--offset { margin-top: 2.25rem; }
+    .home-gallery-card img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; filter: saturate(0.7) contrast(1.04); transition: filter 220ms ease, transform 500ms ease; }
+    .home-gallery-card:hover img { filter: saturate(1) contrast(1.05); transform: scale(1.03); }
+    .home-gallery-card__caption { display: flex; justify-content: space-between; gap: 0.4rem; padding: 0.65rem 0.2rem 0.15rem; font-family: var(--font-serif); font-size: 0.9rem; }
+    .home-gallery-card__caption .meta { color: var(--steel-soft); }
+
+    @media (max-width: 820px) {
+        .home-gallery-section__inner { grid-template-columns: 1fr; }
+        .home-gallery-section__intro { max-width: 38rem; }
     }
 
-    .animate-intro {
-        animation: fastSlideIn 1.8s cubic-bezier(0.1, 1, 0.2, 1) forwards;
+    @media (max-width: 520px) {
+        .home-gallery-section__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .home-gallery-card--offset { margin-top: 1.2rem; }
     }
-
-    /* ========================================== */
-    /* 二级火箭：无限巡航动画 */
-    /* ========================================== */
-    @keyframes filmstrip {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(calc(-50% - 12px)); } /* 12px 补偿 gap-6 的一半 */
-    }
-
-    .animate-filmstrip {
-        animation: filmstrip 30s linear infinite;
-    }
-
-    /* 左右边缘消融遮罩 */
-    .mask-edges {
-        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-    }
+    @media (prefers-reduced-motion: reduce) { .home-gallery-card img { transition: none; } }
 </style>

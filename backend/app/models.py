@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -10,10 +10,19 @@ class GalleryPhoto(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(160), default="")
     description: Mapped[str] = mapped_column(Text, default="")
+    category: Mapped[str] = mapped_column(String(80), default="")
+    date: Mapped[str] = mapped_column(String(32), default="")
+    location: Mapped[str] = mapped_column(String(180), default="")
     file_url: Mapped[str] = mapped_column(String(500), nullable=False)
     original_filename: Mapped[str] = mapped_column(String(255), default="")
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     is_visible: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    character_ids: Mapped[list[int] | None] = mapped_column(JSON, nullable=True, default=list)
+    is_home_hero: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    hero_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    is_home_portrait: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    is_home_gallery: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    home_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -29,7 +38,21 @@ class Post(Base):
     desc: Mapped[str] = mapped_column("summary", Text, default="")
     content: Mapped[str] = mapped_column(Text, default="")
     cover_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image_urls: Mapped[list[str] | None] = mapped_column(JSON, nullable=True, default=list)
+    attachments: Mapped[list[str] | None] = mapped_column(JSON, nullable=True, default=list)
+    links: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True, default=list)
     is_published: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    pin_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    is_character_story: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    story_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    story_summary: Mapped[str] = mapped_column(Text, default="")
+    story_character_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("character_profiles.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -110,7 +133,7 @@ class SocialLink(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
-    icon: Mapped[str] = mapped_column(String(24), default="")
+    icon: Mapped[str] = mapped_column(String(500), default="")
     desc: Mapped[str] = mapped_column("summary", String(180), default="")
     link: Mapped[str] = mapped_column(String(500), default="")
     number: Mapped[str] = mapped_column(String(120), default="")
@@ -131,4 +154,39 @@ class FriendLink(Base):
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     is_visible: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class CharacterProfile(Base):
+    __tablename__ = "character_profiles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    alias: Mapped[str] = mapped_column(String(160), default="")
+    species: Mapped[str] = mapped_column(String(120), default="龙族")
+    role: Mapped[str] = mapped_column(String(160), default="冒险者")
+    region: Mapped[str] = mapped_column(String(180), default="人类城镇")
+    work: Mapped[str] = mapped_column(String(180), default="冒险者公会委托")
+    places: Mapped[str] = mapped_column(String(180), default="公会 / 酒馆 / 家中")
+    status: Mapped[str] = mapped_column(String(160), default="可接受委托")
+    introduction: Mapped[str] = mapped_column(Text, default="")
+    details: Mapped[str] = mapped_column(Text, default="")
+    custom_fields: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True, default=list)
+    image_url: Mapped[str] = mapped_column(String(500), default="")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    is_visible: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class SiteContent(Base):
+    __tablename__ = "site_content"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    key: Mapped[str] = mapped_column(String(160), unique=True, index=True, nullable=False)
+    group_name: Mapped[str] = mapped_column(String(80), default="site", index=True)
+    label: Mapped[str] = mapped_column(String(160), nullable=False)
+    value: Mapped[str] = mapped_column(Text, default="")
+    content_type: Mapped[str] = mapped_column(String(24), default="text")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

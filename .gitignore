@@ -32,6 +32,14 @@ backend/uploads/gallery/*
 backend/uploads/post_covers/*
 !backend/uploads/post_covers/.gitkeep
 
+# local rollback snapshots
+.local-backups/
+
+# local agent notes, screenshots and package caches
+.design/
+.npm-cache/
+.pnpm-store/
+
 # macOS-specific files
 .DS_Store
 

@@ -1,260 +1,225 @@
 ---
-// Hero.astro 首屏组件
 import { Image } from 'astro:assets';
 
-// =================================================================
-// 1. 全自动读取画廊文件夹
-// =================================================================
 const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/gallery/*.{jpeg,jpg,png,PNG,webp}');
 const imagePaths = Object.values(images);
-
-const allGalleryImages = await Promise.all(imagePaths.map(async (img) => {
-    const data = await img();
-    return data.default;
-}));
-
-// =================================================================
-// 2. 性能截断：只取画廊文件夹里的前 4 张图作为首屏轮播，防止 DOM 过载
-// =================================================================
+const allGalleryImages = await Promise.all(imagePaths.map(async (img) => (await img()).default));
 const heroImages = allGalleryImages.slice(0, 4);
+const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
 ---
 
-<section class="snap-start relative w-full h-screen overflow-hidden">
-
-    <div id="bg-carousel" class="absolute inset-0 w-full h-full z-0 bg-slate-950">
-        {/* 利用遍历动态生成图片标签：
-            如果是第一张图 (index === 0)，默认显示 (opacity-100)
-            如果是其他图，默认隐藏 (opacity-0)，等待 JS 轮播接管
-        */}
+<section class="hero-section" aria-labelledby="hero-title">
+    <div id="hero-backdrop" class="hero-section__backdrop" aria-hidden="true">
         {heroImages.map((img, index) => (
             <Image
                 src={img}
-                alt={`龙宫档案首屏_${index + 1}`}
+                alt=""
                 width={1920}
                 format="webp"
-                quality={index === 0 ? 78 : 70}
-                loading={index === 0 ? "eager" : "lazy"}
+                quality={index === 0 ? 76 : 68}
+                loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
-                fetchpriority={index === 0 ? "high" : "low"}
-                class={`carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === 0 ? 'opacity-100' : 'opacity-0'}`}
+                fetchpriority={index === 0 ? 'high' : 'low'}
+                class={`carousel-img ${index === 0 ? 'is-active' : ''}`}
             />
         ))}
     </div>
+    <div class="hero-section__veil" aria-hidden="true"></div>
 
-    <div class="absolute inset-0 w-full h-full bg-slate-950/65 z-10"></div>
+    <div class="site-container hero-section__inner">
+        <div class="hero-section__copy paper-enter">
+            <div class="eyebrow">Lingxun's Tavern / 旅途入口</div>
+            <p class="hero-section__note">人类城镇 · 冒险者公会登记</p>
+            <h1 id="hero-title" class="hero-section__title">凌巽的<span>酒馆</span></h1>
+            <p class="hero-section__subtitle">一条龙在人类城镇的生活记录</p>
+            <p class="hero-section__body">这里收着凌巽的旅途留影、最近手记和仍在准备中的委托。推门进来，先在柜台边坐一会儿。</p>
+            <div class="hero-section__actions">
+                <a href="#character-section" class="button button--accent">查看冒险者登记簿 <span aria-hidden="true">↓</span></a>
+                <a href="/gallery/" class="button button--quiet">翻看旅途留影 <span aria-hidden="true">→</span></a>
+            </div>
+        </div>
 
-    <canvas id="particle-canvas" class="absolute top-0 left-0 w-full h-full z-20"></canvas>
-
-    {/* ================================================================= */}
-    {/* 文字区域：注入动能显影动画类 (animate-hero-xxx) */}
-    {/* ================================================================= */}
-    <div class="absolute bottom-32 left-8 md:left-24 z-30 text-left pointer-events-none">
-        {/* 标题 */}
-        <h1 class="text-5xl md:text-7xl font-bold text-white tracking-wider mb-4 drop-shadow-lg opacity-0 animate-hero-title">
-            凌巽的<span class="text-amber-400">龙窝</span>
-        </h1>
-        {/* 副标题 */}
-        <p class="text-lg md:text-xl text-slate-300 tracking-wide font-light opacity-0 animate-hero-subtitle">
-            向下滚动,探索更多
-        </p>
-    </div>
-
-    {/* 向下指引箭头：为了防止 transform 冲突，多包裹一层 div 来施加出场动画 */}
-    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 text-white/70 pointer-events-none">
-        <div class="opacity-0 animate-hero-arrow">
-            <svg class="w-8 h-8 md:w-10 md:h-10 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
+        <div class="hero-section__portrait paper-enter" style="animation-delay: 180ms">
+            <div class="hero-section__portrait-label meta">ON THE ROAD / 实拍记录</div>
+            <Image id="hero-portrait-image" src={heroPhoto} alt="凌巽在城镇中的毛毛实拍照片" class="hero-section__portrait-image" />
+            <div class="hero-section__portrait-caption">
+                <span>影像资料</span>
+                <span class="meta">FIELD-02</span>
+            </div>
         </div>
     </div>
+
+    <a href="#character-section" class="hero-section__scroll" aria-label="向下查看角色登记簿">
+        <span class="meta">向下翻页</span>
+        <span aria-hidden="true">↓</span>
+    </a>
 </section>
 
 <script>
-    // 动画核心逻辑
-    document.addEventListener('DOMContentLoaded', () => {
-        // 背景轮播图算法
+    import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+
+    const renderManagedHero = (photos: GalleryPhoto[]) => {
+        const marked = photos.filter((photo) => photo.is_home_hero).sort((a, b) => (a.hero_order ?? 0) - (b.hero_order ?? 0) || a.id - b.id);
+        const selected = marked.length ? marked : photos.slice(0, 4);
+        const backdrop = document.getElementById('hero-backdrop');
+        if (!backdrop) return;
+        backdrop.innerHTML = selected.map((photo, index) => `<img class="carousel-img ${index === 0 ? 'is-active' : ''}" src="${escapeHtml(toApiUrl(photo.file_url))}" alt="" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" />`).join('');
+
+        const portrait = photos.filter((photo) => photo.is_home_portrait).sort((a, b) => (a.home_order ?? 0) - (b.home_order ?? 0) || a.id - b.id)[0] || (marked.length ? selected[0] : photos[1] || photos[0]);
+        const portraitFrame = document.querySelector<HTMLElement>('.hero-section__portrait');
+        if (portraitFrame) portraitFrame.hidden = !portrait;
+        document.querySelector('.hero-section')?.classList.toggle('hero-section--text-only', !portrait);
+        const portraitImage = document.getElementById('hero-portrait-image') as HTMLImageElement | null;
+        if (portraitImage && portrait) {
+            portraitImage.removeAttribute('srcset');
+            portraitImage.src = toApiUrl(portrait.file_url);
+            portraitImage.alt = portrait.title || '凌巽在城镇中的毛毛实拍照片';
+        }
+    };
+
+    const initHeroCarousel = () => {
         const images = document.querySelectorAll('.carousel-img');
+        if (images.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
         let currentIndex = 0;
+        window.setInterval(() => {
+            images[currentIndex].classList.remove('is-active');
+            currentIndex = (currentIndex + 1) % images.length;
+            images[currentIndex].classList.add('is-active');
+        }, 6500);
+    };
 
-        if (images.length > 0) {
-            // 每5秒执行一次切换
-            setInterval(() => {
-                // 把当前显示的图片透明度设为 0
-                images[currentIndex].classList.remove('opacity-100');
-                images[currentIndex].classList.add('opacity-0');
-
-                // 计算下一张图片的索引（取余保证最后一张之后是第一张，形成循环）
-                currentIndex = (currentIndex + 1) % images.length;
-
-                // 把下一张图片的透明度设为 1
-                images[currentIndex].classList.remove('opacity-0');
-                images[currentIndex].classList.add('opacity-100');
-            }, 5000);
-        }
-
-        // 粒子流动算法
-        const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement;
-        const ctx = canvas.getContext('2d');
-        if(!ctx) return;
-
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        const lowCoreDevice = (navigator.hardwareConcurrency || 8) <= 4;
-        if (reducedMotion) {
-            canvas.remove();
-            return;
-        }
-
-        // 画布尺寸适应浏览器窗口尺寸
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
-
-        // 记录鼠标位置,初始情况在屏幕外
-        let mouse = { x: -1000, y: -1000 };
-
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-
-        window.addEventListener('mouseout', () => {
-            mouse.x = -1000;
-            mouse.y = -1000;
-        });
-
-        // 升级版：流体粒子类
-        class Particle {
-            x: number;
-            y: number;
-            size: number;
-            vx: number; // 水平流速
-            vy: number; // 垂直流速
-
-            constructor() {
-                this.x = Math.random() * width;
-                this.y = Math.random() * height;
-                this.size = (Math.random() * 2) + 1;
-                // 赋予每个粒子随机的流动速度 (-0.5 到 0.5 之间)
-                this.vx = (Math.random() - 0.5) * 1;
-                this.vy = (Math.random() - 0.5) * 1;
-            }
-
-            // 计算下一帧状态
-            update() {
-                // 按照流速自然移动
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // 粒子跑出屏幕边缘后，从对面重新出现，从而不会导致屏幕粒子数量变少
-                if (this.x < 0) this.x = width;
-                if (this.x > width) this.x = 0;
-                if (this.y < 0) this.y = height;
-                if (this.y > height) this.y = 0;
-
-                // 鼠标交互
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx * dx + dy * dy);
-
-                // 鼠标的作用范围是150像素
-                let maxDistance = 150;
-
-                if (distance < maxDistance) {
-                    // 计算推开的方向
-                    let forceDirectionX = dx / distance;
-                    let forceDirectionY = dy / distance;
-                    // 距离越近，推力越强
-                    let force = (maxDistance - distance) / maxDistance;
-
-                    // 增加一个平滑系数（数字越大推得越远，数字小则显得柔和）
-                    let pushX = forceDirectionX * force * 5;
-                    let pushY = forceDirectionY * force * 5;
-
-                    // 将推力施加在坐标上，形成遇到鼠标绕开的效果
-                    this.x -= pushX;
-                    this.y -= pushY;
-                }
-            }
-
-            // 画出粒子
-            draw() {
-                ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
-                ctx?.beginPath();
-                ctx?.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx?.closePath();
-                ctx?.fill();
-            }
-        }
-
-        // 按设备能力控制粒子数量，低性能手机不再硬扛 350 个粒子。
-        let particleArray: Particle[] = [];
-        const particleCount = isMobile ? 90 : (lowCoreDevice ? 180 : 300);
-        for (let i = 0; i < particleCount; i++) {
-            particleArray.push(new Particle());
-        }
-
-        // 动画主循环
-        let frameId = 0;
-        let paused = false;
-        function animate() {
-            if (paused) return;
-            ctx?.clearRect(0, 0, width, height);
-
-            for (let i = 0; i < particleArray.length; i++) {
-                particleArray[i].update();
-                particleArray[i].draw();
-            }
-
-            frameId = requestAnimationFrame(animate);
-        }
-
-        document.addEventListener('visibilitychange', () => {
-            paused = document.hidden;
-            if (paused) {
-                cancelAnimationFrame(frameId);
-            } else {
-                animate();
-            }
-        });
-
-        // 启动程序
-        animate();
-    });
+    const initHero = async () => {
+        const photos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
+        if (photos) renderManagedHero(photos);
+        initHeroCarousel();
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHero, { once: true });
+    else initHero();
 </script>
 
-<style>
-    /* ================================================================= */
-    /* 专属电影级起步出场动画 */
-    /* ================================================================= */
-    @keyframes momentumReveal {
-        0% {
-            opacity: 0;
-            transform: translateY(40px) skewY(3deg);
-            filter: blur(10px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0) skewY(0deg);
-            filter: blur(0);
-        }
+<style is:global>
+    .hero-section__portrait[hidden] { display: none; }
+    .hero-section--text-only .hero-section__inner { grid-template-columns: minmax(0, 1fr); }
+    .hero-section {
+        --gold: #d3a83d;
+        position: relative;
+        display: flex;
+        min-height: max(680px, 100svh);
+        overflow: hidden;
+        isolation: isolate;
+        background: var(--ink);
+        color: #f1f0eb;
     }
 
-    .animate-hero-title {
-        /* forwards 确保动画结束后保持在 100% 的状态 */
-        animation: momentumReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        animation-delay: 0.2s; /* 给网页渲染留一点点呼吸空间 */
-        will-change: transform, opacity, filter;
+    .hero-section__backdrop,
+    .hero-section__veil {
+        position: absolute;
+        inset: 0;
     }
 
-    .animate-hero-subtitle {
-        animation: momentumReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        animation-delay: 0.5s; /* 比标题晚 0.3 秒，形成视觉下沉 */
-        will-change: transform, opacity, filter;
+    .hero-section__backdrop { z-index: -2; background: #11161d; }
+
+    .hero-section .carousel-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        filter: saturate(0.48) contrast(1.05) brightness(0.48);
+        transition: opacity 900ms ease;
     }
 
-    .animate-hero-arrow {
-        animation: momentumReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        animation-delay: 1.2s; /* 最晚出现，提示用户看完了标题该往下滚了 */
-        will-change: transform, opacity, filter;
+    .hero-section .carousel-img.is-active { opacity: 1; }
+
+    .hero-section__veil { z-index: -1; background: rgba(11, 13, 16, 0.7); }
+
+    .hero-section__inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: end;
+        gap: 2.5rem;
+        padding-block: 8rem 5.5rem;
+    }
+
+    .hero-section__copy { max-width: 40rem; }
+
+    .hero-section__note {
+        margin: 1.5rem 0 0;
+        color: #c4c5c1;
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+    }
+
+    .hero-section__title {
+        margin: 0.3rem 0 0;
+        color: #f1f0eb;
+        font-family: var(--font-serif);
+        font-size: clamp(3.4rem, 9vw, 7.5rem);
+        font-weight: 700;
+        letter-spacing: 0;
+        line-height: 0.98;
+        white-space: nowrap;
+    }
+
+    .hero-section__title span { color: #d36a70; }
+
+    .hero-section__subtitle {
+        margin: 1rem 0 0;
+        color: #f1f0eb;
+        font-family: var(--font-display);
+        font-size: clamp(1.55rem, 3vw, 2.5rem);
+        line-height: 1.1;
+    }
+
+    .hero-section__body {
+        max-width: 34rem;
+        margin: 1.25rem 0 0;
+        color: #c4c5c1;
+        line-height: 1.9;
+    }
+
+    .hero-section__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+
+    .hero-section__portrait {
+        position: relative;
+        justify-self: center;
+        width: min(100%, 25rem);
+        padding: 0.65rem;
+        border: 1px solid rgba(211, 168, 61, 0.62);
+        background: var(--surface-paper);
+        box-shadow: var(--shadow-paper);
+    }
+
+    .hero-section__portrait-label { display: flex; justify-content: space-between; padding: 0.25rem 0.35rem 0.6rem; }
+
+    .hero-section__portrait-image {
+        display: block;
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        object-fit: cover;
+        object-position: center top;
+    }
+
+    .hero-section__portrait-caption { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 0.35rem 0.15rem; color: var(--paper-muted); font-size: 0.76rem; }
+
+    .hero-section .button--quiet { border-color: rgba(241, 240, 235, 0.42); color: #f1f0eb; }
+    .hero-section .button--quiet:hover { border-color: #d3a83d; color: #d3a83d; }
+
+    .hero-section__scroll { position: absolute; right: var(--space-page); bottom: 1.75rem; display: inline-flex; align-items: center; gap: 0.65rem; color: var(--gold); }
+    .hero-section__scroll > span:last-child { font-size: 1.4rem; }
+
+    @media (min-width: 900px) {
+        .hero-section__inner { grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.65fr); align-items: center; gap: clamp(3rem, 8vw, 8rem); padding-block: 8rem 5rem; }
+        .hero-section__portrait { justify-self: end; transform: rotate(2deg); }
+    }
+
+    @media (max-width: 767px) {
+        .hero-section__inner { padding-bottom: 6rem; }
+        .hero-section__portrait { width: min(74vw, 21rem); margin-top: 0.5rem; }
+        .hero-section__body { font-size: 0.98rem; }
+        .hero-section__scroll { right: 1.25rem; }
     }
 </style>

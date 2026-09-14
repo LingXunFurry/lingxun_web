@@ -10,6 +10,7 @@ from .config import settings
 
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+ALLOWED_ATTACHMENT_EXTENSIONS = {".pdf", ".txt", ".md", ".zip", ".rar", ".7z", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}
 Image.MAX_IMAGE_PIXELS = 36_000_000
 
 
@@ -73,6 +74,20 @@ async def save_image_upload(file: UploadFile, folder: str, max_dimension: int = 
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="图片不能超过 20MB。")
 
     return save_optimized_image_content(content, extension, folder, max_dimension, quality)
+
+
+async def save_attachment_upload(file: UploadFile, folder: str = "post_attachments") -> str:
+    extension = Path(file.filename or "").suffix.lower()
+    if extension not in ALLOWED_ATTACHMENT_EXTENSIONS:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="附件只支持 PDF、Office、文本或压缩文件。")
+    content = await file.read()
+    if len(content) > 20 * 1024 * 1024:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="附件不能超过 20MB。")
+    target_dir = settings.upload_dir / folder
+    target_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}{extension}"
+    (target_dir / filename).write_bytes(content)
+    return f"/uploads/{folder}/{filename}"
 
 
 def optimize_existing_upload_url(url: str | None, max_dimension: int = 1280, quality: int = 76) -> str | None:

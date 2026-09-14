@@ -1,19 +1,21 @@
 import random
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import select
+from sqlalchemy import case, select, update
 from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from ..database import get_db
-from ..models import BonusContent, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteStats, SocialLink
+from ..models import BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteContent, SiteStats, SocialLink
 from ..schemas import (
     BonusContentOut,
     FriendLinkOut,
     GalleryPhotoOut,
+    CharacterProfileOut,
     PostCommentOut,
     PostOut,
     ScheduleItemOut,
+    SiteContentOut,
     SiteStatsOut,
     SocialLinkOut,
 )
@@ -54,7 +56,33 @@ def list_posts(db: Session = Depends(get_db)):
     query = (
         select(Post)
         .where(Post.is_published.is_(True))
-        .order_by(Post.date.desc(), Post.id.desc())
+        .order_by(Post.is_pinned.desc(), case((Post.is_pinned.is_(True), Post.pin_order), else_=0).asc(), Post.date.desc(), Post.id.desc())
+    )
+    return db.scalars(query).all()
+
+
+@router.get("/stories", response_model=list[PostOut])
+def list_character_stories(db: Session = Depends(get_db)):
+    query = (
+        select(Post)
+        .where(Post.is_published.is_(True), Post.is_character_story.is_(True))
+        .order_by(Post.story_order.asc(), Post.date.desc(), Post.id.desc())
+    )
+    return db.scalars(query).all()
+
+
+@router.get("/site-content", response_model=list[SiteContentOut])
+def list_site_content(db: Session = Depends(get_db)):
+    query = select(SiteContent).order_by(SiteContent.sort_order.asc(), SiteContent.id.asc())
+    return db.scalars(query).all()
+
+
+@router.get("/characters", response_model=list[CharacterProfileOut])
+def list_characters(db: Session = Depends(get_db)):
+    query = (
+        select(CharacterProfile)
+        .where(CharacterProfile.is_visible.is_(True))
+        .order_by(CharacterProfile.sort_order.asc(), CharacterProfile.id.asc())
     )
     return db.scalars(query).all()
 
@@ -145,7 +173,7 @@ def like_post_comment(slug: str, comment_id: int, db: Session = Depends(get_db))
     comment = db.get(PostComment, comment_id)
     if not comment or comment.post_id != post.id or not comment.is_visible:
         raise HTTPException(status_code=404, detail="留言不存在。")
-    comment.like_count += 1
+    db.execute(update(PostComment).where(PostComment.id == comment.id).values(like_count=PostComment.like_count + 1))
     db.commit()
     db.refresh(comment)
     return comment
@@ -191,7 +219,7 @@ def get_stats(db: Session = Depends(get_db)):
 @router.post("/stats/visit", response_model=SiteStatsOut)
 def record_visit(db: Session = Depends(get_db)):
     stats = get_or_create_stats(db)
-    stats.visit_count += 1
+    db.execute(update(SiteStats).where(SiteStats.id == stats.id).values(visit_count=SiteStats.visit_count + 1))
     db.commit()
     db.refresh(stats)
     return stats
@@ -200,7 +228,7 @@ def record_visit(db: Session = Depends(get_db)):
 @router.post("/stats/interaction", response_model=SiteStatsOut)
 def record_interaction(db: Session = Depends(get_db)):
     stats = get_or_create_stats(db)
-    stats.interaction_count += 1
+    db.execute(update(SiteStats).where(SiteStats.id == stats.id).values(interaction_count=SiteStats.interaction_count + 1))
     db.commit()
     db.refresh(stats)
     return stats

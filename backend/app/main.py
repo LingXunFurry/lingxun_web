@@ -10,9 +10,10 @@ from sqlalchemy import inspect, select, text
 from .config import settings
 from .database import Base, SessionLocal, engine
 from .auth import ensure_admin_account
-from .models import BonusContent, FriendLink, GalleryPhoto, Post, ScheduleItem, SiteStats, SocialLink
+from .models import BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, ScheduleItem, SiteContent, SiteStats, SocialLink
 from .routers import admin, public
 from .routers.admin import DEFAULT_BONUS_MESSAGE
+from .site_content import iter_default_site_content
 from .utils import save_optimized_image_content
 
 
@@ -59,29 +60,37 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     def startup() -> None:
+        existing_tables = set(inspect(engine).get_table_names())
         Base.metadata.create_all(bind=engine)
-        ensure_database_schema()
+        initialize_stories = ensure_database_schema()
         with SessionLocal() as db:
             ensure_admin_account(db)
+            if initialize_stories:
+                migrate_current_character(db)
             if not db.get(BonusContent, 1):
                 db.add(BonusContent(id=1, typewriter_message=DEFAULT_BONUS_MESSAGE))
                 db.commit()
             if not db.get(SiteStats, 1):
                 db.add(SiteStats(id=1, visit_count=0, interaction_count=0))
                 db.commit()
-            if not db.scalar(select(ScheduleItem.id).limit(1)):
+            if "schedule_items" not in existing_tables:
                 db.add_all(ScheduleItem(**item) for item in DEFAULT_SCHEDULES)
                 db.commit()
-            if not db.scalar(select(SocialLink.id).limit(1)):
+            if "social_links" not in existing_tables:
                 db.add_all(SocialLink(**item) for item in DEFAULT_SOCIALS)
                 db.commit()
-            if not db.scalar(select(FriendLink.id).limit(1)):
+            if "friend_links" not in existing_tables:
                 db.add_all(FriendLink(**item) for item in DEFAULT_FRIENDS)
                 db.commit()
-            if not db.scalar(select(GalleryPhoto.id).limit(1)):
+            if "character_profiles" not in existing_tables:
+                seed_characters(db)
+            if "gallery_photos" not in existing_tables:
                 seed_gallery(db)
-            if not db.scalar(select(Post.id).limit(1)):
+            if "posts" not in existing_tables:
                 seed_posts(db)
+            ensure_site_content(db)
+            if initialize_stories:
+                migrate_character_story(db)
 
     @app.get("/api/health")
     def health():
@@ -108,12 +117,63 @@ def create_app() -> FastAPI:
     return app
 
 
-def ensure_database_schema() -> None:
+def ensure_database_schema() -> bool:
     inspector = inspect(engine)
-    if "bonus_content" not in inspector.get_table_names():
-        return
+    table_names = set(inspector.get_table_names())
+    column_details = {
+        table: {column["name"]: column for column in inspector.get_columns(table)}
+        for table in ("bonus_content", "posts", "gallery_photos", "character_profiles", "social_links")
+        if table in table_names
+    }
+    table_columns = {table: set(columns) for table, columns in column_details.items()}
+    with engine.begin() as connection:
+        if "character_ids" not in table_columns.get("gallery_photos", set()):
+            connection.execute(text("ALTER TABLE gallery_photos ADD COLUMN character_ids JSON NULL"))
+        for column_name, column_type in {
+            "category": "VARCHAR(80) NOT NULL DEFAULT ''",
+            "date": "VARCHAR(32) NOT NULL DEFAULT ''",
+            "location": "VARCHAR(180) NOT NULL DEFAULT ''",
+            "is_home_hero": "BOOLEAN NOT NULL DEFAULT FALSE",
+            "hero_order": "INT NOT NULL DEFAULT 0",
+            "is_home_portrait": "BOOLEAN NOT NULL DEFAULT FALSE",
+            "is_home_gallery": "BOOLEAN NOT NULL DEFAULT FALSE",
+            "home_order": "INT NOT NULL DEFAULT 0",
+        }.items():
+            if column_name not in table_columns.get("gallery_photos", set()):
+                connection.execute(text(f"ALTER TABLE gallery_photos ADD COLUMN {column_name} {column_type}"))
+        for column_name in ("image_urls", "attachments", "links"):
+            if column_name not in table_columns.get("posts", set()):
+                connection.execute(text(f"ALTER TABLE posts ADD COLUMN {column_name} JSON NULL"))
+        for column_name, column_type in {
+            "is_pinned": "BOOLEAN NOT NULL DEFAULT FALSE",
+            "pin_order": "INT NOT NULL DEFAULT 0",
+            "is_character_story": "BOOLEAN NOT NULL DEFAULT FALSE",
+            "story_order": "INT NOT NULL DEFAULT 0",
+            "story_summary": "TEXT NOT NULL DEFAULT ''",
+            "story_character_id": "INT NULL",
+        }.items():
+            if column_name not in table_columns.get("posts", set()):
+                if engine.dialect.name == "mysql" and column_name == "story_summary":
+                    column_type = "TEXT NULL"
+                connection.execute(text(f"ALTER TABLE posts ADD COLUMN {column_name} {column_type}"))
+        for column_name, column_type in {
+            "details": "TEXT NOT NULL DEFAULT ''",
+            "custom_fields": "JSON NULL",
+        }.items():
+            if column_name not in table_columns.get("character_profiles", set()):
+                if engine.dialect.name == "mysql" and column_name == "details":
+                    column_type = "TEXT NULL"
+                connection.execute(text(f"ALTER TABLE character_profiles ADD COLUMN {column_name} {column_type}"))
+        # TEXT literal defaults are not portable to MySQL. Also resume a partially applied DDL upgrade.
+        if engine.dialect.name == "mysql":
+            for table, column in (("posts", "story_summary"), ("character_profiles", "details")):
+                if column_details.get(table, {}).get(column, {}).get("nullable", True):
+                    connection.execute(text(f"UPDATE {table} SET {column} = '' WHERE {column} IS NULL"))
+                    connection.execute(text(f"ALTER TABLE {table} MODIFY COLUMN {column} TEXT NOT NULL"))
+        if engine.dialect.name == "mysql" and "social_links" in table_names:
+            connection.execute(text("ALTER TABLE social_links MODIFY COLUMN icon VARCHAR(500) NOT NULL DEFAULT ''"))
 
-    bonus_columns = {column["name"] for column in inspector.get_columns("bonus_content")}
+    bonus_columns = table_columns.get("bonus_content", set())
     bonus_text_columns = {
         "birthday_title": "BIRTHDAY",
         "birthday_subtitle": "诞生之日",
@@ -127,13 +187,95 @@ def ensure_database_schema() -> None:
 
     with engine.begin() as connection:
         for column_name, default_value in bonus_text_columns.items():
-            if column_name not in bonus_columns:
+            if "bonus_content" in table_names and column_name not in bonus_columns:
                 connection.execute(
                     text(
                         f"ALTER TABLE bonus_content "
                         f"ADD COLUMN {column_name} VARCHAR(80) NOT NULL DEFAULT '{default_value}'"
                     )
                 )
+
+
+    return "is_character_story" not in table_columns.get("posts", set())
+
+
+def migrate_current_character(db) -> None:
+    character = db.scalar(select(CharacterProfile).where(CharacterProfile.name == "凌巽"))
+    if not character:
+        return
+
+    changed = False
+    if character.introduction in {
+        "一条住在人类城镇里的纯龙，可靠地接下委托，也会在酒馆里给自己留一张桌子。",
+        "一条住在人类城镇里的龙，接公会委托，也会在酒馆里给自己留一张桌子。",
+    }:
+        character.introduction = "一条住在人类城镇里的龙，接公会委托谋生，平时喜欢在家读魔法书。"
+        changed = True
+    if character.species == "龙族":
+        character.species = "风龙"
+        changed = True
+    if character.role == "冒险者":
+        character.role = "法师 / 冒险者"
+        changed = True
+    if changed:
+        db.commit()
+
+
+def ensure_site_content(db) -> None:
+    existing = set(db.scalars(select(SiteContent.key)).all())
+    missing = [SiteContent(**item) for item in iter_default_site_content() if item["key"] not in existing]
+    if missing:
+        db.add_all(missing)
+        db.commit()
+
+
+def migrate_character_story(db) -> None:
+    story = db.scalar(select(Post).where(Post.slug == "post-lingxun-s_story"))
+    if not story:
+        return
+
+    changed = False
+    if not db.scalar(select(Post.id).where(Post.is_character_story.is_(True)).limit(1)):
+        story.is_character_story = True
+        story.story_order = 1
+        story.story_summary = story.desc
+        character = db.scalar(select(CharacterProfile).order_by(CharacterProfile.sort_order.asc(), CharacterProfile.id.asc()))
+        story.story_character_id = character.id if character else None
+        changed = True
+    if not db.scalar(select(Post.id).where(Post.is_pinned.is_(True)).limit(1)):
+        story.is_pinned = True
+        story.pin_order = 1
+        changed = True
+    if changed:
+        db.commit()
+
+
+def ensure_qq_group(db) -> None:
+    group = next(item for item in DEFAULT_SOCIALS if item["link"] == "https://qm.qq.com/q/hrqvQDmSjK")
+    if db.scalar(select(SocialLink.id).where(SocialLink.link == group["link"])):
+        return
+    db.add(SocialLink(**group))
+    db.commit()
+
+
+def seed_characters(db) -> None:
+    db.add(
+        CharacterProfile(
+            name="凌巽",
+            alias="Lingxun",
+            species="风龙",
+            role="法师 / 冒险者",
+            region="人类城镇",
+            work="冒险者公会委托",
+            places="公会 / 酒馆 / 家中",
+            status="可接受委托",
+            introduction="一条住在人类城镇里的龙，接公会委托谋生，平时喜欢在家读魔法书。",
+            image_url="/src/assets/gallery/photo3.webp",
+            sort_order=1,
+            is_visible=True,
+        )
+    )
+    db.commit()
 
 
 def serve_static_site(full_path: str):
@@ -194,6 +336,7 @@ def seed_gallery(db) -> None:
                 original_filename=source.name,
                 sort_order=index,
                 is_visible=True,
+                character_ids=[1],
             )
         )
     db.commit()
@@ -284,12 +427,21 @@ DEFAULT_SOCIALS = [
         "is_visible": True,
     },
     {
+        "name": "QQ 群",
+        "icon": "QQ",
+        "desc": "群聊 / 交流",
+        "link": "https://qm.qq.com/q/hrqvQDmSjK",
+        "number": "1105367000",
+        "sort_order": 2,
+        "is_visible": True,
+    },
+    {
         "name": "X (Twitter)",
         "icon": "X",
         "desc": "动态 / 日常",
         "link": "https://x.com/furrylingxun",
         "number": "",
-        "sort_order": 2,
+        "sort_order": 3,
         "is_visible": True,
     },
     {
@@ -298,7 +450,7 @@ DEFAULT_SOCIALS = [
         "desc": "视频 Vlog / 短视频",
         "link": "https://space.bilibili.com/362846640",
         "number": "",
-        "sort_order": 3,
+        "sort_order": 4,
         "is_visible": True,
     },
     {
@@ -307,7 +459,7 @@ DEFAULT_SOCIALS = [
         "desc": "短视频 / 日常掉落",
         "link": "https://v.douyin.com/LsGqWRTDUKc/",
         "number": "",
-        "sort_order": 4,
+        "sort_order": 5,
         "is_visible": True,
     },
     {
@@ -316,7 +468,7 @@ DEFAULT_SOCIALS = [
         "desc": "动态 / 日常",
         "link": "https://www.xiaohongshu.com/user/profile/69c665ea0000000034019dd1",
         "number": "",
-        "sort_order": 5,
+        "sort_order": 6,
         "is_visible": True,
     },
 ]

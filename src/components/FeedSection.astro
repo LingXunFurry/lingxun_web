@@ -1,145 +1,91 @@
 ---
-// src/components/FeedSection.astro
 import { getCollection } from 'astro:content';
+import { postTagLabel } from '../lib/postLabels';
 
-// 1. 获取并排序数据 (自动化核心)
 const allPosts = await getCollection('posts');
-const sortedPosts = allPosts.sort((a, b) => {
-    return new Date(b.data.date.replace(/\./g, '-')).valueOf() - new Date(a.data.date.replace(/\./g, '-')).valueOf();
-});
+const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, '-')).valueOf() - new Date(a.data.date.replace(/\./g, '-')).valueOf());
 const latestPosts = sortedPosts.slice(0, 3);
 ---
 
-<section class="snap-start relative w-full py-20 lg:py-24 bg-[#050b14] overflow-hidden z-0 flex items-center justify-center min-h-screen">
-    
-    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(30,41,59,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(30,41,59,0.4)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_50%,#000_40%,transparent_100%)] z-0 pointer-events-none"></div>
-
-    <div class="absolute top-1/2 left-1/2 text-[10rem] md:text-[18rem] font-black text-transparent [-webkit-text-stroke:2px_rgba(71,85,105,0.15)] md:[-webkit-text-stroke:3px_rgba(71,85,105,0.15)] whitespace-nowrap z-0 pointer-events-none select-none tracking-tighter animate-text-breath">
-        LINGXUN
-    </div>
-
-    <div class="absolute top-16 left-0 w-full overflow-hidden flex opacity-40 z-0 pointer-events-none font-mono text-xs text-blue-500 tracking-[0.3em] select-none">
-        <div class="animate-ticker whitespace-nowrap inline-block">
-            // ARCHIVE_DATA_STREAM // LINGXUN_TERMINAL_ACTIVE // ENCRYPTION_LEVEL_S // ACCESS_GRANTED // SYS_UPDATE_2026 // ARCHIVE_DATA_STREAM // LINGXUN_TERMINAL_ACTIVE // ENCRYPTION_LEVEL_S // ACCESS_GRANTED // SYS_UPDATE_2026 
-        </div>
-        <div class="animate-ticker whitespace-nowrap inline-block">
-            // ARCHIVE_DATA_STREAM // LINGXUN_TERMINAL_ACTIVE // ENCRYPTION_LEVEL_S // ACCESS_GRANTED // SYS_UPDATE_2026 // ARCHIVE_DATA_STREAM // LINGXUN_TERMINAL_ACTIVE // ENCRYPTION_LEVEL_S // ACCESS_GRANTED // SYS_UPDATE_2026 
-        </div>
-    </div>
-
-    <div class="container mx-auto px-6 max-w-6xl relative z-10 flex flex-col items-center">
-        
-        <div class="mb-8 lg:mb-10 text-center flex flex-col items-center">
-            <div class="flex items-center gap-4 mb-3">
-                <span class="w-8 h-[2px] bg-blue-500"></span>
-                <span class="text-slate-400 font-mono text-sm tracking-widest uppercase bg-slate-900/80 px-2 py-1 backdrop-blur-sm">Latest Archive</span>
-                <span class="w-8 h-[2px] bg-blue-500"></span>
+<section class="home-feed-section" aria-labelledby="home-feed-title">
+    <div class="site-container home-feed-section__inner">
+        <header class="home-feed-section__heading" data-reveal>
+            <div>
+                <div class="eyebrow">最近手记 / Tavern Notes</div>
+                <h2 id="home-feed-title" class="section-title">柜台边的<em>新消息</em></h2>
             </div>
-            <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-wider drop-shadow-lg">
-                最新 <span class="text-slate-500 font-light">动态</span>
-            </h2>
-        </div>
+            <p class="home-feed-section__heading-copy">每次更新都像一张刚贴上公告板的便签，写给后来进门的人。</p>
+        </header>
 
-        <div id="homepage-post-grid" class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 mb-8 lg:mb-10">
-            {latestPosts.map((post) => (
-                <a 
-                    href={`/posts/${post.id}`} 
-                    class="group block relative border border-slate-800 bg-slate-900/60 overflow-hidden transition-all duration-500 hover:-translate-y-2 backdrop-blur-md hover:border-amber-400/50 shadow-2xl hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-                >
-                    <div class="absolute top-0 left-0 w-0 h-1 transition-all duration-500 group-hover:w-full bg-amber-500"></div>
-                    <div class="h-28 lg:h-32 bg-slate-950 border-b border-slate-800 flex items-center justify-center">
-                        <span class="text-slate-600 font-mono text-xs tracking-widest">NO_COVER_SIGNAL</span>
-                    </div>
-                    <div class="p-5 lg:p-6">
-                        <div class="flex justify-between items-center gap-3 mb-4 border-b border-slate-700/50 pb-3">
-                            <span class="text-slate-500 font-mono text-xs tracking-widest">{post.data.date}</span>
-                            <span class="font-mono text-[10px] tracking-wider uppercase text-amber-500 bg-slate-950 px-2 py-1 rounded-sm border border-amber-500/30">
-                                // {post.data.tag}
-                            </span>
-                        </div>
-
-                        <h3 class="text-lg font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">{post.data.title}</h3>
-                        <p class="text-slate-400 text-sm font-light leading-relaxed mb-4 line-clamp-2">
-                            {post.data.desc}
-                        </p>
-                    </div>
-
-                    <div class="absolute bottom-5 right-6 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 text-amber-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                        </svg>
-                    </div>
+        <div id="homepage-post-grid" class="home-feed-section__grid" data-reveal style="--reveal-delay: 120ms">
+            {latestPosts.map((post, index) => (
+                <a href={`/posts/${post.id}`} class="note-card paper-card paper-enter" style={`animation-delay: ${index * 100}ms`}>
+                    <div class="note-card__top"><span class="meta">{post.data.date}</span><span class="tag">{postTagLabel(post.data.tag)}</span></div>
+                    <h3>{post.data.title}</h3>
+                    <p>{post.data.desc}</p>
+                    <span class="note-card__more">阅读手记 <span aria-hidden="true">→</span></span>
                 </a>
             ))}
         </div>
 
-        <a href="/posts" class="group relative inline-flex items-center justify-center px-8 md:px-10 py-3.5 md:py-4 w-max max-w-full text-center font-medium text-blue-400 border border-blue-500/50 rounded-full overflow-hidden transition-all duration-300 hover:border-blue-400 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] bg-slate-900/50 backdrop-blur-sm">
-            <span class="relative flex items-center gap-3 tracking-widest">
-                查阅完整终端日志
-                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
-                </svg>
-            </span>
-        </a>
+        <div class="home-feed-section__footer" data-reveal style="--reveal-delay: 220ms">
+            <span class="meta">NOTES / 记录持续更新</span>
+            <a href="/posts/" class="button button--accent">查阅全部手记 <span aria-hidden="true">→</span></a>
+        </div>
     </div>
 </section>
 
 <script>
     import { escapeHtml, fetchPublic, toApiUrl, type PublicPost } from '../lib/publicContent';
+    import { loadSiteContent, siteText } from '../lib/siteContent';
+    import { postTagLabel } from '../lib/postLabels';
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    const initHomepageFeed = async () => {
         const grid = document.getElementById('homepage-post-grid');
-        if (!grid) return;
-
         const posts = await fetchPublic<PublicPost[]>('/api/public/posts');
-        if (!posts?.length) return;
-
+        if (!grid || !posts) return;
+        await loadSiteContent();
         grid.innerHTML = posts.slice(0, 3).map(renderPostCard).join('');
-    });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHomepageFeed, { once: true });
+    else initHomepageFeed();
 
-    function renderPostCard(post: PublicPost) {
-        const cover = post.cover_url
-            ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="${escapeHtml(post.title)}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" decoding="async" fetchpriority="low" />`
-            : `<div class="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_50%_50%,rgba(251,191,36,0.12),transparent_58%),linear-gradient(135deg,rgba(15,23,42,1),rgba(2,6,23,1))]"><span class="text-slate-600 font-mono text-xs tracking-widest">NO_COVER_SIGNAL</span></div>`;
+    function renderPostCard(post: PublicPost, index: number) {
+        const cover = post.cover_url ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="" loading="lazy" decoding="async" />` : '';
         return `
-            <a
-                href="/post/?slug=${encodeURIComponent(post.slug)}"
-                class="group block relative border border-slate-800 bg-slate-900/60 overflow-hidden transition-all duration-500 hover:-translate-y-2 backdrop-blur-md hover:border-amber-400/50 shadow-2xl hover:shadow-[0_10px_30px_rgba(0,0,0,0.8)]"
-            >
-                <div class="absolute top-0 left-0 w-0 h-1 transition-all duration-500 group-hover:w-full bg-amber-500"></div>
-                <div class="h-28 lg:h-32 bg-slate-950 border-b border-slate-800 overflow-hidden">${cover}</div>
-                <div class="p-5 lg:p-6">
-                    <div class="flex justify-between items-center gap-3 mb-4 border-b border-slate-700/50 pb-3">
-                        <span class="text-slate-500 font-mono text-xs tracking-widest">${escapeHtml(post.date)}</span>
-                        <span class="font-mono text-[10px] tracking-wider uppercase text-amber-500 bg-slate-950 px-2 py-1 rounded-sm border border-amber-500/30">
-                            // ${escapeHtml(post.tag)}
-                        </span>
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">${escapeHtml(post.title)}</h3>
-                    <p class="text-slate-400 text-sm font-light leading-relaxed mb-4 line-clamp-2">
-                        ${escapeHtml(post.desc)}
-                    </p>
-                </div>
-                <div class="absolute bottom-5 right-6 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 text-amber-500">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                    </svg>
-                </div>
+            <a href="/post/?slug=${encodeURIComponent(post.slug)}" class="note-card paper-card paper-enter" style="animation-delay: ${index * 100}ms">
+                ${cover ? `<div class="note-card__cover">${cover}</div>` : ''}
+                <div class="note-card__top"><span class="meta">${escapeHtml(post.date)}</span>${post.is_pinned ? `<span class="tag">${escapeHtml(siteText('posts.pinned', '置顶'))}</span>` : ''}<span class="tag">${escapeHtml(postTagLabel(post.tag))}</span></div>
+                <h3>${escapeHtml(post.title)}</h3>
+                <p>${escapeHtml(post.desc)}</p>
+                <span class="note-card__more">阅读手记 <span aria-hidden="true">→</span></span>
             </a>
         `;
     }
 </script>
 
-<style>
-    @keyframes text-breath {
-        0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(0.98); }
-        50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.02); text-shadow: 0 0 40px rgba(59, 130, 246, 0.2); }
-    }
-    .animate-text-breath { animation: text-breath 6s ease-in-out infinite; }
+<style is:global>
+    .home-feed-section { padding-block: clamp(5rem, 12vw, 10rem); background: var(--ink); }
+    .home-feed-section__heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
+    .home-feed-section__heading-copy { max-width: 23rem; margin: 0; color: var(--paper-muted); }
+    .home-feed-section__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 2rem; }
+    .note-card { display: flex; flex-direction: column; min-height: 18rem; padding: 1.35rem; color: var(--paper); }
+    .note-card__cover { order: -1; margin: -1.35rem -1.35rem 1.25rem; overflow: hidden; }
+    .note-card__cover img { display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; filter: saturate(0.65); }
+    .note-card__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; }
+    .note-card h3 { margin: 1.5rem 0 0.6rem; color: var(--paper); font-family: var(--font-serif); font-size: 1.35rem; line-height: 1.35; }
+    .note-card p { margin: 0; color: var(--paper-muted); line-height: 1.8; }
+    .note-card__more { display: inline-flex; gap: 0.5rem; align-items: center; margin-top: auto; padding-top: 1.6rem; color: var(--gold); font-size: 0.86rem; }
+    .note-card:hover .note-card__more { color: var(--paper); }
+    .home-feed-section__footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 2rem; }
 
-    @keyframes ticker {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-100%); }
+    @media (max-width: 820px) {
+        .home-feed-section__heading { align-items: start; flex-direction: column; }
+        .home-feed-section__grid { grid-template-columns: 1fr; }
+        .note-card { min-height: 0; }
     }
-    .animate-ticker { animation: ticker 60s linear infinite; padding-right: 2rem; }
+
+    @media (max-width: 480px) {
+        .home-feed-section__footer { align-items: stretch; flex-direction: column; }
+    }
 </style>

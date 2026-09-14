@@ -1,514 +1,484 @@
 ---
-// src/components/EasterEgg.astro
+import { Image } from 'astro:assets';
+import settingOne from '../assets/setting/Image_1774261272205_454.png';
 ---
 
-<section id="easter-egg-section" class="snap-start hidden relative w-full min-h-[100dvh] lg:h-screen bg-[#020306] flex-col items-center justify-start overflow-y-auto lg:overflow-hidden">
-    
-    {/* ========================================================= */}
-    {/* 1. 宏大深空视差背景：核心修复！使用 Absolute + Sticky 物理绑定 */}
-    {/* ========================================================= */}
-    <div class="absolute inset-0 z-0 pointer-events-none">
-        <div class="sticky top-0 w-full h-[100dvh] overflow-hidden">
-            {/* 背景极光渐变 */}
-            <div class="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-teal-900/10 rounded-full blur-[140px] mix-blend-screen animate-aurora"></div>
-            <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-indigo-900/10 rounded-full blur-[160px] mix-blend-screen animate-aurora-reverse"></div>
-            
-            {/* 轨道环 */}
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vw] border-[1px] border-cyan-900/20 rounded-full animate-[spin_60s_linear_infinite]"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] border-[2px] border-dashed border-amber-900/10 rounded-full animate-[spin_40s_linear_infinite_reverse]"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] border-[1px] border-rose-900/10 rounded-full animate-[spin_20s_linear_infinite]"></div>
-
-            {/* 高精度扫描网格 & 星尘流 */}
-            <div class="absolute inset-0 bg-cyber-grid opacity-20"></div>
-            <div class="absolute inset-0 bg-starfield opacity-60 animate-starflow"></div>
-            <div class="absolute inset-0 bg-starfield opacity-40 animate-starflow-slow" style="background-size: 300px 300px; transform: rotate(180deg);"></div>
-        </div>
+<section id="easter-egg-section" class="egg-section hidden" aria-labelledby="egg-title" aria-hidden="true">
+    <div class="egg-section__texture" aria-hidden="true"></div>
+    <div id="egg-loader" class="egg-loader" role="status" aria-live="polite">
+        <div class="egg-loader__candle" aria-hidden="true"></div>
+        <p>暗门正在打开……</p>
+        <div class="egg-loader__track"><span id="boot-progress-bar"></span></div>
+        <div class="egg-loader__meta"><span>暗门记录</span><span id="boot-progress-text">0%</span></div>
     </div>
 
-    {/* ========================================================= */}
-    {/* 2. 启动蒙版层 (Warp Sequence)：同样修复为 Absolute + Sticky */}
-    {/* ========================================================= */}
-    <div id="egg-loader" class="absolute inset-0 z-50 transition-opacity duration-700">
-        <div class="sticky top-0 w-full h-[100dvh] bg-[#020306] flex flex-col items-center justify-center">
-            <div class="w-72 text-center relative">
-                <div class="absolute -inset-4 bg-amber-500/10 blur-xl rounded-full"></div>
-                <div class="text-amber-500 font-mono text-sm tracking-widest mb-4 animate-pulse relative z-10">
-                    &gt; SYSTEM_OVERRIDE_INITIATED_
-                </div>
-                <div class="w-full h-1.5 border border-amber-900/50 bg-slate-950 rounded-full overflow-hidden relative z-10">
-                    <div id="boot-progress-bar" class="h-full bg-amber-400 w-0 transition-all duration-[50ms] shadow-[0_0_15px_rgba(251,191,36,1)]"></div>
-                </div>
-                <div class="flex justify-between mt-3 font-mono text-[10px] text-slate-500 tracking-widest relative z-10">
-                    <span class="animate-pulse">DECRYPTING_CORE...</span>
-                    <span id="boot-progress-text" class="text-amber-400 font-bold">0%</span>
-                </div>
+    <div id="egg-dashboard" class="egg-dashboard" aria-hidden="true">
+        <header class="egg-header" data-reveal>
+            <div class="egg-header__copy">
+                <div class="eyebrow">酒馆暗门 / BACK ROOM</div>
+                <h1 id="egg-title">酒馆<em>暗门</em></h1>
+                <p>这里不收委托，只收下你敲过的杯声。</p>
             </div>
-        </div>
-    </div>
+            <div class="egg-header__aside">
+                <div class="egg-portrait" aria-label="凌巽的暗门留影">
+                    <Image src={settingOne} alt="凌巽的纯龙设定留影" loading="lazy" decoding="async" />
+                    <span class="egg-portrait__caption">柜台留影 / 01</span>
+                </div>
+                <button id="close-egg-button" class="button button--quiet" type="button">关上暗门 <span aria-hidden="true">×</span></button>
+            </div>
+        </header>
 
-    {/* ========================================================= */}
-    {/* 3. 重装飞船主控室UI */}
-    {/* ========================================================= */}
-    <div id="egg-dashboard" class="w-full max-w-[1400px] mx-auto px-4 md:px-8 pb-8 pt-24 lg:pt-32 opacity-0 pointer-events-none transition-opacity duration-1000 flex flex-col relative z-20 h-auto lg:h-full">
-        
-        {/* 顶部军工级状态栏 */}
-        <div class="flex justify-between items-end border-b-2 border-slate-800 pb-4 mb-8 flex-shrink-0 relative">
-            <div class="absolute bottom-0 left-0 w-32 h-[2px] bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
-            <div>
-                <h1 class="text-3xl md:text-5xl font-black text-white tracking-widest uppercase italic">BONUS<span class="text-cyan-400"> PAGE</span></h1>
-                <div class="text-slate-400 font-mono text-[10px] md:text-xs tracking-widest mt-2 flex items-center gap-2">
-                    <span class="w-2 h-2 bg-red-500 rounded-sm animate-pulse"></span>
-                    UNAUTHORIZED_ACCESS_DETECTED
+        <div class="egg-grid">
+            <section class="egg-card egg-card--visitors paper-card" data-reveal>
+                <div class="egg-card__label"><span>今夜来客</span><span class="meta">到访记录</span></div>
+                <div class="egg-card__number"><strong id="bonus-visit-count">--</strong><span>位</span></div>
+                <p>到访计数会在本次打开暗门时留下记录。</p>
+                <div class="egg-pulse-wrap">
+                    <div class="egg-card__label"><span>敲杯回应</span><span class="meta">敲杯反馈</span></div>
+                    <button id="bonus-interaction-button" class="egg-pulse-button" type="button">
+                        <span class="egg-pulse-button__ring" aria-hidden="true"></span>
+                        <span class="egg-pulse-button__text">敲一下杯子</span>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                    <p>共响杯数：<strong id="bonus-interaction-count">--</strong></p>
+                    <p id="bonus-reply" class="egg-reply" role="status" aria-live="polite"></p>
                 </div>
-            </div>
-            <div class="text-right hidden sm:block font-mono">
-                <div class="text-cyan-400 text-sm tracking-widest mb-1">STATION_ORBIT: STABLE</div>
-                <div class="text-slate-600 text-[10px] tracking-widest">LAT:29.56N / LON:106.46E</div>
-            </div>
-        </div>
+            </section>
 
-        {/* 核心数据网格 */}
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-none lg:flex-1 lg:min-h-0">
-            
-            {/* 🔴 [左翼] 访客互动统计 */}
-            <div class="lg:col-span-3 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.5)]">
-                <div class="bg-slate-900/50 border-b border-cyan-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-cyan-400"># 访客信号</div>
-                
-                <div class="p-6 flex flex-col h-full justify-center relative font-mono text-xs z-10">
-                    <div class="absolute right-[-22%] top-1/2 -translate-y-1/2 w-52 h-52 border border-cyan-500/10 rounded-full flex items-center justify-center -z-10">
-                        <div class="w-[80%] h-[80%] border border-cyan-500/20 rounded-full"></div>
-                        <div class="absolute w-full h-full bg-[conic-gradient(from_0deg,transparent_70%,rgba(6,182,212,0.15)_100%)] rounded-full animate-[spin_4s_linear_infinite]"></div>
+            <section class="egg-card egg-card--menu paper-card" data-reveal style="--reveal-delay: 80ms">
+                <div class="egg-card__label"><span>今日酒单</span><span id="daily-menu-date" class="meta">本日菜单</span></div>
+                <p id="daily-menu-description" class="egg-menu__intro">柜台今天准备了几杯适合旅途之后慢慢喝的调酒。</p>
+                <p id="daily-menu-intro" class="egg-menu__intro"></p>
+                <ul id="daily-menu-list" class="egg-menu__list" aria-label="今日调酒"></ul>
+                <div class="egg-note__line"><span>今夜灯火</span><strong>仍亮着</strong></div>
+            </section>
+
+            <section class="egg-card egg-card--dates paper-card" data-reveal style="--reveal-delay: 100ms">
+                <div class="egg-card__label"><span>值得纪念的日子</span><span class="meta">纪念簿</span></div>
+                <div class="memory-grid">
+                    {[
+                        { id: 'days-birth', titleId: 'days-birth-title', subtitleId: 'days-birth-subtitle', title: 'BIRTHDAY', desc: '诞生之日', color: 'gold' },
+                        { id: 'days-love', titleId: 'days-love-title', subtitleId: 'days-love-subtitle', title: 'FALL_IN_LOVE', desc: '和小狼恋爱', color: 'red' },
+                        { id: 'days-site', titleId: 'days-site-title', subtitleId: 'days-site-subtitle', title: 'WEBSITE_BIRTH', desc: '网站上线', color: 'steel' },
+                        { id: 'days-unknown', titleId: 'days-unknown-title', subtitleId: 'days-unknown-subtitle', title: 'FUTURE_X', desc: '观测未定', color: 'paper' },
+                    ].map((item) => (
+                        <article class={`memory-card memory-card--${item.color}`}>
+                            <div class="memory-card__title"><span id={item.titleId}>{item.title}</span><span aria-hidden="true">✦</span></div>
+                            <p id={item.subtitleId}>{item.desc}</p>
+                            <strong id={item.id}>--</strong><span>天</span>
+                        </article>
+                    ))}
+                </div>
+            </section>
+
+            <section class="egg-card egg-card--message paper-card" data-reveal style="--reveal-delay: 180ms">
+                <div class="egg-card__label"><span>柜台留言</span><span class="meta">留给你的话</span></div>
+                <div id="typewriter-container" class="egg-message"></div>
+                <span id="typewriter-cursor" class="egg-message__cursor hidden" aria-hidden="true"></span>
+            </section>
+
+            <section class="egg-card egg-card--quest paper-card" data-reveal style="--reveal-delay: 240ms">
+                <div class="egg-quest__copy">
+                    <div class="egg-card__label"><span>今日委托</span><span class="meta">抽取委托</span></div>
+                    <p class="egg-quest__intro">凌巽把一张委托单压在杯垫下面。想知道今天做什么，就从任务板抽一张。</p>
+                </div>
+                <div class="egg-quest__desk">
+                    <div id="quest-draw-ticket" class="egg-quest__ticket">
+                        <span class="tag">杯垫下 / 待揭晓</span>
+                        <p id="quest-draw-result" class="egg-quest__result" role="status" aria-live="polite">尚未抽签</p>
                     </div>
-
-                    <div class="relative border-b border-cyan-900/30 pb-6">
-                        <div class="text-slate-500 text-[9px] mb-3 flex items-center gap-2">
-                            <span class="w-1 h-1 bg-cyan-400 rounded-full animate-pulse"></span>
-                            到访计数
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <span id="bonus-visit-count" class="text-4xl lg:text-5xl font-black text-cyan-200 tracking-tight drop-shadow-[0_0_12px_rgba(103,232,249,0.35)]">--</span>
-                            <span class="pb-2 text-slate-500 text-[10px] tracking-widest">人</span>
-                        </div>
-                        <div class="mt-3 text-slate-500 leading-relaxed">
-                            已记录到访信号
-                        </div>
-                    </div>
-
-                    <div class="relative pt-6">
-                        <div class="text-slate-500 text-[9px] mb-3 flex items-center gap-2">
-                            <span class="w-1 h-1 bg-amber-400 rounded-full animate-pulse"></span>
-                            手动回应
-                        </div>
-                        <button id="bonus-interaction-button" type="button" class="group relative w-full overflow-hidden border border-amber-500/40 bg-amber-400/10 px-4 py-3 text-left transition-all duration-300 hover:border-amber-300 hover:bg-amber-400/15 hover:shadow-[0_0_24px_rgba(251,191,36,0.18)] active:scale-[0.98]">
-                            <span id="bonus-interaction-flash" class="pointer-events-none absolute inset-0 bg-amber-300/20 opacity-0"></span>
-                            <span class="relative flex items-center justify-between gap-3">
-                                <span class="text-amber-200 font-bold tracking-widest">点亮信号</span>
-                                <span class="text-amber-400 transition-transform duration-300 group-hover:translate-x-1">&gt;</span>
-                            </span>
-                        </button>
-                        <div class="mt-4 text-slate-500 leading-relaxed">
-                            已被按下 <span id="bonus-interaction-count" class="text-amber-300 font-bold">--</span> 次
-                        </div>
-                    </div>
+                    <button id="quest-draw-button" class="button button--accent metal-glint" type="button">从任务板抽一张 <span aria-hidden="true">✦</span></button>
                 </div>
-            </div>
-
-            {/* 🟡 [中枢] 独立卡片化矩阵 + 修复的精准呼吸辉光 */}
-            <div class="lg:col-span-6 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5)]">
-                <div class="bg-slate-900/50 border-b border-slate-800 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-amber-400 flex justify-between">
-                    <span># 值得纪念的日子...</span>
-                    <span class="animate-pulse">持续追踪...</span>
-                </div>
-                
-                <div class="flex-1 p-6 sm:p-8 flex flex-col justify-center">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 w-full">
-                        {[
-                            { id: 'days-birth', titleId: 'days-birth-title', subtitleId: 'days-birth-subtitle', title: 'BIRTHDAY', desc: '诞生之日', color: '#fbbf24' },
-                            { id: 'days-love', titleId: 'days-love-title', subtitleId: 'days-love-subtitle', title: 'FALL_IN_LOVE', desc: '和小狼恋爱', color: '#f43f5e' },
-                            { id: 'days-site', titleId: 'days-site-title', subtitleId: 'days-site-subtitle', title: 'WEBSITE_BIRTH', desc: '网站上线', color: '#06b6d4' },
-                            { id: 'days-unknown', titleId: 'days-unknown-title', subtitleId: 'days-unknown-subtitle', title: 'FUTURE_X', desc: '观测未定', color: '#10b981' }
-                        ].map((item) => (
-                            <div 
-                                class="group relative flex flex-col p-5 rounded-xl border border-slate-800/80 bg-slate-900/40 transition-transform duration-500 hover:-translate-y-1.5 cursor-pointer overflow-hidden"
-                                style={`--hover-color: ${item.color};`}
-                            >
-                                {/* 核心修复：纯 Tailwind 任意值的呼吸动画，确保只有悬停时才工作 */}
-                                <div class="absolute inset-0 rounded-xl pointer-events-none border border-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-hover:animate-[cardBreath_2s_ease-in-out_infinite_alternate] z-0"></div>
-                                
-                                <div class="relative z-10 flex flex-row items-center justify-between w-full">
-                                    <div class="flex flex-col gap-1">
-                                        <div class="text-[10px] text-slate-500 font-mono tracking-widest flex items-center gap-2">
-                                            <span class="w-1.5 h-1.5 rounded-full transition-shadow duration-300 group-hover:shadow-[0_0_8px_var(--hover-color)]" style="background-color: var(--hover-color);"></span>
-                                            <span id={item.titleId}>{item.title}</span>
-                                        </div>
-                                        <div id={item.subtitleId} class="text-xs text-slate-400 font-sans transition-colors duration-300 group-hover:text-white">{item.desc}</div>
-                                    </div>
-                                    
-                                    <div class="flex items-baseline gap-1 text-right">
-                                        <span 
-                                            id={item.id} 
-                                            class="text-3xl lg:text-4xl font-black font-mono text-white transition-colors duration-300 group-hover:text-[var(--hover-color)] group-hover:animate-[textBreath_2s_ease-in-out_infinite_alternate]"
-                                        >--</span>
-                                        <span class="text-slate-600 font-mono text-[10px]">D</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* 🟢 [右翼] 访客专属加密留言墙 */}
-            <div class="lg:col-span-3 bg-[#030712]/80 backdrop-blur-md border border-slate-800/80 rounded-xl overflow-hidden flex flex-col relative shadow-[inset_0_0_40px_rgba(0,0,0,0.5),0_10px_30px_rgba(0,0,0,0.5)]">
-                <div class="bg-slate-900/50 border-b border-emerald-900/30 px-4 py-2 font-mono text-[10px] tracking-widest font-bold text-emerald-400"># 加密信息...</div>
-                <div class="p-5 min-h-[250px] lg:min-h-0 h-full relative overflow-y-auto scrollbar-hide font-mono text-xs text-emerald-500 flex flex-col gap-2">
-                    <div class="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.05)_50%,transparent_50%)] bg-[length:100%_4px] pointer-events-none z-10"></div>
-                    <div id="typewriter-container" class="relative z-0 leading-relaxed whitespace-pre-wrap opacity-90"></div>
-                    <span id="typewriter-cursor" class="inline-block w-2 h-4 bg-emerald-500 animate-pulse hidden relative z-0"></span>
-                </div>
-            </div>
-        </div>
-
-        {/* 底部退出指引 */}
-        <div class="text-center mt-6 mb-12 lg:mb-0 flex-shrink-0">
-            <div class="inline-flex items-center gap-3 px-6 py-2 border border-slate-700 bg-slate-900/50 rounded-full text-slate-400 font-mono text-xs tracking-widest animate-bounce cursor-default">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                SCROLL UP TO DISCONNECT
-            </div>
+            </section>
         </div>
     </div>
 </section>
 
 <style>
-    /* 1. 扫描网格 */
-    .bg-cyber-grid {
-        background-size: 40px 40px;
-        background-image:
-            linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
-        animation: gridMove 20s linear infinite;
-        transform-origin: center;
-    }
-    @keyframes gridMove {
-        0% { transform: translateY(-40px); }
-        100% { transform: translateY(0); }
+    .egg-section { position: relative; min-height: 100svh; overflow: hidden; padding: 7rem var(--space-page) 4rem; background: var(--ink-soft); color: var(--paper); isolation: isolate; opacity: 0; transition: opacity 420ms ease; }
+    .egg-section.is-open { opacity: 1; }
+    .egg-section.is-closing { opacity: 0; }
+    .egg-section__texture { position: absolute; inset: 8rem auto 3rem 7%; z-index: -1; width: min(22rem, 30vw); border-left: 1px solid rgba(211, 168, 61, 0.24); opacity: 0.7; transform: skewX(-10deg); }
+    .egg-loader { position: absolute; inset: 0 0 auto; z-index: 5; display: grid; width: 100%; height: 100svh; min-height: 32rem; place-content: center; justify-items: center; padding: 2rem; background: var(--ink); color: var(--paper); opacity: 1; transition: opacity 500ms ease; }
+    .egg-loader.is-hidden { pointer-events: none; opacity: 0; }
+    .egg-loader__candle { width: 0.55rem; height: 1.9rem; margin-bottom: 1.2rem; background: var(--gold); box-shadow: 0 0 24px rgba(211, 168, 61, 0.5); animation: candleBreathe 2.8s ease-in-out infinite; }
+    .egg-loader p { margin: 0 0 1rem; color: var(--paper-muted); font-family: var(--font-serif); font-size: 1.2rem; }
+    .egg-loader__track { width: min(22rem, 80vw); height: 2px; background: rgba(241, 240, 235, 0.2); }
+    .egg-loader__track span { display: block; width: 0; height: 100%; background: var(--gold); transition: width 50ms linear; }
+    .egg-loader__meta { display: flex; justify-content: space-between; width: min(22rem, 80vw); margin-top: 0.6rem; color: var(--steel-soft); font-family: var(--font-mono); font-size: 0.7rem; }
+    .egg-dashboard { width: min(1180px, 100%); margin-inline: auto; opacity: 0; pointer-events: none; transition: opacity 600ms ease; }
+    .egg-dashboard.is-ready { opacity: 1; pointer-events: auto; }
+    .egg-header { display: flex; align-items: end; justify-content: space-between; gap: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
+    .egg-header .eyebrow { color: var(--gold); }
+    .egg-header h1 { margin: 0.9rem 0 0.35rem; font-family: var(--font-display); font-size: clamp(3rem, 8vw, 6.5rem); font-weight: 600; line-height: 0.9; }
+    .egg-header h1 em { color: var(--red-soft); font-style: normal; }
+    .egg-header p { margin: 0; color: var(--paper-muted); }
+    .egg-grid { display: grid; grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr); gap: 1rem; margin-top: 1rem; }
+    .egg-card { padding: 1.3rem; }
+    .egg-card__label { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--line-soft); color: var(--paper); font-family: var(--font-serif); font-size: 1.15rem; }
+    .egg-card__label .meta { color: var(--steel-soft); }
+    .egg-card--visitors { grid-row: span 2; background: var(--ink-blue); }
+    .egg-card--dates { background: var(--surface-paper); color: var(--paper); }
+    .egg-card--message { background: var(--surface-card); color: var(--paper); }
+    .egg-card--quest { grid-column: 2; background: var(--surface-paper); color: var(--paper); }
+    .egg-card--dates .egg-card__label, .egg-card--message .egg-card__label, .egg-card--quest .egg-card__label { border-color: var(--line); }
+    .egg-card--dates .meta, .egg-card--message .meta, .egg-card--quest .meta { color: var(--steel-soft); }
+    .egg-card--visitors > p { margin: 0; color: var(--paper-muted); font-size: 0.9rem; line-height: 1.75; }
+    .egg-card__number { display: flex; align-items: flex-end; gap: 0.55rem; min-height: clamp(5.8rem, 11vw, 8rem); margin: 1.5rem 0 0.55rem; }
+    .egg-card__number strong { display: block; color: var(--gold); font-family: var(--font-display); font-size: clamp(4rem, 9vw, 7rem); font-weight: 600; line-height: 0.86; }
+    .egg-card__number span { padding-bottom: 0.15rem; color: var(--paper-muted); }
+    .egg-pulse-wrap { margin-top: 2rem; padding-top: 1.3rem; border-top: 1px solid var(--line-soft); }
+    .egg-pulse-button { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 50px; margin-top: 1.1rem; padding: 0.75rem 0.9rem; overflow: hidden; border: 1px solid rgba(211, 168, 61, 0.65); background: rgba(211, 168, 61, 0.08); color: var(--paper); cursor: pointer; }
+    .egg-pulse-button:hover { border-color: var(--gold); color: var(--gold); }
+    .egg-pulse-button__text { position: relative; z-index: 1; }
+    .egg-pulse-button__ring { position: absolute; inset: 50% auto auto 1rem; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: var(--red); transform: translateY(-50%); }
+    .egg-pulse-button.is-active { animation: liquidFeedback 560ms ease-out; }
+    .egg-pulse-button.is-active .egg-pulse-button__ring { animation: pulseRing 560ms ease-out; }
+    .egg-pulse-wrap > p { margin: 0.75rem 0 0; color: var(--paper-muted); font-size: 0.85rem; }
+    .egg-pulse-wrap > p strong { color: var(--gold); }
+    .egg-reply { min-height: 1.4em; color: var(--red-soft) !important; font-family: var(--font-serif); }
+    .memory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; margin-top: 1rem; }
+    .memory-card { min-height: 8.3rem; padding: 0.9rem; border: 1px solid var(--line); background: var(--surface-muted); }
+    .memory-card__title { display: flex; justify-content: space-between; gap: 0.5rem; color: var(--steel-soft); font-family: var(--font-mono); font-size: 0.67rem; letter-spacing: 0.04em; }
+    .memory-card__title span:last-child { color: currentColor; }
+    .memory-card p { margin: 0.4rem 0 1rem; color: var(--paper-muted); font-size: 0.9rem; }
+    .memory-card strong { font-family: var(--font-display); font-size: 2.6rem; font-weight: 600; line-height: 0.8; }
+    .memory-card > span:last-child { margin-left: 0.3rem; color: var(--steel-soft); font-size: 0.76rem; }
+    .memory-card--gold strong, .memory-card--gold .memory-card__title span:last-child { color: var(--gold); }
+    .memory-card--red strong, .memory-card--red .memory-card__title span:last-child { color: var(--red); }
+    .memory-card--steel strong, .memory-card--steel .memory-card__title span:last-child { color: var(--steel); }
+    .memory-card--paper strong, .memory-card--paper .memory-card__title span:last-child { color: var(--steel-soft); }
+    .egg-message { min-height: 15rem; padding-top: 1.2rem; color: var(--paper); font-family: var(--font-serif); line-height: 1.9; white-space: pre-wrap; }
+    .egg-message__cursor { display: inline-block; width: 0.45rem; height: 1.1rem; background: var(--red); animation: candleBreathe 1.2s ease-in-out infinite; }
+    .egg-message__cursor.hidden { display: none; }
+    .egg-quest__intro { margin: 1.1rem 0; color: var(--paper-muted); }
+    .egg-card--quest .button--accent { border-color: var(--red); color: var(--red); }
+    .egg-quest__result { min-height: 2rem; margin: 1rem 0 0; color: var(--paper); font-family: var(--font-serif); font-size: 1.35rem; }
+    @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(155, 39, 49, 0.5); } 100% { box-shadow: 0 0 0 22px rgba(155, 39, 49, 0); } }
+    @media (max-width: 820px) { .egg-grid { grid-template-columns: 1fr; } .egg-card--visitors, .egg-card--quest { grid-column: auto; grid-row: auto; } }
+    @media (max-width: 560px) { .egg-section { padding-top: 6.5rem; } .egg-header { align-items: flex-start; flex-direction: column; } .egg-header h1 { font-size: clamp(3rem, 18vw, 4.8rem); } .memory-grid { grid-template-columns: 1fr; } .egg-card { padding: 1rem; } }
+
+    /* The hidden room has its own night-scene palette, even when the rest of the site is in daylight mode. */
+    .egg-section {
+        --egg-bg: #0b0d10;
+        --egg-surface: #121820;
+        --egg-surface-blue: #18263d;
+        --egg-surface-warm: #27201c;
+        --egg-paper: #f1f0eb;
+        --egg-muted: #a8a9a6;
+        --egg-line: rgba(241, 240, 235, 0.16);
+        background: var(--egg-bg);
+        color: var(--egg-paper);
     }
 
-    /* 2. 深空星尘数据流 */
-    .bg-starfield {
-        background-image: 
-            radial-gradient(1.5px 1.5px at 20px 30px, #fff, rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 90px 40px, rgba(6,182,212,0.8), rgba(0,0,0,0)),
-            radial-gradient(2px 2px at 160px 120px, rgba(251,191,36,0.5), rgba(0,0,0,0)),
-            radial-gradient(1px 1px at 250px 90px, #fff, rgba(0,0,0,0));
-        background-repeat: repeat;
-        background-size: 300px 300px;
-    }
-    .animate-starflow { animation: starflowAnim 60s linear infinite; }
-    .animate-starflow-slow { animation: starflowAnim 90s linear infinite; }
-    @keyframes starflowAnim {
-        0% { background-position: 0 0; }
-        100% { background-position: 0 -1000px; } 
+    .egg-section::before {
+        position: absolute;
+        inset: 1rem;
+        pointer-events: none;
+        border: 1px solid rgba(211, 168, 61, 0.18);
+        content: "";
     }
 
-    /* 3. 背景基础动画 */
-    @keyframes aurora { 0% { transform: scale(1) translate(0, 0); } 50% { transform: scale(1.1) translate(50px, 20px); } 100% { transform: scale(1) translate(0, 0); } }
-    .animate-aurora { animation: aurora 20s ease-in-out infinite; }
-    .animate-aurora-reverse { animation: aurora 20s ease-in-out infinite reverse; }
-    .animate-spin-slow { animation: spin 15s linear infinite; }
-    .animate-spin-slow-reverse { animation: spin 20s linear infinite reverse; }
-    .animate-spin-fast { animation: spin 2s linear infinite; }
-
-    /* ========================================== */
-    /* 4. 定义脱离作用域污染的全局呼吸 Keyframes  */
-    /* ========================================== */
-    @keyframes cardBreath {
-        0% { box-shadow: 0 0 5px var(--hover-color), inset 0 0 2px var(--hover-color); border-color: transparent; }
-        100% { box-shadow: 0 0 20px var(--hover-color), inset 0 0 10px var(--hover-color); border-color: var(--hover-color); }
+    .egg-section__texture { inset: auto 10% 8% auto; width: min(30rem, 32vw); height: 12rem; border-top: 1px solid rgba(155, 39, 49, 0.35); border-left: 0; transform: rotate(-8deg); }
+    .egg-loader { background: var(--egg-bg); color: var(--egg-paper); }
+    .egg-dashboard { position: relative; z-index: 1; width: min(1240px, 100%); }
+    .egg-header { min-height: 16rem; align-items: end; padding-bottom: 2.5rem; border-bottom-color: var(--egg-line); }
+    .egg-header__copy { max-width: 42rem; }
+    .egg-header h1 { color: var(--egg-paper); font-size: clamp(3.6rem, 10vw, 8rem); letter-spacing: 0; }
+    .egg-header h1 em { color: var(--red-soft); }
+    .egg-header p { max-width: 28rem; color: var(--egg-muted); font-size: 1.03rem; }
+    .egg-header__aside { display: flex; align-items: end; gap: 1rem; }
+    .egg-header__aside .button { border-color: var(--egg-line); color: var(--egg-muted); }
+    .egg-header__aside .button:hover { color: var(--egg-paper); }
+    .egg-portrait { position: relative; width: clamp(7rem, 12vw, 10rem); aspect-ratio: 4 / 5; padding: 0.35rem; border: 1px solid rgba(211, 168, 61, 0.65); background: var(--egg-surface); transform: rotate(3deg); }
+    .egg-portrait img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; filter: saturate(0.72) contrast(1.08); }
+    .egg-portrait__caption { position: absolute; right: 0.45rem; bottom: 0.45rem; padding: 0.16rem 0.3rem; background: rgba(11, 13, 16, 0.82); color: #f1f0eb; font-family: var(--font-mono); font-size: 0.58rem; }
+    .egg-grid { grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr); grid-template-areas: "visitors dates" "visitors message" "quest quest"; gap: 1.25rem; margin-top: 1.25rem; }
+    .egg-card { border-color: var(--egg-line); background: var(--egg-surface); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.26); }
+    .egg-card--visitors { grid-area: visitors; display: flex; flex-direction: column; min-height: 29rem; background: var(--egg-surface-blue); }
+    .egg-card--dates { grid-area: dates; background: var(--egg-surface); color: var(--egg-paper); }
+    .egg-card--message { grid-area: message; background: var(--egg-surface-warm); color: var(--egg-paper); }
+    .egg-card--quest { grid-area: quest; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(12rem, 0.6fr); align-items: center; gap: 1.5rem; background: var(--egg-surface); color: var(--egg-paper); }
+    .egg-card--quest .egg-card__label { border-bottom: 0; padding-bottom: 0; }
+    .egg-card--quest .egg-card__label { grid-column: 1; grid-row: 1; }
+    .egg-card--quest .egg-quest__intro { grid-column: 1; grid-row: 2; }
+    .egg-card--quest #quest-draw-button { grid-column: 2; grid-row: 1 / span 2; }
+    .egg-card--quest #quest-draw-result { grid-column: 3; grid-row: 1; }
+    .egg-card__label { border-color: var(--egg-line); color: var(--egg-paper); }
+    .egg-card--dates .egg-card__label, .egg-card--message .egg-card__label, .egg-card--quest .egg-card__label { border-color: var(--egg-line); }
+    .egg-card--dates .meta, .egg-card--message .meta, .egg-card--quest .meta { color: var(--egg-muted); }
+    .egg-card--visitors > p, .egg-pulse-wrap > p { color: var(--egg-muted); }
+    .egg-card__number strong { color: #d3a83d; }
+    .egg-pulse-wrap { margin-top: auto; border-top-color: var(--egg-line); }
+    .egg-pulse-button { border-color: rgba(211, 168, 61, 0.65); background: rgba(211, 168, 61, 0.07); color: var(--egg-paper); }
+    .egg-reply { color: var(--red-soft) !important; }
+    .memory-card { border-color: var(--egg-line); background: rgba(241, 240, 235, 0.045); }
+    .memory-card__title { color: var(--egg-muted); }
+    .memory-card p { color: var(--egg-muted); }
+    .memory-card > span:last-child { color: var(--egg-muted); }
+    .egg-message { min-height: 12rem; color: var(--egg-paper); }
+    .egg-quest__intro { margin: 0; color: var(--egg-muted); }
+    .egg-quest__result { min-height: 0; margin: 0; color: var(--egg-paper); }
+    @media (max-width: 820px) {
+        .egg-grid { grid-template-columns: 1fr; grid-template-areas: "visitors" "dates" "message" "quest"; }
+        .egg-card--visitors { min-height: 0; }
+        .egg-card--quest { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+        .egg-card--quest .egg-card__label, .egg-card--quest .egg-quest__intro, .egg-card--quest #quest-draw-button, .egg-card--quest #quest-draw-result { grid-column: auto; grid-row: auto; }
     }
 
-    @keyframes textBreath {
-        0% { filter: drop-shadow(0 0 2px var(--hover-color)); }
-        100% { filter: drop-shadow(0 0 15px var(--hover-color)); }
+    @media (max-width: 560px) {
+        .egg-section::before { inset: 0.55rem; }
+        .egg-header { min-height: 0; }
+        .egg-header__aside { width: 100%; align-items: end; justify-content: space-between; }
+        .egg-portrait { width: 7.2rem; }
     }
 
-    @keyframes signalButtonFeedback {
-        0% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
-        38% { transform: translateY(-1px) scale(1.015); box-shadow: 0 0 28px rgba(251, 191, 36, 0.28); border-color: rgba(251, 191, 36, 0.9); }
-        100% { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
-    }
+    .egg-grid { grid-template-areas: "visitors dates" "menu message" "quest quest"; }
+    .egg-card--visitors { grid-area: visitors; min-height: 0; }
+    .egg-card--menu { grid-area: menu; background: var(--egg-surface-warm); color: var(--egg-paper); }
+    .egg-menu__intro { margin: 1rem 0 0.8rem; color: var(--egg-muted); font-family: var(--font-serif); line-height: 1.8; }
+    .egg-menu__list { display: grid; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
+    :global(.egg-menu__item) { display: grid; gap: 0.18rem; padding-bottom: 0.65rem; border-bottom: 1px solid var(--egg-line); }
+    :global(.egg-menu__item:last-child) { padding-bottom: 0; border-bottom: 0; }
+    :global(.egg-menu__drink) { color: var(--egg-paper); font-family: var(--font-serif); font-size: 1.05rem; line-height: 1.35; }
+    :global(.egg-menu__ingredients) { color: var(--egg-muted); font-size: 0.72rem; line-height: 1.55; }
+    .egg-note__line { display: flex; justify-content: space-between; gap: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--egg-line); color: var(--egg-muted); font-family: var(--font-mono); font-size: 0.7rem; }
+    .egg-note__line strong { color: var(--gold); font-weight: 400; }
+    .egg-pulse-wrap { margin-top: 1.75rem; }
+    .egg-pulse-button.is-overplayed { border-color: var(--red-soft); background: rgba(155, 39, 49, 0.15); color: var(--red-soft); }
+    .egg-pulse-button.is-overplayed .egg-pulse-button__ring { background: var(--red-soft); }
+    .egg-card--quest { grid-area: quest; display: grid; grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.85fr); grid-template-areas: "copy desk"; align-items: center; gap: 1.5rem 2rem; }
+    .egg-quest__copy { grid-area: copy; }
+    .egg-quest__desk { grid-area: desk; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 0.75rem; }
+    .egg-quest__ticket { display: grid; align-content: center; min-height: 7rem; padding: 0.9rem; border: 1px solid rgba(211, 168, 61, 0.4); background: rgba(211, 168, 61, 0.06); transform: rotate(-1deg); transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease; }
+    .egg-quest__ticket.is-greedy { border-color: var(--red-soft); background: rgba(155, 39, 49, 0.13); transform: rotate(1deg); }
+    .egg-quest__ticket .tag { width: fit-content; border-color: rgba(211, 168, 61, 0.55); }
+    .egg-quest__result { margin-top: 0.7rem; }
+    .egg-card--quest #quest-draw-button { align-self: stretch; min-width: 10rem; }
 
-    @keyframes signalFlash {
-        0% { opacity: 0; transform: translateX(-100%); }
-        42% { opacity: 1; transform: translateX(0); }
-        100% { opacity: 0; transform: translateX(100%); }
+    :global(:root[data-theme="light"]) .egg-section {
+        --egg-bg: var(--ink);
+        --egg-surface: var(--surface-card);
+        --egg-surface-blue: var(--ink-blue);
+        --egg-surface-warm: var(--surface-paper);
+        --egg-paper: var(--paper);
+        --egg-muted: var(--paper-muted);
+        --egg-line: var(--line);
     }
+    :global(:root[data-theme="light"]) .egg-card { box-shadow: 0 8px 24px rgba(11, 13, 16, .06); }
+    :global(:root[data-theme="light"]) .egg-section .eyebrow,
+    :global(:root[data-theme="light"]) .egg-card__number strong,
+    :global(:root[data-theme="light"]) .egg-note__line strong,
+    :global(:root[data-theme="light"]) .egg-quest__ticket .tag { color: #806014; }
 
-    @keyframes signalCountFeedback {
-        0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0)); }
-        45% { transform: scale(1.22); filter: drop-shadow(0 0 12px rgba(251, 191, 36, 0.55)); }
-        100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(251, 191, 36, 0)); }
-    }
-
-    #bonus-interaction-button.signal-feedback {
-        animation: signalButtonFeedback 560ms ease-out;
-    }
-
-    #bonus-interaction-button.signal-feedback #bonus-interaction-flash {
-        animation: signalFlash 560ms ease-out;
-    }
-
-    #bonus-interaction-count.signal-feedback {
-        display: inline-block;
-        animation: signalCountFeedback 560ms ease-out;
+    @media (max-width: 820px) {
+        .egg-grid { grid-template-areas: "visitors" "menu" "dates" "message" "quest"; }
+        .egg-card--quest { grid-template-columns: 1fr; grid-template-areas: "copy" "desk"; gap: 1rem; }
+        .egg-quest__desk { grid-template-columns: 1fr; }
+        .egg-card--quest #quest-draw-button { min-height: 48px; }
     }
 </style>
 
 <script>
     import { fetchPublic, postPublic, type BonusContent, type SiteStats } from '../lib/publicContent';
+    import { loadSiteContent, siteFormat } from '../lib/siteContent';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const initEasterEgg = () => {
         const eggSection = document.getElementById('easter-egg-section');
         const eggLoader = document.getElementById('egg-loader');
         const eggDashboard = document.getElementById('egg-dashboard');
-        const progressBar = document.getElementById('boot-progress-bar');
+        const progressBar = document.getElementById('boot-progress-bar') as HTMLElement | null;
         const progressText = document.getElementById('boot-progress-text');
-        
-        let hasBooted = false;
-        let typewriterDone = false; 
+        let booting = false;
+        let typewriterDone = false;
         let bonusContent: BonusContent | null = null;
-
-        fetchPublic<BonusContent>('/api/public/bonus').then((content) => {
-            bonusContent = content;
-            applyBonusContent();
+        let interactionClicks = 0;
+        let interactionStreak = 0;
+        let lastInteractionAt = 0;
+        let questStreak = 0;
+        let lastQuestAt = 0;
+        let interactionResetTimer = 0;
+        let questResetTimer = 0;
+        const editable = new Map<string, string>();
+        const copy = (key: string, fallback: string) => editable.get(key) ?? fallback;
+        const lines = (key: string, fallback: string[]) => editable.has(key)
+            ? editable.get(key)!.split(/\r?\n/).map(value => value.trim()).filter(Boolean)
+            : fallback;
+        loadSiteContent().then(entries => {
+            entries?.forEach(entry => editable.set(entry.key, entry.value));
+            if (!lastQuestAt) setElementText('quest-draw-result', copy('egg.quest_initial', '尚未抽签'));
+            setupDailyMenu();
             calculateDates();
         });
+
+        const bonusRequest = fetchPublic<BonusContent>('/api/public/bonus').then((content) => { bonusContent = content; applyBonusContent(); calculateDates(); });
         recordVisit();
+        setupDailyMenu();
         setupInteractionCounter();
+        setupQuestDraw();
+        setupCloseButton();
 
-        function setElementText(id: string, value: string | null | undefined) {
-            const element = document.getElementById(id);
-            if (element) element.textContent = value || '';
-        }
-
+        function setElementText(id: string, value: string | null | undefined) { document.getElementById(id)?.replaceChildren(document.createTextNode(value || '')); }
         function applyBonusContent() {
-            setElementText('days-birth-title', bonusContent?.birthday_title || 'BIRTHDAY');
-            setElementText('days-birth-subtitle', bonusContent?.birthday_subtitle || '诞生之日');
-            setElementText('days-love-title', bonusContent?.love_title || 'FALL_IN_LOVE');
-            setElementText('days-love-subtitle', bonusContent?.love_subtitle || '和小狼恋爱');
-            setElementText('days-site-title', bonusContent?.site_title || 'WEBSITE_BIRTH');
-            setElementText('days-site-subtitle', bonusContent?.site_subtitle || '网站上线');
-            setElementText('days-unknown-title', bonusContent?.future_title || 'FUTURE_X');
-            setElementText('days-unknown-subtitle', bonusContent?.future_subtitle || '观测未定');
+            setElementText('days-birth-title', bonusContent?.birthday_title ?? 'BIRTHDAY'); setElementText('days-birth-subtitle', bonusContent?.birthday_subtitle ?? '诞生之日');
+            setElementText('days-love-title', bonusContent?.love_title ?? 'FALL_IN_LOVE'); setElementText('days-love-subtitle', bonusContent?.love_subtitle ?? '和小狼恋爱');
+            setElementText('days-site-title', bonusContent?.site_title ?? 'WEBSITE_BIRTH'); setElementText('days-site-subtitle', bonusContent?.site_subtitle ?? '网站上线');
+            setElementText('days-unknown-title', bonusContent?.future_title ?? 'FUTURE_X'); setElementText('days-unknown-subtitle', bonusContent?.future_subtitle ?? '观测未定');
         }
-
         function calculateDates() {
-            const now = new Date();
-            const dates = {
-                birth: new Date(bonusContent?.birthday_date || '2005-12-13'),
-                love: new Date(bonusContent?.love_date || '2026-06-01'),
-                site: new Date(bonusContent?.site_date || '2026-06-04'),
-                unknown: new Date(bonusContent?.future_date || '2026-12-31')
-            };
-            const msPerDay = 1000 * 60 * 60 * 24;
-            
-            const fillDate = (elementId: string, targetDate: Date) => {
-                const el = document.getElementById(elementId);
-                if (el) {
-                    const diff = Math.floor((now.getTime() - targetDate.getTime()) / msPerDay);
-                    el.innerText = diff > 0 ? diff.toString() : '0';
-                }
-            };
-            fillDate('days-birth', dates.birth);
-            fillDate('days-love', dates.love);
-            fillDate('days-site', dates.site);
-            fillDate('days-unknown', dates.unknown);
-        }
-
-        function formatCounter(value: number | null | undefined) {
-            return new Intl.NumberFormat('zh-CN').format(Math.max(0, Number(value || 0)));
-        }
-
-        function updateStats(stats: SiteStats | null) {
-            if (!stats) return;
-
-            const visitEl = document.getElementById('bonus-visit-count');
-            if (visitEl) visitEl.innerText = formatCounter(stats.visit_count);
-
-            const interactionEl = document.getElementById('bonus-interaction-count');
-            if (interactionEl) interactionEl.innerText = formatCounter(stats.interaction_count);
-        }
-
-        function playInteractionFeedback() {
-            const button = document.getElementById('bonus-interaction-button');
-            const interactionEl = document.getElementById('bonus-interaction-count');
-            [button, interactionEl].forEach((element) => element?.classList.remove('signal-feedback'));
-            void button?.offsetWidth;
-            button?.classList.add('signal-feedback');
-            interactionEl?.classList.add('signal-feedback');
-            window.setTimeout(() => {
-                button?.classList.remove('signal-feedback');
-                interactionEl?.classList.remove('signal-feedback');
-            }, 620);
-        }
-
-        async function recordVisit() {
-            const sessionKey = 'lingxun:bonus-visit-recorded';
-            let shouldRecord = true;
-
-            try {
-                shouldRecord = sessionStorage.getItem(sessionKey) !== '1';
-            } catch {
-                shouldRecord = true;
-            }
-
-            const stats = shouldRecord
-                ? await postPublic<SiteStats>('/api/public/stats/visit')
-                : await fetchPublic<SiteStats>('/api/public/stats');
-
-            if (stats && shouldRecord) {
-                try {
-                    sessionStorage.setItem(sessionKey, '1');
-                } catch {
-                    // Some privacy modes block sessionStorage; the counter still works.
-                }
-            }
-
-            updateStats(stats);
-        }
-
-        function setupInteractionCounter() {
-            const button = document.getElementById('bonus-interaction-button') as HTMLButtonElement | null;
-            if (!button) return;
-
-            let pending = false;
-            button.addEventListener('click', async () => {
-                if (pending) return;
-                pending = true;
-                button.disabled = true;
-                playInteractionFeedback();
-                button.classList.add('opacity-70', 'cursor-wait');
-
-                const stats = await postPublic<SiteStats>('/api/public/stats/interaction');
-                updateStats(stats);
-
-                pending = false;
-                button.disabled = false;
-                button.classList.remove('opacity-70', 'cursor-wait');
+            const now = new Date(); const msPerDay = 1000 * 60 * 60 * 24;
+            const dates = { birth: bonusContent?.birthday_date ?? '2005-12-13', love: bonusContent?.love_date ?? '2026-06-01', site: bonusContent?.site_date ?? '2026-06-04', unknown: bonusContent?.future_date ?? '2026-12-31' };
+            Object.entries(dates).forEach(([key, value]) => {
+                const el = document.getElementById(`days-${key}`);
+                if (!el) return;
+                const date = new Date(value);
+                const valid = /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+                el.textContent = valid ? String(Math.max(0, Math.floor((now.getTime() - date.getTime()) / msPerDay))) : copy('egg.date_unavailable', '待定');
             });
         }
-
-        function runTypewriter() {
-            if (typewriterDone) return;
-            const container = document.getElementById('typewriter-container');
-            const cursor = document.getElementById('typewriter-cursor');
-            if (!container || !cursor) return;
-
-            const message = "致充满好奇心的你：\n\n你能破解系统指令来到这个本不应该进入的这里，说明你拥有罕见的探索欲。\n\n这里是凌巽的一片净土，没有喧嚣的社交，只有值得纪念的日子以及这段留言。\n\n感谢你的到访。\n愿你在人生的旅途中，也能寻找到自己的意义。\n\n-- LINGXUN";
-            
-            const activeMessage = bonusContent?.typewriter_message || message;
-            let index = 0;
-            container.innerHTML = '';
-            cursor.classList.remove('hidden');
-
-            const typeInterval = setInterval(() => {
-                if (index < activeMessage.length) {
-                    if (activeMessage.charAt(index) === '\n') {
-                        container.append(document.createElement('br'));
-                    } else {
-                        container.append(document.createTextNode(activeMessage.charAt(index)));
-                    }
-                    index++;
-                } else {
-                    clearInterval(typeInterval);
-                    typewriterDone = true;
-                }
-            }, 60); 
+        function formatCounter(value: number | null | undefined) { return new Intl.NumberFormat('zh-CN').format(Math.max(0, Number(value || 0))); }
+        let latestVisitCount = 0;
+        let latestInteractionCount = 0;
+        function updateStats(stats: SiteStats | null) {
+            if (!stats) return;
+            // These counters only increase; a delayed response must not undo a newer snapshot.
+            if (Number.isFinite(stats.visit_count)) latestVisitCount = Math.max(latestVisitCount, stats.visit_count);
+            if (Number.isFinite(stats.interaction_count)) latestInteractionCount = Math.max(latestInteractionCount, stats.interaction_count);
+            const visit = document.getElementById('bonus-visit-count');
+            const interaction = document.getElementById('bonus-interaction-count');
+            if (visit) visit.textContent = formatCounter(latestVisitCount);
+            if (interaction) interaction.textContent = formatCounter(latestInteractionCount);
         }
-
-        function runBootSequence() {
-            if (!eggLoader || !eggDashboard || !progressBar || !progressText) return;
-
-            if (hasBooted) {
-                eggLoader.classList.add('opacity-0', 'pointer-events-none');
-                calculateDates();
-                eggDashboard.classList.remove('opacity-0', 'pointer-events-none');
-                runTypewriter(); 
+        function setupDailyMenu() {
+            const date = new Date();
+            const dateKey = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+            const menus = [
+                { title: '雨夜收工', intro: '雨声还在窗外，适合把今天的委托慢慢放下。', drinks: [['金汤力', '金酒、汤力水、青柠'], ['威士忌酸', '波本威士忌、柠檬汁、糖浆'], ['莫斯科骡子', '伏特加、姜汁汽水、青柠汁']] },
+                { title: '公会晚钟', intro: '给刚从公会回来的冒险者，三杯简单而可靠的选择。', drinks: [['老式', '波本威士忌、方糖、苦精'], ['玛格丽特', '龙舌兰、橙味利口酒、青柠汁'], ['朗姆可乐', '朗姆酒、可乐、青柠']] },
+                { title: '风龙书页', intro: '魔法书翻到一半，杯中也该有一点清爽的风。', drinks: [['莫希托', '白朗姆酒、薄荷、青柠、苏打水'], ['螺丝起子', '伏特加、橙汁'], ['蓝色夏威夷', '朗姆酒、蓝橙酒、菠萝汁、椰奶']] },
+            ];
+            let hash = 0;
+            for (const char of dateKey) hash = (hash * 31 + char.charCodeAt(0)) | 0;
+            const menuIndex = Math.abs(hash) % menus.length;
+            const menu = menus[menuIndex];
+            const prefix = `egg.menu${menuIndex + 1}`;
+            menu.title = copy(`${prefix}.title`, menu.title);
+            menu.intro = copy(`${prefix}.intro`, menu.intro);
+            menu.drinks = lines(`${prefix}.drinks`, menu.drinks.map(drink => drink.join(' | '))).map(line => {
+                const separator = line.indexOf('|');
+                return separator < 0 ? [line, ''] : [line.slice(0, separator).trim(), line.slice(separator + 1).trim()];
+            });
+            const dateLabel = document.getElementById('daily-menu-date');
+            const intro = document.getElementById('daily-menu-intro');
+            const list = document.getElementById('daily-menu-list');
+            if (dateLabel) dateLabel.textContent = siteFormat('egg.menu_date_format', '{month}月{day}日 / {title}', { month: date.getMonth() + 1, day: date.getDate(), title: menu.title });
+            if (intro) intro.textContent = menu.intro;
+            if (list) {
+                list.replaceChildren(...menu.drinks.map(([drink, ingredients]) => {
+                    const item = document.createElement('li');
+                    item.className = 'egg-menu__item';
+                    const drinkElement = document.createElement('span');
+                    drinkElement.className = 'egg-menu__drink';
+                    drinkElement.textContent = drink;
+                    const ingredientsElement = document.createElement('span');
+                    ingredientsElement.className = 'egg-menu__ingredients';
+                    ingredientsElement.textContent = ingredients;
+                    item.append(drinkElement, ingredientsElement);
+                    return item;
+                }));
+            }
+        }
+        function playInteractionFeedback() {
+            const button = document.getElementById('bonus-interaction-button'); const count = document.getElementById('bonus-interaction-count');
+            button?.classList.remove('is-active'); count?.classList.remove('liquid-feedback'); void button?.offsetWidth; button?.classList.add('is-active'); count?.classList.add('liquid-feedback');
+            window.setTimeout(() => { button?.classList.remove('is-active'); count?.classList.remove('liquid-feedback'); }, 620);
+        }
+        async function recordVisit() {
+            const key = 'lingxun:bonus-visit-recorded'; let shouldRecord = true;
+            try { shouldRecord = sessionStorage.getItem(key) !== '1'; } catch { shouldRecord = true; }
+            const stats = shouldRecord ? await postPublic<SiteStats>('/api/public/stats/visit') : await fetchPublic<SiteStats>('/api/public/stats');
+            if (stats && shouldRecord) { try { sessionStorage.setItem(key, '1'); } catch { /* Counter still works when storage is unavailable. */ } }
+            updateStats(stats);
+        }
+        function setupInteractionCounter() {
+            const button = document.getElementById('bonus-interaction-button') as HTMLButtonElement | null; if (!button) return;
+            const replies = ['凌巽抬眼看了你一眼。', '柜台上多了一杯刚倒好的酒。', '任务板上出现了一张新委托。', '凌巽说：今天不接太麻烦的任务。', '魔法书翻过一页，显然不是风。', '柜台上的蜡烛替你亮了一瞬。', '凌巽把杯沿往你这边推了推。'];
+            button.addEventListener('click', async () => {
+                const now = Date.now();
+                interactionStreak = now - lastInteractionAt <= 3500 ? interactionStreak + 1 : 1;
+                lastInteractionAt = now;
+                window.clearTimeout(interactionResetTimer);
+                interactionResetTimer = window.setTimeout(() => { interactionStreak = 0; button.classList.remove('is-overplayed'); }, 3600);
+                interactionClicks += 1; playInteractionFeedback();
+                const reply = document.getElementById('bonus-reply');
+                const choices = lines('egg.replies', replies);
+                if (reply) reply.textContent = interactionStreak >= 10 ? copy('egg.replies_limit', '喂，这里不是音乐厅。') : choices[(interactionClicks - 1) % choices.length] || '';
+                button.classList.toggle('is-overplayed', interactionStreak >= 10);
+                const stats = await postPublic<SiteStats>('/api/public/stats/interaction'); updateStats(stats);
+            });
+        }
+        function setupQuestDraw() {
+            const button = document.getElementById('quest-draw-button'); const result = document.getElementById('quest-draw-result');
+            const ticket = document.getElementById('quest-draw-ticket');
+            const quests = ['讨伐地牢魔物', '寻找遗失物', '清除城外威胁', '采集魔法材料', '护送商队', '整理魔法书', '调查会发光的井', '替药剂师找回猫头鹰', '护送一批易碎的魔法玻璃', '清点公会仓库的卷轴'];
+            button?.addEventListener('click', () => {
+                if (!result) return;
+                const now = Date.now();
+                questStreak = now - lastQuestAt <= 2800 ? questStreak + 1 : 1;
+                lastQuestAt = now;
+                window.clearTimeout(questResetTimer);
+                questResetTimer = window.setTimeout(() => { questStreak = 0; ticket?.classList.remove('is-greedy'); }, 3000);
+                const overdrawn = questStreak >= 10;
+                const choices = lines('egg.quests', quests);
+                result.textContent = overdrawn ? copy('egg.quests_limit', '已经看完所有委托了') : choices[Math.floor(Math.random() * choices.length)] || '';
+                ticket?.classList.toggle('is-greedy', overdrawn);
+                result.classList.remove('liquid-feedback'); void result.offsetWidth; result.classList.add('liquid-feedback');
+            });
+        }
+        function runTypewriter() {
+            if (typewriterDone) return; const container = document.getElementById('typewriter-container'); const cursor = document.getElementById('typewriter-cursor'); if (!container || !cursor) return;
+            const fallback = '致充满好奇心的你：\n\n感谢你敲开这扇暗门。这里没有喧嚣的社交，只有值得纪念的日子，以及一杯留给你的酒。\n\n愿你在人生的旅途中，也能寻找到自己的意义。\n\n-- LINGXUN';
+            const message = bonusContent?.typewriter_message ?? fallback; let index = 0; container.replaceChildren();
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                container.style.whiteSpace = 'pre-line';
+                container.textContent = message;
+                cursor.classList.add('hidden');
+                typewriterDone = true;
                 return;
             }
-
-            hasBooted = true; 
-            eggLoader.classList.remove('opacity-0', 'pointer-events-none');
-            eggDashboard.classList.add('opacity-0', 'pointer-events-none');
-            progressBar.style.width = '0%';
-            progressText.innerText = '0%';
-
-            let progress = 0;
-            const bootInterval = setInterval(() => {
-                progress += Math.random() * 15 + 5; 
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(bootInterval);
-                    setTimeout(() => {
-                        eggLoader.classList.add('opacity-0', 'pointer-events-none');
-                        calculateDates();
-                        eggDashboard.classList.remove('opacity-0', 'pointer-events-none');
-                        setTimeout(runTypewriter, 500); 
-                    }, 400); 
-                }
-                progressBar.style.width = `${progress}%`;
-                progressText.innerText = `${Math.floor(progress)}%`;
-            }, 50); 
+            cursor.classList.remove('hidden');
+            const timer = window.setInterval(() => { if (index >= message.length) { window.clearInterval(timer); cursor.classList.add('hidden'); typewriterDone = true; return; } const char = message.charAt(index++); if (char === '\n') container.append(document.createElement('br')); else container.append(document.createTextNode(char)); }, 42);
         }
-
-        if (eggSection) {
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting && !eggSection.classList.contains('hidden')) {
-                        runBootSequence();
-                    }
-                });
-            }, { threshold: 0.3 });
-            observer.observe(eggSection);
+        function runBootSequence() {
+            if (!eggLoader || !eggDashboard || !progressBar || !progressText) return;
+            if (booting) return;
+            booting = true;
+            const revealDashboard = () => { eggLoader.classList.add('is-hidden'); eggLoader.setAttribute('aria-hidden', 'true'); eggDashboard.classList.add('is-ready'); eggDashboard.setAttribute('aria-hidden', 'false'); booting = false; calculateDates(); bonusRequest.then(runTypewriter); };
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                progressBar.style.width = '100%'; progressText.textContent = '100%'; revealDashboard(); return;
+            }
+            const startedAt = performance.now(); const duration = 1600;
+            const timer = window.setInterval(() => { const progress = Math.min(100, Math.round(((performance.now() - startedAt) / duration) * 100)); progressBar.style.width = `${progress}%`; progressText.textContent = `${progress}%`; if (progress >= 100) { window.clearInterval(timer); window.setTimeout(revealDashboard, 360); } }, 80);
         }
-
-        if (eggSection) {
-            const lockEgg = () => {
-                const finalSection = document.getElementById('final-section');
-                finalSection?.scrollIntoView({ behavior: 'smooth' });
-                setTimeout(() => {
-                    eggSection.classList.add('hidden');
-                    eggSection.classList.remove('flex');
-                }, 800); 
-            };
-
-            eggSection.addEventListener('wheel', (e: any) => {
-                e.preventDefault(); 
-                e.stopPropagation();
-                if (e.deltaY < 0) lockEgg();
-            }, { passive: false });
-
-            let touchStartY = 0;
-            eggSection.addEventListener('touchstart', (e: any) => {
-                touchStartY = e.touches[0].clientY;
-            }, { passive: true });
-
-            eggSection.addEventListener('touchmove', (e) => {
-                if (window.innerWidth >= 1024) {
-                    e.preventDefault(); 
-                    e.stopPropagation();
-                }
-            }, { passive: false });
-
-            eggSection.addEventListener('touchend', (e: any) => {
-                const touchEndY = e.changedTouches[0].clientY;
-                // 核心修复：更严谨的触屏返回检测，确保你向下拉确实是在页面最顶端
-                const rect = eggSection.getBoundingClientRect();
-                if (touchEndY - touchStartY > 60 && rect.top >= -5) {
-                    lockEgg();
-                }
-            }, { passive: true });
+        function setupCloseButton() {
+            document.getElementById('close-egg-button')?.addEventListener('click', () => {
+                if (!eggSection) return;
+                const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                eggSection.classList.remove('is-open'); eggSection.classList.add('is-closing'); eggSection.setAttribute('aria-hidden', 'true');
+                window.setTimeout(() => { eggSection.classList.add('hidden'); eggSection.classList.remove('is-closing'); document.getElementById('final-section')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' }); document.getElementById('entry-trigger')?.focus({ preventScroll: true }); }, reducedMotion ? 0 : 420);
+            });
         }
-    });
+        eggSection?.addEventListener('lingxun:egg-open', () => {
+            eggLoader?.classList.remove('is-hidden');
+            eggLoader?.setAttribute('aria-hidden', 'false');
+            eggDashboard?.classList.remove('is-ready');
+            eggDashboard?.setAttribute('aria-hidden', 'true');
+            if (progressBar) progressBar.style.width = '0%';
+            if (progressText) progressText.textContent = '0%';
+            runBootSequence();
+        });
+        if (eggSection) new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting && !eggSection.classList.contains('hidden')) runBootSequence(); }), { threshold: 0.2 }).observe(eggSection);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initEasterEgg, { once: true });
+    else initEasterEgg();
 </script>
