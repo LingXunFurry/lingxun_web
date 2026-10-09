@@ -660,6 +660,22 @@ html.reveal-ready [data-reveal].is-visible {
     to { opacity: 1; transform: translateY(0); }
 }
 
+:where([data-public-pending]) { position: relative; }
+[data-public-pending] { pointer-events: none; }
+[data-public-pending] > * { visibility: hidden !important; }
+[data-public-pending].paper-enter, [data-public-pending] .paper-enter { animation: none; }
+[data-public-pending]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--line-soft);
+    background: var(--surface-card);
+    opacity: .5;
+    pointer-events: none;
+    animation: contentBreathe 1.6s ease-in-out infinite;
+}
+@keyframes contentBreathe { 50% { opacity: .8; } }
+
 @keyframes candleBreathe {
     0%, 100% { opacity: 0.55; box-shadow: 0 0 0 rgba(211, 168, 61, 0); }
     50% { opacity: 1; box-shadow: 0 0 26px rgba(211, 168, 61, 0.12); }

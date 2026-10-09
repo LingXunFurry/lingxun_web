@@ -127,7 +127,7 @@ export function getApiBase() {
     const configured = document.documentElement.dataset.apiBase;
     if (configured) return configured;
     // Astro dev runs separately from FastAPI; production/local FastAPI pages are same-origin.
-    if (["4321", "8080"].includes(window.location.port) && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
+    if (["4321", "8080", "8765"].includes(window.location.port) && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
         return "http://127.0.0.1:8000";
     }
     return window.location.origin;
@@ -139,16 +139,48 @@ export function toApiUrl(url: string | null | undefined) {
     return `${getApiBase()}${url}`;
 }
 
-export async function fetchPublic<T>(path: string): Promise<T | null> {
-    try {
-        const response = await fetch(`${getApiBase()}${path}`, {
-            headers: { Accept: "application/json" },
-        });
-        if (!response.ok) return null;
-        return await response.json();
-    } catch {
-        return null;
-    }
+const publicRequests = new Map<string, Promise<unknown | null>>();
+
+export function fetchPublic<T>(path: string): Promise<T | null> {
+    const url = `${getApiBase()}${path}`;
+    const pending = publicRequests.get(url);
+    if (pending) return pending as Promise<T | null>;
+    const request = (async () => {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 10000);
+        try {
+            const response = await fetch(url, {
+                headers: { Accept: "application/json" },
+                cache: 'no-store',
+                signal: controller.signal,
+            });
+            if (!response.ok) return null;
+            return await response.json() as T;
+        } catch {
+            return null;
+        } finally {
+            window.clearTimeout(timeout);
+            publicRequests.delete(url);
+        }
+    })();
+    publicRequests.set(url, request);
+    return request;
+}
+
+export function initPublicContent(selector: string, initialize: () => Promise<void>) {
+    const start = async () => {
+        const regions = document.querySelectorAll<HTMLElement>(selector);
+        try {
+            await initialize();
+        } finally {
+            regions.forEach(region => {
+                region.removeAttribute('data-public-pending');
+                region.removeAttribute('aria-busy');
+            });
+        }
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else void start();
 }
 
 export async function postPublic<T>(path: string): Promise<T | null> {

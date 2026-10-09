@@ -7,6 +7,8 @@ import characterPhoto from "../assets/gallery/photo3.webp";
   id="character-section"
   class="character-section"
   aria-labelledby="character-title"
+  data-public-pending
+  aria-busy="true"
 >
   <div class="site-container character-section__inner">
     <div class="character-section__photo paper-card" data-reveal>
@@ -84,6 +86,7 @@ import characterPhoto from "../assets/gallery/photo3.webp";
   import {
     escapeHtml,
     fetchPublic,
+    initPublicContent,
     type CharacterProfile,
   } from "../lib/publicContent";
   import { loadSiteContent, resolveSiteImage, siteText } from "../lib/siteContent";
@@ -157,11 +160,7 @@ import characterPhoto from "../assets/gallery/photo3.webp";
     };
     render();
   };
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", initCharacterRegistry, {
-      once: true,
-    });
-  else initCharacterRegistry();
+  initPublicContent('#character-section', initCharacterRegistry);
 </script>
 
 <style is:global>

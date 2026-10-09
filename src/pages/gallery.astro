@@ -26,11 +26,11 @@ const filters = [...galleryCategories, '后台档案'];
                     <h1 id="gallery-title" class="section-title">照片墙上的<em>旅途</em></h1>
                     <p class="section-copy">这里保存实拍、活动记录、装备和设定档案。选择一个类别，或打开照片查看完整记录。</p>
                 </div>
-                <div class="gallery-page__index"><span class="meta">ARCHIVE</span><strong id="gallery-count">{localEntries.length}</strong><span class="meta">张记录</span></div>
+                <div class="gallery-page__index"><span class="meta">ARCHIVE</span><strong id="gallery-count">—</strong><span class="meta">张记录</span></div>
             </div>
         </header>
 
-        <div class="site-container gallery-page__filters" data-reveal style="--reveal-delay: 100ms">
+        <div class="site-container gallery-page__filters" data-public-pending aria-busy="true" data-reveal style="--reveal-delay: 100ms">
             <div class="gallery-filter-list" role="group" aria-label="画廊类别筛选">
                 {filters.map((filter) => (
                     <button type="button" class={`gallery-filter ${filter === '全部' ? 'is-active' : ''}`} data-filter={filter} aria-pressed={filter === '全部'}>{filter}</button>
@@ -40,7 +40,7 @@ const filters = [...galleryCategories, '后台档案'];
         </div>
 
         <section class="site-container gallery-page__content" aria-live="polite">
-            <div id="gallery-grid" class="gallery-grid" data-reveal style="--reveal-delay: 160ms">
+            <div id="gallery-grid" class="gallery-grid" data-public-pending aria-busy="true" data-reveal style="--reveal-delay: 160ms">
                 {localEntries.map((entry, index) => (
                     <article class="gallery-card paper-card" data-gallery-item data-index={index} data-category={entry.category} data-character-ids={(entry.character_ids ?? []).join(',')} data-src={entry.image.src} data-title={entry.title} data-date={entry.date ?? ''} data-location={entry.location ?? ''} data-description={entry.description ?? ''}>
                         <button type="button" class="gallery-card__button" data-gallery-trigger data-index={index} aria-label={`打开${entry.title}`}>
@@ -94,7 +94,7 @@ const filters = [...galleryCategories, '后台档案'];
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, toApiUrl, type CharacterProfile, type GalleryPhoto } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type CharacterProfile, type GalleryPhoto } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
 
     const initGalleryPage = async () => {
@@ -310,8 +310,9 @@ const filters = [...galleryCategories, '后台档案'];
             (downloadButton as HTMLButtonElement).disabled = false;
         });
 
-        await loadSiteContent();
-        const backendPhotos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
+        const [, backendPhotos, characters] = await Promise.all([
+            loadSiteContent(), fetchPublic<GalleryPhoto[]>('/api/public/gallery'), fetchPublic<CharacterProfile[]>('/api/public/characters'),
+        ]);
         if (backendPhotos) {
             // An empty successful response is authoritative; only failed requests use local fallback.
             state.items = backendPhotos.map((photo) => ({ src: toApiUrl(photo.file_url), title: photo.title || photo.original_filename || siteText('gallery.default_title', '旅途留影'), category: photo.category || siteText('gallery.uncategorized', '未分类'), date: photo.date || '', location: photo.location || '', description: photo.description || '', character_ids: photo.character_ids || [] }));
@@ -320,10 +321,9 @@ const filters = [...galleryCategories, '后台档案'];
             if (filters) filters.innerHTML = categories.map(category => `<button type="button" class="gallery-filter ${category === '全部' ? 'is-active' : ''}" data-filter="${escapeHtml(category)}" aria-pressed="${category === '全部'}">${escapeHtml(category)}</button>`).join('');
         }
         renderGrid();
-        renderCharacterFilters(await fetchPublic<CharacterProfile[]>('/api/public/characters') || []);
+        renderCharacterFilters(characters || []);
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initGalleryPage, { once: true });
-    else initGalleryPage();
+    initPublicContent('#gallery-grid, .gallery-page__filters', initGalleryPage);
 </script>
 
 <style is:global>

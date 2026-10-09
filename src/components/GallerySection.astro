@@ -16,7 +16,7 @@ const previewImages = galleryImages.slice(0, 3);
             <a href="/gallery/" class="button button--accent">进入旅途留影 <span aria-hidden="true">→</span></a>
         </div>
 
-        <div id="homepage-gallery-grid" class="home-gallery-section__grid" data-reveal style="--reveal-delay: 120ms">
+        <div id="homepage-gallery-grid" class="home-gallery-section__grid" data-public-pending aria-busy="true" data-reveal style="--reveal-delay: 120ms">
             {previewImages.map((img, index) => (
                 <a href="/gallery/" class={`home-gallery-card paper-card ${index === 1 ? 'home-gallery-card--offset' : ''}`}>
                     <Image src={img} alt={`凌巽旅途留影 ${index + 1}`} loading="lazy" decoding="async" />
@@ -28,7 +28,7 @@ const previewImages = galleryImages.slice(0, 3);
 </section>
 
 <script>
-    import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
     import { loadSiteContent, siteText } from '../lib/siteContent';
 
     const initHomepageGallery = async () => {
@@ -48,8 +48,7 @@ const previewImages = galleryImages.slice(0, 3);
             </a>
         `).join('');
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHomepageGallery, { once: true });
-    else initHomepageGallery();
+    initPublicContent('#homepage-gallery-grid', initHomepageGallery);
 </script>
 
 <style is:global>

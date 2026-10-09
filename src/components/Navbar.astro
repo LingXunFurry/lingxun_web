@@ -41,7 +41,7 @@ const currentPath = Astro.url.pathname;
             ))}
             <div class="site-nav__contact-wrap">
                 <button id="contact-menu-btn" class="site-nav__contact-button site-nav__link" type="button" aria-expanded="false" aria-controls="contact-menu">酒馆入口 <span aria-hidden="true">⌄</span></button>
-                <div id="contact-menu" class="site-nav__contact-menu" aria-hidden="true" inert>
+                <div id="contact-menu" class="site-nav__contact-menu" aria-hidden="true" data-public-pending aria-busy="true" inert>
                     <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
                     {fallbackSocials.map((social) => (
                         <a href={social.link} target="_blank" rel="noopener noreferrer" title={`打开${social.name}外部页面`}>
@@ -68,7 +68,7 @@ const currentPath = Astro.url.pathname;
         ))}
         <div class="site-nav__mobile-group">
             <button id="mobile-contact-btn" class="site-nav__link site-nav__mobile-parent" type="button" aria-expanded="false" aria-controls="mobile-contact-menu">酒馆入口 <span aria-hidden="true">⌄</span></button>
-            <div id="mobile-contact-menu" class="site-nav__mobile-submenu" aria-hidden="true" inert>
+            <div id="mobile-contact-menu" class="site-nav__mobile-submenu" aria-hidden="true" data-public-pending aria-busy="true" inert>
                 <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
                 {fallbackSocials.map((social) => (
                     <a href={social.link} target="_blank" rel="noopener noreferrer" title={`打开${social.name}外部页面`}>
@@ -84,6 +84,7 @@ const currentPath = Astro.url.pathname;
 </nav>
 
 <script>
+    import { fetchPublic, getApiBase, initPublicContent, type SocialLink } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
     const initNavbar = () => {
         const navbar = document.getElementById('navbar');
@@ -158,14 +159,8 @@ const currentPath = Astro.url.pathname;
 
         const renderContacts = async () => {
             try {
-                const configuredBase = document.documentElement.dataset.apiBase;
-                const localBackend = ['4321', '8080', '8765'].includes(window.location.port) && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-                    ? 'http://127.0.0.1:8000'
-                    : window.location.origin;
-                const apiBase = (configuredBase || localBackend).replace(/\/$/, '');
-                const response = await fetch(`${apiBase}/api/public/socials`, { headers: { Accept: 'application/json' } });
-                if (!response.ok) return;
-                const socials = await response.json();
+                const apiBase = getApiBase().replace(/\/$/, '');
+                const socials = await fetchPublic<SocialLink[]>('/api/public/socials');
                 if (!Array.isArray(socials)) return;
                 const html = socials.map((social: { link: string; name: string; icon?: string }) => {
                     const icon = getSocialIconUrl(social.icon, social.name, apiBase);
@@ -215,7 +210,7 @@ const currentPath = Astro.url.pathname;
         scrollRoot?.addEventListener('scroll', syncNav, { passive: true });
         syncNav();
         syncTheme();
-        renderContacts();
+        initPublicContent('#contact-menu, #mobile-contact-menu', renderContacts);
     };
 
     function escapeHtml(value: string) {

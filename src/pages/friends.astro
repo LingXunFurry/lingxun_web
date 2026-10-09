@@ -19,7 +19,7 @@ const friendsData = [
         </header>
 
         <section class="site-container friends-page__list" aria-live="polite">
-            <div id="friends-list" class="friends-grid" data-reveal style="--reveal-delay: 120ms">
+            <div id="friends-list" class="friends-grid" data-public-pending aria-busy="true" data-reveal style="--reveal-delay: 120ms">
                 {friendsData.map((friend, index) => (
                     <a href={friend.url || undefined} target={friend.url ? '_blank' : undefined} rel={friend.url ? 'noopener noreferrer' : undefined} class={`friend-card paper-card ${index % 3 === 1 ? 'friend-card--offset' : ''}`}>
                         <div class="friend-card__head">
@@ -44,7 +44,7 @@ const friendsData = [
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, type FriendLink } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, initPublicContent, type FriendLink } from '../lib/publicContent';
     import { loadSiteContent, siteText } from '../lib/siteContent';
 
     const initFriendsPage = async () => {
@@ -74,8 +74,7 @@ const friendsData = [
         await loadSiteContent();
         list.innerHTML = friends.map(renderFriendCard).join('');
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFriendsPage, { once: true });
-    else initFriendsPage();
+    initPublicContent('#friends-list', initFriendsPage);
 
     function renderFriendCard(friend: FriendLink, index: number) {
         const linkAttributes = friend.url ? `href="${escapeHtml(friend.url)}" target="_blank" rel="noopener noreferrer"` : '';

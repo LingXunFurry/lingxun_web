@@ -17,7 +17,7 @@ const latestPosts = sortedPosts.slice(0, 3);
             <p class="home-feed-section__heading-copy">每次更新都像一张刚贴上公告板的便签，写给后来进门的人。</p>
         </header>
 
-        <div id="homepage-post-grid" class="home-feed-section__grid" data-reveal style="--reveal-delay: 120ms">
+        <div id="homepage-post-grid" class="home-feed-section__grid" data-public-pending aria-busy="true" data-reveal style="--reveal-delay: 120ms">
             {latestPosts.map((post, index) => (
                 <a href={`/posts/${post.id}`} class="note-card paper-card paper-enter" style={`animation-delay: ${index * 100}ms`}>
                     <div class="note-card__top"><span class="meta">{post.data.date}</span><span class="tag">{postTagLabel(post.data.tag)}</span></div>
@@ -36,7 +36,7 @@ const latestPosts = sortedPosts.slice(0, 3);
 </section>
 
 <script>
-    import { escapeHtml, fetchPublic, toApiUrl, type PublicPost } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type PublicPost } from '../lib/publicContent';
     import { loadSiteContent, siteText } from '../lib/siteContent';
     import { postTagLabel } from '../lib/postLabels';
 
@@ -47,8 +47,7 @@ const latestPosts = sortedPosts.slice(0, 3);
         await loadSiteContent();
         grid.innerHTML = posts.slice(0, 3).map(renderPostCard).join('');
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHomepageFeed, { once: true });
-    else initHomepageFeed();
+    initPublicContent('#homepage-post-grid', initHomepageFeed);
 
     function renderPostCard(post: PublicPost, index: number) {
         const cover = post.cover_url ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="" loading="lazy" decoding="async" />` : '';

@@ -31,7 +31,7 @@ const socialIconPath = (icon: string, name: string) => {
             <h2 id="schedule-title" class="section-title">旅行<em>日志</em></h2>
             <p class="section-copy">行旅簿里记着已经确定的活动、地点和准备中的事情。日期状态会随着时间自动更新。</p>
 
-            <div id="schedule-list" class="schedule-list">
+            <div id="schedule-list" class="schedule-list" data-public-pending aria-busy="true">
                 {schedules.map((event) => (
                     <div class="schedule-card paper-card" data-start={event.startDate} data-end={event.endDate}>
                         <div class="schedule-card__top"><span class="meta">{event.startDate} → {event.endDate}</span><span class="status-badge"></span></div>
@@ -48,7 +48,7 @@ const socialIconPath = (icon: string, name: string) => {
             <h2 class="section-title">想联系我？</h2>
             <p class="section-copy">如果你想找到我，不妨试试下面的工具</p>
 
-            <div id="social-list" class="social-list">
+            <div id="social-list" class="social-list" data-public-pending aria-busy="true">
                 {socials.map((social) => (
                     <a href={social.link} target="_blank" rel="noopener noreferrer" class="social-card paper-card">
                         <span class={`social-card__icon social-card__icon--${social.icon.toLowerCase()}`} aria-hidden="true"><img src={socialIconPath(social.icon, social.name)} alt="" /></span>
@@ -75,7 +75,7 @@ const socialIconPath = (icon: string, name: string) => {
 </section>
 
 <script>
-import { escapeHtml, fetchPublic, toApiUrl, type ScheduleItem, type SocialLink } from '../lib/publicContent';
+import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type ScheduleItem, type SocialLink } from '../lib/publicContent';
 import { loadSiteContent, siteFormat, siteText } from '../lib/siteContent';
 
     const initFinalSection = () => {
@@ -107,8 +107,8 @@ import { loadSiteContent, siteFormat, siteText } from '../lib/siteContent';
         };
 
         const loadBackendContent = async () => {
-            await loadSiteContent();
-            const [schedules, socials] = await Promise.all([
+            const [, schedules, socials] = await Promise.all([
+                loadSiteContent(),
                 fetchPublic<ScheduleItem[]>('/api/public/schedules'),
                 fetchPublic<SocialLink[]>('/api/public/socials'),
             ]);
@@ -163,7 +163,7 @@ import { loadSiteContent, siteFormat, siteText } from '../lib/siteContent';
         }
 
         applyScheduleStates();
-        loadBackendContent();
+        initPublicContent('#schedule-list, #social-list', loadBackendContent);
 
         const trigger = document.getElementById('entry-trigger');
         const feedback = document.getElementById('footer-hud-feedback');

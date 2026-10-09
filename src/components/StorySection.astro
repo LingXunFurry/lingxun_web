@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import portrait from '../assets/setting/Image_1777968000555_846.png';
 ---
 
-<section id="story-section" class="story-section" aria-labelledby="story-title">
+<section id="story-section" class="story-section" aria-labelledby="story-title" data-public-pending aria-busy="true">
     <div class="site-container story-section__inner" data-reveal>
         <header class="story-section__heading">
             <div class="eyebrow">角色故事 / Character Stories</div>
@@ -40,7 +40,7 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
 </section>
 
 <script>
-    import { fetchPublic, toApiUrl, type PublicPost, type CharacterProfile } from '../lib/publicContent';
+    import { fetchPublic, initPublicContent, toApiUrl, type PublicPost, type CharacterProfile } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
     import { renderStoryChapters } from '../lib/storyChapters';
     const localImages = import.meta.glob<{ default: { src: string } }>('../assets/**/*.{png,jpg,jpeg,webp,avif}', { eager: true });
@@ -134,7 +134,7 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
         }, { passive: true });
         render();
     };
-    initStories();
+    initPublicContent('#story-section', initStories);
 </script>
 
 <style is:global>

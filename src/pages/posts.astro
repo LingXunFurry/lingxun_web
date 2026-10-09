@@ -28,7 +28,7 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
                 <button id="post-search-reset" class="button button--quiet" type="button">清空筛选</button>
                 <span id="post-search-summary" class="post-search__summary" role="status" aria-live="polite"></span>
             </form>
-            <div id="posts-list" class="post-list" data-reveal style="--reveal-delay: 120ms">
+            <div id="posts-list" class="post-list" data-public-pending aria-busy="true" data-reveal style="--reveal-delay: 120ms">
                 {sortedPosts.map((post, index) => (
                     <a href={`/posts/${post.id}`} class="post-card paper-card" data-post-card data-title={post.data.title} data-date={post.data.date} data-search={`${post.data.title} ${post.data.desc} ${post.data.tag} ${postTagLabel(post.data.tag)} ${post.data.date}`} style={`--card-delay: ${index * 60}ms`}>
                         <div class="post-card__cover"><span class="post-card__cover-empty">暂未配图</span></div>
@@ -52,7 +52,7 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, toApiUrl, type PublicPost } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type PublicPost } from '../lib/publicContent';
 
     import { postTagLabel } from '../lib/postLabels';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
@@ -62,8 +62,7 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
         const empty = document.getElementById('posts-empty');
         if (!list) return;
         setupPostSearch();
-        await loadSiteContent();
-        const posts = await fetchPublic<PublicPost[]>('/api/public/posts');
+        const [, posts] = await Promise.all([loadSiteContent(), fetchPublic<PublicPost[]>('/api/public/posts')]);
         if (!posts) {
             if (!list.querySelector('[data-post-card]')) empty?.classList.remove('hidden');
             applyPostSearch();
@@ -72,8 +71,7 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
         list.innerHTML = posts.map(renderPostCard).join('');
         applyPostSearch();
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPostsPage, { once: true });
-    else initPostsPage();
+    initPublicContent('#posts-list', initPostsPage);
 
     function setupPostSearch() {
         const form = document.getElementById('post-search-form') as HTMLFormElement | null;

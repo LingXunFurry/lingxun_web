@@ -13,6 +13,11 @@ const { title = '凌巽的酒馆', titleKey = '' } = Astro.props;
         <link id="site-favicon" rel="icon" href="/logo.png" />
         <meta name="generator" content={Astro.generator} />
         <title data-content-title={titleKey}>{title}</title>
+        <noscript><style is:inline>
+            html [data-public-pending] { pointer-events: auto; }
+            html [data-public-pending] > * { visibility: visible !important; }
+            html [data-public-pending]::after { display: none; }
+        </style></noscript>
         <script is:inline>
             (() => {
                 const saved = localStorage.getItem('lingxun-theme');

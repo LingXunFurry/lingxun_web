@@ -9,7 +9,7 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
 ---
 
 <section class="hero-section" aria-labelledby="hero-title">
-    <div id="hero-backdrop" class="hero-section__backdrop" aria-hidden="true">
+    <div id="hero-backdrop" class="hero-section__backdrop" aria-hidden="true" data-public-pending>
         {heroImages.map((img, index) => (
             <Image
                 src={img}
@@ -39,7 +39,7 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
             </div>
         </div>
 
-        <div class="hero-section__portrait paper-enter" style="animation-delay: 180ms">
+        <div class="hero-section__portrait paper-enter" data-public-pending aria-busy="true" style="animation-delay: 180ms">
             <div class="hero-section__portrait-label meta">ON THE ROAD / 实拍记录</div>
             <Image id="hero-portrait-image" src={heroPhoto} alt="凌巽在城镇中的毛毛实拍照片" class="hero-section__portrait-image" />
             <div class="hero-section__portrait-caption">
@@ -56,7 +56,7 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
 </section>
 
 <script>
-    import { escapeHtml, fetchPublic, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
 
     const renderManagedHero = (photos: GalleryPhoto[]) => {
         const marked = photos.filter((photo) => photo.is_home_hero).sort((a, b) => (a.hero_order ?? 0) - (b.hero_order ?? 0) || a.id - b.id);
@@ -94,8 +94,7 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
         if (photos) renderManagedHero(photos);
         initHeroCarousel();
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHero, { once: true });
-    else initHero();
+    initPublicContent('#hero-backdrop, .hero-section__portrait', initHero);
 </script>
 
 <style is:global>
