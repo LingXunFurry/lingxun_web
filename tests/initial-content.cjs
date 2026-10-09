@@ -43,7 +43,7 @@ async function checkBrowser() {
     const base='http://127.0.0.1:'+server.address().port;
     const photo=id=>({id,title:'当前照片'+id,file_url:'/logo.png?current='+id,description:'新资料',category:'当前分类',character_ids:[],is_home_hero:true,is_home_portrait:id===9001,is_home_gallery:true,hero_order:id,home_order:id});
     const post={id:9001,title:'当前后台手记',slug:'current-note',date:'2026.10.09',desc:'新的手记摘要',tag:'更新',content:'## 第一章\n\n新正文',is_published:true,is_pinned:true,story_summary:'新故事'};
-    const fixture={gallery:[photo(9001),photo(9002)],posts:[post],stories:[post],characters:[{id:9001,name:'当前登记',alias:'Lingxun',species:'风龙',role:'法师',region:'城镇',work:'委托',places:'家',status:'休息',introduction:'当前资料',details:'',image_url:'/logo.png',custom_fields:[]}],socials:[],schedules:[],friends:[],'site-content':[],stats:{visit_count:1,interaction_count:1}};
+    const fixture={gallery:[photo(9001),photo(9002)],posts:[post],stories:[post],characters:[{id:9001,name:'当前登记',alias:'Lingxun',species:'风龙',role:'法师',region:'城镇',work:'委托',places:'家',status:'休息',introduction:'当前资料',details:'',image_url:'/logo.png',custom_fields:[]}],socials:[],schedules:[],friends:[],'site-content':[{key:'hero.title_main',value:'当前酒馆',content_type:'text'},{key:'posts.title_main',value:'当前公告',content_type:'text'}],stats:{visit_count:1,interaction_count:1}};
     const regions={'/':['#hero-backdrop','.hero-section__portrait','#homepage-gallery-grid','#homepage-post-grid','#character-section','#story-section','#schedule-list','#social-list'], '/gallery/':['#gallery-grid','.gallery-page__filters'], '/posts/':['#posts-list']};
     let browser;
     try {
@@ -66,6 +66,7 @@ async function checkBrowser() {
             }),regions[route]);
             await p.waitForFunction(()=>document.styleSheets.length>0);
             assert(await hidden(),'Old content visible before module scripts: '+route);
+            if(route==='/')assert.equal(await p.locator('#hero-title').evaluate(el=>getComputedStyle(el).visibility),'hidden');
             releaseScripts();await p.waitForFunction(()=>document.documentElement.classList.contains('reveal-ready'));
             await p.waitForTimeout(300);assert(await hidden(),'Old content visible during API delay: '+route);
             releaseApi();await p.waitForFunction(()=>!document.querySelector('[data-public-pending]'));
@@ -73,6 +74,8 @@ async function checkBrowser() {
                 assert.equal(counts.gallery,1,'Hero and home gallery should share the pending request');
                 assert((await p.locator('#hero-portrait-image').getAttribute('src')).includes('current=9001'));
                 assert.equal(await p.locator('#homepage-post-grid h3').innerText(),post.title);
+                assert((await p.locator('#hero-title').innerText()).startsWith('当前酒馆'));
+                assert.equal(await p.locator('#hero-title').evaluate(el=>getComputedStyle(el).visibility),'visible');
                 if(width===1440&&motion==='no-preference'){
                     await p.waitForTimeout(6800);
                     assert((await p.locator('.carousel-img.is-active').getAttribute('src')).includes('current=9002'));
@@ -89,6 +92,22 @@ async function checkBrowser() {
             }
             assert.deepEqual(errors,[]);assert(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
             await p.screenshot({path:path.join(screenshots,`${route.replaceAll('/','')||'home'}-${width}-${motion}.png`)});
+            await context.close();
+        }
+        {
+            const context=await browser.newContext({reducedMotion:'reduce'}),p=await context.newPage();
+            let releaseApi,releaseImage;
+            const api=new Promise(resolve=>releaseApi=resolve),image=new Promise(resolve=>releaseImage=resolve);
+            await p.route('**/api/public/**',async r=>{await api;const key=new URL(r.request().url()).pathname.split('/')[3];await r.fulfill({json:fixture[key]??[]});});
+            await p.route('**/logo.png?current=*',async r=>{await image;await r.continue();});
+            await p.goto(base+'/',{waitUntil:'domcontentloaded'});
+            await p.locator('#hero-portrait-image').evaluate(img=>img.loading='eager');
+            await p.waitForFunction(()=>document.querySelector('#hero-portrait-image').naturalWidth>0);
+            releaseApi();await p.waitForFunction(()=>!document.querySelector('[data-public-pending]'));
+            const displayed=await p.locator('#hero-portrait-image').evaluate(img=>img.currentSrc);
+            try { assert(!displayed.includes('/_astro/'),'Cached old portrait bitmap is still displayed while the current image loads'); }
+            finally { releaseImage(); }
+            await p.waitForFunction(()=>document.querySelector('#hero-portrait-image').currentSrc.includes('current=9001'));
             await context.close();
         }
         for(const mode of ['empty','failure','timeout'])for(const route of Object.keys(regions)){
@@ -108,7 +127,7 @@ async function checkBrowser() {
         }
         const nojs=await browser.newContext({javaScriptEnabled:false});const p=await nojs.newPage();await p.goto(base+'/posts/');
         assert(await p.locator('[data-post-card]').first().isVisible(),'No-JS static fallback');await nojs.close();
-        console.log('PASS 12 delayed first-render cases, 7 empty/failure/timeout cases, no-JS fallback, carousel, lightbox, search and layout.');
+        console.log('PASS 12 delayed first-render cases, 7 empty/failure/timeout cases, managed text, cached portrait, no-JS fallback, carousel, lightbox, search and layout.');
     } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }
 

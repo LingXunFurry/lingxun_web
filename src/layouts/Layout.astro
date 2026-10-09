@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css'
 import Navbar from '../components/Navbar.astro'
+import { siteContentSelectors } from '../lib/siteContent';
 
 const { title = '凌巽的酒馆', titleKey = '' } = Astro.props;
 ---
@@ -13,6 +14,7 @@ const { title = '凌巽的酒馆', titleKey = '' } = Astro.props;
         <link id="site-favicon" rel="icon" href="/logo.png" />
         <meta name="generator" content={Astro.generator} />
         <title data-content-title={titleKey}>{title}</title>
+        <style is:inline set:html={`html[data-site-content-pending] :is(${siteContentSelectors.join(',')}) { visibility: hidden !important; }`} />
         <noscript><style is:inline>
             html [data-public-pending] { pointer-events: auto; }
             html [data-public-pending] > * { visibility: visible !important; }
@@ -20,6 +22,7 @@ const { title = '凌巽的酒馆', titleKey = '' } = Astro.props;
         </style></noscript>
         <script is:inline>
             (() => {
+                document.documentElement.setAttribute('data-site-content-pending', '');
                 const saved = localStorage.getItem('lingxun-theme');
                 const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
                 document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : preferred;

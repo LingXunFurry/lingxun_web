@@ -181,7 +181,19 @@ const bindings: Record<string, Binding> = {
     'egg.quest_action': ['#quest-draw-button', 'text-node'],
 };
 
+export const siteContentSelectors = [...new Set(Object.values(bindings)
+    .filter(([, mode]) => mode !== 'aria-label' && mode !== 'content' && mode !== 'image-href')
+    .map(([selector]) => selector))];
+
 export async function initSiteContent() {
+    try {
+        await applySiteContent();
+    } finally {
+        document.documentElement.removeAttribute('data-site-content-pending');
+    }
+}
+
+async function applySiteContent() {
     const entries = await loadSiteContent();
     if (!entries) return;
     const applied = new WeakMap<Element, Set<string>>();
