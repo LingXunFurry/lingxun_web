@@ -23,7 +23,7 @@ const latestPosts = sortedPosts.slice(0, 3);
             {latestPosts.map((post, index) => (
                 <a href={`/posts/${post.id}`} class="note-card paper-card paper-enter" style={`animation-delay: ${index * 100}ms`}>
                     <div class="note-card__top"><span class="meta">{post.data.date}</span><span class="tag">{postTagLabel(post.data.tag)}</span></div>
-                    <h3>{post.data.title}</h3>
+                    <h3 title={post.data.title}>{post.data.title}</h3>
                     <p>{post.data.desc}</p>
                     <span class="note-card__more">阅读手记 <span aria-hidden="true">→</span></span>
                 </a>
@@ -57,7 +57,7 @@ const latestPosts = sortedPosts.slice(0, 3);
             <a href="/post/?slug=${encodeURIComponent(post.slug)}" class="note-card paper-card paper-enter" style="animation-delay: ${index * 100}ms">
                 ${cover ? `<div class="note-card__cover">${cover}</div>` : ''}
                 <div class="note-card__top"><span class="meta">${escapeHtml(post.date)}</span>${post.is_pinned ? `<span class="tag">${escapeHtml(siteText('posts.pinned', '置顶'))}</span>` : ''}<span class="tag">${escapeHtml(postTagLabel(post.tag))}</span></div>
-                <h3>${escapeHtml(post.title)}</h3>
+                <h3 title="${escapeHtml(post.title)}">${escapeHtml(post.title)}</h3>
                 <p>${escapeHtml(post.desc)}</p>
                 <span class="note-card__more">阅读手记 <span aria-hidden="true">→</span></span>
             </a>

@@ -202,7 +202,6 @@ img { max-width: 100%; height: auto; }
         gap: clamp(2rem, 5vw, 5rem);
     }
     .home-page.is-stage-controlled .character-section__inner,
-    .home-page.is-stage-controlled .home-feed-section__inner,
     .home-page.is-stage-controlled .final-section__inner {
         min-height: 0;
         max-height: 100%;
@@ -257,12 +256,102 @@ img { max-width: 100%; height: auto; }
         margin-top: clamp(1rem, 2.6svh, 1.7rem);
     }
 
+    .home-page.is-stage-controlled .home-feed-section {
+        padding-block: clamp(.75rem, 2svh, 1.5rem);
+    }
+    .home-page.is-stage-controlled .home-feed-section__inner {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: clamp(.6rem, 1.5svh, 1.25rem);
+        height: 100%;
+        min-height: 0;
+        max-height: 100%;
+        overflow: visible;
+    }
     .home-page.is-stage-controlled .home-feed-section__heading {
-        padding-bottom: clamp(0.8rem, 2svh, 1.4rem);
+        min-width: 0;
+        gap: 1.5rem;
+        padding-bottom: clamp(.5rem, 1.5svh, 1rem);
+    }
+    .home-page.is-stage-controlled .home-feed-section .section-title {
+        font-size: clamp(2rem, 7svh, 4.25rem);
+        line-height: 1.1;
+    }
+    .home-page.is-stage-controlled .home-feed-section__heading-copy {
+        min-width: 0;
+        font-size: .9rem;
+        line-height: 1.65;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
     }
     .home-page.is-stage-controlled .home-feed-section__grid,
     .home-page.is-stage-controlled .home-feed-section__footer {
-        margin-top: clamp(0.8rem, 2svh, 1.4rem);
+        margin-top: 0;
+        min-height: 0;
+    }
+    .home-page.is-stage-controlled .home-feed-section__grid {
+        grid-auto-rows: minmax(0, 1fr);
+    }
+    .home-page.is-stage-controlled .note-card {
+        --feed-card-padding: clamp(.75rem, 1.8svh, 1.25rem);
+        --feed-summary-lines: 3;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        gap: clamp(.4rem, 1svh, .75rem);
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        padding: var(--feed-card-padding);
+    }
+    .home-page.is-stage-controlled .note-card:has(.note-card__cover) {
+        grid-template-rows: minmax(0, 1fr) auto auto auto auto;
+    }
+    .home-page.is-stage-controlled .note-card__cover {
+        min-height: 0;
+        margin: calc(-1 * var(--feed-card-padding)) calc(-1 * var(--feed-card-padding)) 0;
+    }
+    .home-page.is-stage-controlled .note-card__cover img {
+        height: 100%;
+        aspect-ratio: auto;
+    }
+    .home-page.is-stage-controlled .note-card__top {
+        flex-wrap: nowrap;
+        gap: .4rem;
+    }
+    .home-page.is-stage-controlled .note-card__top .tag {
+        display: block;
+        min-width: 0;
+        max-width: 5.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .home-page.is-stage-controlled .note-card__top .meta { white-space: nowrap; }
+    .home-page.is-stage-controlled .note-card h3,
+    .home-page.is-stage-controlled .note-card p {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        overflow-wrap: anywhere;
+        margin: 0;
+    }
+    .home-page.is-stage-controlled .note-card h3 {
+        -webkit-line-clamp: 2;
+        font-size: clamp(1.05rem, 2.4svh, 1.35rem);
+        line-height: 1.35;
+    }
+    .home-page.is-stage-controlled .note-card p {
+        -webkit-line-clamp: var(--feed-summary-lines);
+        align-self: start;
+        font-size: .9rem;
+        line-height: 1.65;
+    }
+    .home-page.is-stage-controlled .note-card__more { margin-top: 0; padding-top: 0; }
+    .home-page.is-stage-controlled .home-feed-section__footer .button {
+        min-height: 44px;
+        padding-block: .4rem;
     }
 
     .home-page.is-stage-controlled .final-section {
@@ -320,6 +409,14 @@ img { max-width: 100%; height: auto; }
     .home-page.is-stage-controlled .final-section__footer-inner {
         min-height: 44px;
     }
+}
+
+@media (min-width: 900px) and (pointer: fine) and (max-height: 620px) {
+    .home-page.is-stage-controlled .note-card { --feed-summary-lines: 2; }
+}
+
+@media (min-width: 900px) and (pointer: fine) and (max-height: 500px) {
+    .home-page.is-stage-controlled .note-card { --feed-summary-lines: 1; }
 }
 
 :root[data-theme="light"] .gallery-page,
