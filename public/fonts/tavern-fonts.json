@@ -1,0 +1,58 @@
+[
+  {
+    "source": "SourceHanSansSC-Regular.otf",
+    "output": "TavernSans-Regular-full.woff2",
+    "family": "Tavern Sans Full",
+    "bytes": 11543224,
+    "license": "licenses/SourceHanSans-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSansSC-Regular.otf",
+    "output": "TavernSans-Regular-core.woff2",
+    "family": "Tavern Sans Core",
+    "bytes": 334408,
+    "license": "licenses/SourceHanSans-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSansSC-Bold.otf",
+    "output": "TavernSans-Bold-full.woff2",
+    "family": "Tavern Sans Full",
+    "bytes": 12174272,
+    "license": "licenses/SourceHanSans-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSansSC-Bold.otf",
+    "output": "TavernSans-Bold-core.woff2",
+    "family": "Tavern Sans Core",
+    "bytes": 340572,
+    "license": "licenses/SourceHanSans-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSerifSC-Regular.otf",
+    "output": "TavernSerif-Regular-full.woff2",
+    "family": "Tavern Serif Full",
+    "bytes": 16708684,
+    "license": "licenses/SourceHanSerif-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSerifSC-Regular.otf",
+    "output": "TavernSerif-Regular-core.woff2",
+    "family": "Tavern Serif Core",
+    "bytes": 456116,
+    "license": "licenses/SourceHanSerif-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSerifSC-Bold.otf",
+    "output": "TavernSerif-Bold-full.woff2",
+    "family": "Tavern Serif Full",
+    "bytes": 17838324,
+    "license": "licenses/SourceHanSerif-LICENSE.txt"
+  },
+  {
+    "source": "SourceHanSerifSC-Bold.otf",
+    "output": "TavernSerif-Bold-core.woff2",
+    "family": "Tavern Serif Core",
+    "bytes": 475756,
+    "license": "licenses/SourceHanSerif-LICENSE.txt"
+  }
+]

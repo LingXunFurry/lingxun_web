@@ -107,7 +107,8 @@ import EasterEgg from '../components/EasterEgg.astro';
         const syncMode = () => {
             const eggOpen = isEggOpen();
             home.classList.toggle('is-egg-open', eggOpen);
-            home.classList.toggle('is-stage-controlled', desktop.matches && !eggOpen);
+            // The wheel guard frees the room; keep earlier scene geometry stable while it is open.
+            home.classList.toggle('is-stage-controlled', desktop.matches);
         };
 
         if (eggSection) {

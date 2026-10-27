@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS posts (
   is_character_story BOOLEAN NOT NULL DEFAULT FALSE,
   story_order INT NOT NULL DEFAULT 0,
   story_summary TEXT,
+  story_cover_url VARCHAR(500) NULL,
   story_character_id INT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

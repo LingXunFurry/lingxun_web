@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lingxun Admin Console</title>
+    <title>凌巽的酒馆 · 内容管理</title>
+    <script>try { document.documentElement.dataset.theme = localStorage.getItem('lingxun-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); } catch {}</script>
     <style>
         :root {
             color-scheme: dark;
@@ -665,6 +666,8 @@
             *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
     </style>
+    <link rel="stylesheet" href="/admin/assets/admin.css" />
+    <link rel="stylesheet" href="/fonts/tavern-fonts.css" />
 </head>
 <body>
     <section id="loginView" class="login-shell">
@@ -688,19 +691,24 @@
     <section id="appView" class="app-shell hidden">
         <aside>
             <div class="brand">
+                <img src="/logo.png" width="44" height="44" alt="" class="admin-brand-image" />
                 <div class="eyebrow">Lingxun's Tavern</div>
                 <div class="brand-title">后台登记簿</div>
                 <div class="muted" style="margin-top:8px;font-size:12px;">内容、照片与酒馆文案</div>
             </div>
             <nav>
-                <button class="nav-btn active" data-tab="gallery">画廊</button>
-                <button class="nav-btn" data-tab="characters">登记簿</button>
-                <button class="nav-btn" data-tab="posts">动态</button>
+                <span class="nav-group-label">前台内容</span>
+                <button class="nav-btn active" data-tab="home">首页编排</button>
+                <button class="nav-btn" data-tab="gallery">旅途留影 · 照片库</button>
+                <button class="nav-btn" data-tab="characters">冒险者登记簿</button>
+                <button class="nav-btn" data-tab="posts">手记与角色故事</button>
                 <button class="nav-btn" data-tab="comments">评论</button>
-                <button class="nav-btn" data-tab="bonus">Bonus 文案</button>
-                <button class="nav-btn" data-tab="final">行程 / 联系</button>
+                <button class="nav-btn" data-tab="bonus">酒馆暗门 · 纪念日</button>
+                <button class="nav-btn" data-tab="final">行程 / 联系凌巽</button>
                 <button class="nav-btn" data-tab="friends">友链</button>
                 <button class="nav-btn" data-tab="content">站点内容</button>
+                <span class="nav-group-label">管理工具</span>
+                <button class="nav-btn" data-tab="media">图片优化</button>
                 <button class="nav-btn" data-tab="security">安全设置</button>
                 <button class="nav-btn" id="logoutBtn">退出登录</button>
             </nav>
@@ -710,16 +718,28 @@
             <div class="topbar">
                 <div>
                     <div class="eyebrow">Tavern Ledger</div>
-                    <h2 class="page-title" id="pageTitle">画廊<span>管理</span></h2>
+                <h2 class="page-title" id="pageTitle">首页<span>编排</span></h2>
                 </div>
-                <button class="btn secondary" id="refreshBtn">刷新内容 <span aria-hidden="true">↻</span></button>
+                <div class="actions"><a class="btn ghost" href="/" target="_blank" rel="noopener">查看网站 ↗</a><button class="btn ghost" id="adminTheme" type="button">切换明暗</button><button class="btn secondary" id="refreshBtn">刷新内容 <span aria-hidden="true">↻</span></button></div>
             </div>
+            <div class="page-location" id="pageLocation">首页 / 各幕图片与内容</div>
 
-            <section id="galleryTab" class="tab-view">
+            <section id="homeTab" class="tab-view">
+                <div class="editor-heading"><div><span class="eyebrow">Home / 展示顺序</span><h3>把照片放到正确的位置</h3></div><div class="actions"><span id="homeSaveState" role="status">已读取当前配置</span><button id="saveHomeMedia" class="btn" type="button">保存首页图片</button></div></div>
+                <div id="homeEditor" aria-live="polite"></div>
+            </section>
+            <section id="mediaTab" class="tab-view hidden">
+                <div class="editor-heading"><div><span class="eyebrow">Photo Workshop</span><h3>图片优化</h3></div><button id="optimizeAllImages" class="btn" type="button">优化待处理图片</button></div>
+                <p class="helper">上传静态图片自动生成 WebP 浏览版本和多尺寸缩略图。已有图片可在此补齐，原文件和数据库地址均不改动；动态图保留动画，外部图片不下载处理。</p>
+                <p id="mediaProgress" role="status" class="helper"></p><div id="mediaList" class="media-records"></div>
+            </section>
+
+            <section id="galleryTab" class="tab-view hidden">
+                <div class="context-bar"><span>前台位置：首页轮播 / 首页留影 / 旅途留影画廊</span><button class="btn ghost mini" type="button" data-go-tab="home">按首页位置选图 →</button></div>
                 <div class="panel-grid">
                     <form id="galleryForm" class="panel form-grid">
                         <h3>上传照片</h3>
-                        <label>标题 <input name="title" placeholder="Archive title" /></label>
+                        <label>标题 <input name="title" placeholder="照片标题" /></label>
                         <label>描述 <textarea name="description" style="min-height:96px" placeholder="照片备注"></textarea></label>
                         <div class="two">
                             <label>分类 <input name="category" placeholder="凌巽 / 活动记录 / 设定图" /></label>
@@ -752,6 +772,7 @@
             </section>
 
             <section id="charactersTab" class="tab-view hidden">
+                <div class="context-bar"><span>前台位置：首页第二幕 · 冒险者登记簿。这里的照片不会覆盖单独设置的故事封面。</span><a href="/#character-section" target="_blank" rel="noopener">查看前台 ↗</a></div>
                 <div class="panel-grid">
                     <form id="characterForm" class="panel form-grid">
                         <h3 id="characterFormTitle">新建冒险者登记</h3>
@@ -793,6 +814,7 @@
             </section>
 
             <section id="postsTab" class="tab-view hidden">
+                <div class="context-bar"><span>前台位置：最近手记 / 文章详情 / 首页角色故事。动态封面与故事封面可以分别设置。</span><a href="/#story-section" target="_blank" rel="noopener">查看角色故事 ↗</a></div>
                 <div class="panel-grid">
                     <form id="postForm" class="panel form-grid">
                         <h3 id="postFormTitle">新建动态</h3>
@@ -824,6 +846,13 @@
                         </div>
                         <label>所属角色 <select name="story_character_id"><option value="">不关联角色</option></select></label>
                         <label>书页简介 <textarea name="story_summary" rows="3" placeholder="留空使用动态摘要"></textarea></label>
+                        <fieldset class="story-cover-editor">
+                            <legend>首页角色故事 · 独立封面</legend>
+                            <label>图片来源<select name="story_cover_mode"><option value="independent">使用独立图片</option><option value="inherit">沿用原规则（动态封面 → 登记簿照片）</option><option value="none">不展示图片</option></select></label>
+                            <label>独立图片地址<input name="story_cover_url" placeholder="选择照片库或直接上传，不影响登记簿" /></label>
+                            <img id="storyCoverPreview" class="story-cover-preview" alt="角色故事封面预览" hidden />
+                            <div class="two"><label>上传独立封面<input id="storyCoverFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /></label><button type="button" id="chooseStoryCover" class="btn secondary">从照片库选择</button></div>
+                        </fieldset>
                         <div class="actions">
                             <button class="btn" type="submit">◆ 保存</button>
                             <button class="btn ghost" type="button" id="resetPostBtn">清空</button>
@@ -975,6 +1004,7 @@
             </section>
 
             <section id="contentTab" class="tab-view hidden">
+                <label>按前台文字或设置名称查找<input id="contentSearch" type="search" placeholder="例如：翻开一页、旅途留影、封面" /></label>
                 <label>页面 <select id="contentGroup" aria-label="选择编辑页面"></select></label>
                 <div id="contentFields" class="form-grid" style="margin-top:20px"></div>
             </section>
@@ -993,7 +1023,13 @@
         </main>
     </section>
 
-    <div id="status" class="status"></div>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <dialog id="mediaPicker" aria-labelledby="mediaPickerTitle">
+        <div class="picker-heading"><h3 id="mediaPickerTitle">选择照片</h3><button class="btn ghost" id="closeMediaPicker" type="button" aria-label="关闭照片选择">×</button></div>
+        <label class="picker-search">搜索照片<input id="mediaPickerSearch" type="search" placeholder="标题、分类或原文件名" /></label>
+        <div id="mediaPickerGrid" class="picker-grid"></div>
+    </dialog>
+    <script src="/admin/assets/admin-media.js"></script>
 
     <script>
         const API = window.location.origin;
@@ -1001,7 +1037,7 @@
         const LEGACY_TOKEN_KEY = "lingxun_admin_token";
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         const REFRESH_WINDOW_MS = 10 * 60 * 1000;
-        const state = { tab: "gallery", gallery: [], characters: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
+        const state = { tab: "home", gallery: [], characters: [], posts: [], comments: [], bonus: null, schedules: [], socials: [], friends: [] };
         let sessionTimer = 0;
         let refreshPromise = null;
         let sessionRevision = 0;
@@ -1196,6 +1232,8 @@
         }
 
         async function loadAll() {
+            if (state.tab === "home") await loadHomepage();
+            if (state.tab === "media") await loadMediaWorkshop();
             if (state.tab === "content") await loadSiteContent();
             if (state.tab === "gallery") await loadGallery();
             if (state.tab === "characters") await loadCharacters();
@@ -1215,17 +1253,20 @@
             document.querySelectorAll(".tab-view").forEach((view) => view.classList.add("hidden"));
             $(`#${tab}Tab`).classList.remove("hidden");
             const titles = {
+                home: "首页<span>编排</span>",
+                media: "图片<span>优化</span>",
                 gallery: "画廊<span>管理</span>",
                 characters: "登记簿<span>管理</span>",
                 posts: "动态<span>编辑</span>",
                 comments: "评论<span>审核</span>",
                 bonus: "Bonus<span>文案</span>",
-                final: "行程<span>联系</span>",
+                final: "行程<span>联系凌巽</span>",
                 friends: "友链<span>管理</span>",
                 security: "安全<span>设置</span>",
                 content: "站点<span>内容</span>",
             };
             $("#pageTitle").innerHTML = titles[tab] || titles.gallery;
+            updatePageLocation(tab);
             loadAll().catch((error) => showStatus(error.message, true));
         }
 
@@ -1253,17 +1294,19 @@
             if (label) label.textContent = contentDrafts.has(id) ? '未保存' : '已保存';
         }
         async function loadSiteContent() {
-            siteContent = await request('/api/admin/site-content', { headers: authHeaders() });
+            siteContent = (await request('/api/admin/site-content', { headers: authHeaders() })).filter(item => item.content_type !== 'internal');
             const group = $('#contentGroup');
             const selected = group.value;
-            group.innerHTML = [...new Set(siteContent.map(item => item.group_name))].map(name => `<option>${escapeHtml(name)}</option>`).join('');
+            group.innerHTML = [...new Set(siteContent.map(item => item.group_name))].map(name => `<option value="${escapeHtml(name)}">${escapeHtml(contentGroupName(name))}</option>`).join('');
             if (siteContent.some(item => item.group_name === selected)) group.value = selected;
             renderSiteContent();
         }
 
         function renderSiteContent() {
-            $('#contentFields').innerHTML = siteContent.filter(item => item.group_name === $('#contentGroup').value).map(item => `
+            const keyword = $('#contentSearch').value.trim().toLocaleLowerCase();
+            $('#contentFields').innerHTML = siteContent.filter(item => keyword ? `${item.label} ${item.value} ${item.group_name}`.toLocaleLowerCase().includes(keyword) : item.group_name === $('#contentGroup').value).map(item => `
                 <form class="form-grid" data-content-form="${item.id}" style="padding-block:16px;border-bottom:1px solid var(--line)">
+                    <small class="content-source">前台位置：${escapeHtml(contentGroupName(item.group_name))}</small>
                     <label>${escapeHtml(item.label)}<textarea name="value" rows="${item.content_type === 'textarea' ? 4 : 2}" style="min-height:64px">${escapeHtml(contentDrafts.get(item.id) ?? item.value)}</textarea></label>
                     ${item.content_type === 'image' ? `<img data-content-preview class="upload-preview hidden" alt="${escapeHtml(item.label)}预览"><label>上传图片<input type="file" name="image" accept="image/*"></label>` : ''}
                     <div class="actions"><button class="btn" type="submit">保存</button><button class="btn ghost" type="button" data-content-clear>清空</button><span class="muted" data-content-state role="status">${contentDrafts.has(item.id) ? '未保存' : '已保存'}</span></div>
@@ -1276,6 +1319,7 @@
         }
 
         $('#contentGroup').addEventListener('change', renderSiteContent);
+        $('#contentSearch').addEventListener('input', renderSiteContent);
         $('#contentFields').addEventListener('input', event => {
             if (event.target.name === 'value') rememberContentDraft(event.target.closest('form'));
         });
@@ -1334,11 +1378,11 @@
             }
             target.innerHTML = `
                 <table>
-                    <thead><tr><th>Preview</th><th>Title</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>照片</th><th>资料与展示位置</th><th>顺序</th><th>可见性</th><th>操作</th></tr></thead>
                     <tbody>
                         ${state.gallery.map((item) => `
                             <tr>
-                                <td><img class="thumb" data-gallery-preview="${item.id}" src="${absoluteUrl(item.file_url)}" alt="${escapeHtml(item.title || item.original_filename || "画廊照片")}">
+                                <td><img class="thumb" data-gallery-preview="${item.id}" src="${escapeHtml(previewUrl(item))}" loading="lazy" alt="${escapeHtml(item.title || item.original_filename || "画廊照片")}">
                                     <label>选择替换照片<input type="file" accept="image/*" data-gallery-file="${item.id}"></label>
                                     <img class="thumb" data-gallery-new-preview="${item.id}" alt="待替换照片预览" hidden>
                                     <button type="button" class="btn secondary mini" data-gallery-replace="${item.id}">替换照片</button>
@@ -1352,8 +1396,8 @@
                                         <input data-gallery-location="${item.id}" value="${escapeHtml(item.location || "")}" placeholder="地点" aria-label="照片地点">
                                         <input data-gallery-characters="${item.id}" value="${escapeHtml((item.character_ids || []).join(","))}" placeholder="角色 ID，例如 1,2" aria-label="绑定角色 ID">
                                         <label class="checkbox-row"><input data-gallery-hero="${item.id}" type="checkbox" ${item.is_home_hero ? "checked" : ""}> 首屏轮播</label>
-                                        <label class="checkbox-row"><input data-gallery-portrait="${item.id}" type="checkbox" ${item.is_home_portrait ? "checked" : ""}> 首屏主照片</label>
-                                        <label class="checkbox-row"><input data-gallery-home="${item.id}" type="checkbox" ${item.is_home_gallery ? "checked" : ""}> 首页预览</label>
+                                        <label class="checkbox-row"><input data-gallery-portrait="${item.id}" type="checkbox" ${item.is_home_portrait ? "checked" : ""}> 首屏右侧主照片</label>
+                                        <label class="checkbox-row"><input data-gallery-home="${item.id}" type="checkbox" ${item.is_home_gallery ? "checked" : ""}> 首页旅途留影（三张预览）</label>
                                     </div>
                                 </td>
                                 <td>
@@ -1361,7 +1405,7 @@
                                     <label class="gallery-order-field">首屏 <input data-gallery-hero-order="${item.id}" type="number" value="${item.hero_order ?? 0}"></label>
                                     <label class="gallery-order-field">首页 <input data-gallery-home-order="${item.id}" type="number" value="${item.home_order ?? 0}"></label>
                                 </td>
-                                <td>${item.is_visible ? "显示" : "隐藏"}</td>
+                                <td>${visibilityBadge(item.is_visible)}</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn secondary mini" data-gallery-toggle="${item.id}">${item.is_visible ? "隐藏" : "显示"}</button>
@@ -1394,7 +1438,7 @@
                         <tr>
                             <td><strong>${escapeHtml(item.name)}</strong><div class="muted">#${item.id} ${escapeHtml(item.alias || "")}</div></td>
                             <td>${escapeHtml(item.species)} / ${escapeHtml(item.role)}<div class="muted">${escapeHtml(item.region)}</div></td>
-                            <td>${escapeHtml(item.status)}<div class="muted">${item.is_visible ? "显示" : "隐藏"}</div></td>
+                            <td>${escapeHtml(item.status)}<div>${visibilityBadge(item.is_visible)}</div></td>
                             <td><div class="actions"><button class="btn secondary mini" data-character-edit="${item.id}">编辑</button><button class="btn danger mini" data-character-delete="${item.id}">删除</button></div></td>
                         </tr>`).join("")}
                     </tbody>
@@ -1419,7 +1463,7 @@
             }
             target.innerHTML = `
                 <table>
-                    <thead><tr><th>Date</th><th>Title</th><th>Tag</th><th>Status</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>日期</th><th>手记</th><th>分类</th><th>展示位置</th><th>操作</th></tr></thead>
                     <tbody>
                         ${state.posts.map((post) => `
                             <tr>
@@ -1429,7 +1473,7 @@
                                     <div class="muted">/post/?slug=${escapeHtml(post.slug)}</div>
                                 </td>
                                 <td>${escapeHtml(post.tag)}</td>
-                                <td>${post.is_published ? "已发布" : "草稿"}${post.is_pinned ? '<div class="muted">置顶 · ' + escapeHtml(post.pin_order) + '</div>' : ''}${post.is_character_story ? '<div class="muted">角色故事 · ' + escapeHtml(post.story_order) + '</div>' : ''}</td>
+                                <td>${visibilityBadge(post.is_published)}${post.is_pinned ? '<div class="placement-tag">最近手记 · 置顶 ' + escapeHtml(post.pin_order) + '</div>' : ''}${post.is_character_story ? '<div class="placement-tag">首页角色故事 · ' + escapeHtml(post.story_order) + '</div>' : ''}</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn secondary mini" data-post-edit="${post.id}">编辑</button>
@@ -1637,6 +1681,9 @@
             form.elements.story_order.value = post?.story_order ?? 0;
             form.elements.story_summary.value = post?.story_summary || "";
             form.elements.story_character_id.value = post?.story_character_id ?? "";
+            form.elements.story_cover_url.value = post?.story_cover_url || '';
+            form.elements.story_cover_mode.value = post?.story_cover_url == null ? (post ? 'inherit' : 'independent') : post.story_cover_url ? 'independent' : 'none';
+            updateStoryCoverPreview();
             $("#postFormTitle").textContent = post ? "编辑动态" : "新建动态";
         }
 
@@ -1999,7 +2046,13 @@
                 story_order: Number(form.elements.story_order.value || 0),
                 story_summary: form.elements.story_summary.value,
                 story_character_id: form.elements.story_character_id.value ? Number(form.elements.story_character_id.value) : null,
+                story_cover_url: form.elements.story_cover_mode.value === 'inherit' ? null : form.elements.story_cover_mode.value === 'none' ? '' : form.elements.story_cover_url.value.trim(),
             };
+            if (form.elements.story_cover_mode.value === 'independent' && form.elements.is_character_story.checked && !payload.story_cover_url) {
+                showStatus('请选择或上传角色故事独立封面，也可以将图片来源设为“不展示图片”。', true);
+                form.elements.story_cover_url.focus();
+                return;
+            }
             try {
                 await request(id ? `/api/admin/posts/${id}` : "/api/admin/posts", {
                     method: id ? "PATCH" : "POST",

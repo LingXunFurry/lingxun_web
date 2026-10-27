@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
+
+from .media import image_info
 
 
 class LoginRequest(BaseModel):
@@ -40,6 +42,21 @@ class GalleryPhotoOut(BaseModel):
     is_home_gallery: bool = False
     home_order: int = 0
 
+    @computed_field
+    @property
+    def image(self) -> dict | None:
+        return image_info(self.file_url)
+
+
+class HomepageMediaIn(BaseModel):
+    hero_ids: list[int] = Field(default_factory=list, max_length=12)
+    portrait_id: int | None = None
+    gallery_ids: list[int] = Field(default_factory=list, max_length=3)
+
+
+class OptimizeImageIn(BaseModel):
+    url: str = Field(..., max_length=500)
+
 
 class GalleryPhotoUpdate(BaseModel):
     title: str | None = None
@@ -75,6 +92,7 @@ class PostIn(BaseModel):
     story_order: int = 0
     story_summary: str = ""
     story_character_id: int | None = None
+    story_cover_url: str | None = Field(default=None, max_length=500)
 
 
 class PostPatch(BaseModel):
@@ -95,6 +113,7 @@ class PostPatch(BaseModel):
     story_order: int | None = None
     story_summary: str | None = None
     story_character_id: int | None = None
+    story_cover_url: str | None = Field(default=None, max_length=500)
 
 
 class PostOut(BaseModel):
@@ -118,6 +137,22 @@ class PostOut(BaseModel):
     story_order: int = 0
     story_summary: str = ""
     story_character_id: int | None = None
+    story_cover_url: str | None = None
+
+    @computed_field
+    @property
+    def cover_image(self) -> dict | None:
+        return image_info(self.cover_url)
+
+    @computed_field
+    @property
+    def story_image(self) -> dict | None:
+        return image_info(self.story_cover_url if self.story_cover_url is not None else self.cover_url)
+
+    @computed_field
+    @property
+    def image_assets(self) -> dict:
+        return {url: image_info(url) for url in self.image_urls or []}
 
 
 class PostCommentOut(BaseModel):
@@ -288,6 +323,11 @@ class CharacterProfileOut(CharacterProfileIn):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+
+    @computed_field
+    @property
+    def image(self) -> dict | None:
+        return image_info(self.image_url)
 
 
 class SiteContentPatch(BaseModel):

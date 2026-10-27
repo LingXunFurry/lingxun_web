@@ -9,14 +9,11 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
 ---
 
 <section class="hero-section" aria-labelledby="hero-title">
-    <div id="hero-backdrop" class="hero-section__backdrop" aria-hidden="true" data-public-pending>
+    <div id="hero-backdrop" class="hero-section__backdrop" aria-hidden="true" data-public-pending data-media-pending>
         {heroImages.map((img, index) => (
-            <Image
-                src={img}
+            <img
                 alt=""
                 width={1920}
-                format="webp"
-                quality={index === 0 ? 76 : 68}
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
                 fetchpriority={index === 0 ? 'high' : 'low'}
@@ -27,7 +24,7 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
     <div class="hero-section__veil" aria-hidden="true"></div>
 
     <div class="site-container hero-section__inner">
-        <div class="hero-section__copy paper-enter">
+        <div class="hero-section__copy" data-reveal>
             <div class="eyebrow">Lingxun's Tavern / 旅途入口</div>
             <p class="hero-section__note">人类城镇 · 冒险者公会登记</p>
             <h1 id="hero-title" class="hero-section__title">凌巽的<span>酒馆</span></h1>
@@ -39,14 +36,24 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
             </div>
         </div>
 
-        <div class="hero-section__portrait paper-enter" data-public-pending aria-busy="true" style="animation-delay: 180ms">
+        <div class="hero-section__portrait" data-reveal data-public-pending data-media-pending aria-busy="true" style="--reveal-delay: 140ms">
             <div class="hero-section__portrait-label meta">ON THE ROAD / 实拍记录</div>
-            <Image id="hero-portrait-image" src={heroPhoto} alt="凌巽在城镇中的毛毛实拍照片" class="hero-section__portrait-image" />
+            <img id="hero-portrait-image" width="600" height="800" alt="凌巽在城镇中的毛毛实拍照片" class="hero-section__portrait-image" />
             <div class="hero-section__portrait-caption">
                 <span>影像资料</span>
                 <span class="meta">FIELD-02</span>
             </div>
         </div>
+    </div>
+
+    <div class="hero-section__moments" data-reveal data-reveal-edge style="--reveal-delay: 240ms" hidden>
+        <div class="hero-section__film-controls" role="group" aria-label="首屏照片轮播">
+            <button id="hero-photo-prev" type="button" aria-label="上一张背景照片" title="上一张"><span aria-hidden="true">←</span></button>
+            <span id="hero-photo-position" class="meta" aria-label="当前照片位置"></span>
+            <button id="hero-photo-next" type="button" aria-label="下一张背景照片" title="下一张"><span aria-hidden="true">→</span></button>
+            <button id="hero-photo-toggle" type="button" aria-label="暂停背景轮播" title="暂停轮播" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
+        </div>
+        <div class="hero-section__film-progress" aria-hidden="true"><span></span></div>
     </div>
 
     <a href="#character-section" class="hero-section__scroll" aria-label="向下查看角色登记簿">
@@ -56,49 +63,136 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
 </section>
 
 <script>
-    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type GalleryPhoto } from '../lib/publicContent';
+    import { imageAttributes, setImageSource, fetchRequired as fetchPublic, initPublicContent, type GalleryPhoto } from '../lib/publicContent';
+    import { loadSiteContent, siteText } from '../lib/siteContent';
+
+    const prepareMediaReveal = (frame: HTMLElement, image?: HTMLImageElement | null) => {
+        if (!image) { frame.removeAttribute('data-media-pending'); return; }
+        let finished = false;
+        const finish = async () => {
+            if (finished) return;
+            finished = true;
+            window.clearTimeout(timeout);
+            image.removeEventListener('load', finish);
+            image.removeEventListener('error', finish);
+            if (image.naturalWidth) await image.decode().catch(() => {});
+            image.toggleAttribute('data-image-error', !image.naturalWidth);
+            frame.removeAttribute('data-media-pending');
+        };
+        const timeout = window.setTimeout(() => {
+            image.setAttribute('data-image-error', '');
+            frame.removeAttribute('data-media-pending');
+        }, 20000);
+        image.addEventListener('load', finish, { once: true });
+        image.addEventListener('error', finish, { once: true });
+        if (image.complete && image.getAttribute('src')) void finish();
+    };
 
     const renderManagedHero = (photos: GalleryPhoto[]) => {
         const marked = photos.filter((photo) => photo.is_home_hero).sort((a, b) => (a.hero_order ?? 0) - (b.hero_order ?? 0) || a.id - b.id);
-        const selected = marked.length ? marked : photos.slice(0, 4);
+        const managed = siteText('home.media_managed', '') === 'true';
+        const selected = marked.length || managed ? marked : photos.slice(0, 4);
         const backdrop = document.getElementById('hero-backdrop');
         if (!backdrop) return;
-        backdrop.innerHTML = selected.map((photo, index) => `<img class="carousel-img ${index === 0 ? 'is-active' : ''}" src="${escapeHtml(toApiUrl(photo.file_url))}" alt="" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" />`).join('');
+        backdrop.innerHTML = selected.map((photo, index) => `<img class="carousel-img ${index === 0 ? 'is-active' : ''}" ${index === 0 ? imageAttributes(photo.file_url, photo.image) : ''} alt="" decoding="async" fetchpriority="${index === 0 ? 'high' : 'low'}" />`).join('');
+        prepareMediaReveal(backdrop, backdrop.querySelector<HTMLImageElement>('.is-active'));
 
-        const portrait = photos.filter((photo) => photo.is_home_portrait).sort((a, b) => (a.home_order ?? 0) - (b.home_order ?? 0) || a.id - b.id)[0] || (marked.length ? selected[0] : photos[1] || photos[0]);
+        const portrait = photos.filter((photo) => photo.is_home_portrait).sort((a, b) => (a.home_order ?? 0) - (b.home_order ?? 0) || a.id - b.id)[0] || (managed ? undefined : marked.length ? selected[0] : photos[1] || photos[0]);
         const portraitFrame = document.querySelector<HTMLElement>('.hero-section__portrait');
         if (portraitFrame) portraitFrame.hidden = !portrait;
         document.querySelector('.hero-section')?.classList.toggle('hero-section--text-only', !portrait);
         const portraitImage = document.getElementById('hero-portrait-image') as HTMLImageElement | null;
         if (portraitImage && portrait) {
-            portraitImage.removeAttribute('srcset');
-            portraitImage.src = toApiUrl(portrait.file_url);
+            setImageSource(portraitImage, portrait.file_url, portrait.image, '(min-width: 900px) 400px, 74vw');
             portraitImage.alt = portrait.title || '凌巽在城镇中的毛毛实拍照片';
+            if (portraitFrame) prepareMediaReveal(portraitFrame, portraitImage);
         }
+        if (!portrait) portraitFrame?.removeAttribute('data-media-pending');
+        return selected;
     };
 
-    const initHeroCarousel = () => {
-        const images = document.querySelectorAll('.carousel-img');
-        if (images.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
+    const initHeroCarousel = (photos: GalleryPhoto[]) => {
+        const images = document.querySelectorAll<HTMLImageElement>('.carousel-img');
+        const moments = document.querySelector<HTMLElement>('.hero-section__moments');
+        const previous = document.getElementById('hero-photo-prev') as HTMLButtonElement | null;
+        const nextButton = document.getElementById('hero-photo-next') as HTMLButtonElement | null;
+        const toggle = document.getElementById('hero-photo-toggle') as HTMLButtonElement | null;
+        const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (!moments || !images.length) return;
+        moments.hidden = false;
         let currentIndex = 0;
-        window.setInterval(() => {
-            images[currentIndex].classList.remove('is-active');
-            currentIndex = (currentIndex + 1) % images.length;
-            images[currentIndex].classList.add('is-active');
-        }, 6500);
+        let timer = 0;
+        let busy = false;
+        let paused = motion.matches;
+        let started = false;
+        const prepare = (index: number) => {
+            if (!images[index].getAttribute('src')) setImageSource(images[index], photos[index].file_url, photos[index].image);
+        };
+        const sync = () => {
+            const position = document.getElementById('hero-photo-position');
+            if (position) position.textContent = `${String(currentIndex + 1).padStart(2, '0')} / ${String(images.length).padStart(2, '0')}`;
+            moments.style.setProperty('--photo-progress', String((currentIndex + 1) / images.length));
+            [previous, nextButton, toggle].forEach(button => { if (button) button.disabled = images.length < 2; });
+            if (toggle) {
+                toggle.setAttribute('aria-pressed', String(paused));
+                toggle.setAttribute('aria-label', paused ? '继续背景轮播' : '暂停背景轮播');
+                toggle.title = paused ? '继续轮播' : '暂停轮播';
+                toggle.querySelector('span')!.textContent = paused ? '▶' : 'Ⅱ';
+            }
+        };
+        const schedule = () => {
+            window.clearTimeout(timer);
+            if (started && !paused && !document.hidden && images.length > 1) timer = window.setTimeout(() => void show(currentIndex + 1), 6500);
+        };
+        const show = async (index: number) => {
+            if (busy || images.length < 2) return;
+            busy = true;
+            window.clearTimeout(timer);
+            const next = (index + images.length) % images.length;
+            try {
+                prepare(next);
+                await images[next].decode();
+                images[currentIndex].classList.remove('is-active');
+                currentIndex = next;
+                images[currentIndex].classList.add('is-active');
+                sync();
+                prepare((currentIndex + 1) % images.length);
+            } catch {
+                // Keep the current decoded photograph if another one fails.
+            } finally { busy = false; schedule(); }
+        };
+        previous?.addEventListener('click', () => void show(currentIndex - 1));
+        nextButton?.addEventListener('click', () => void show(currentIndex + 1));
+        toggle?.addEventListener('click', () => { paused = !paused; sync(); schedule(); });
+        document.addEventListener('visibilitychange', schedule);
+        motion.addEventListener('change', () => { if (motion.matches) paused = true; sync(); schedule(); });
+        const start = () => { if (started) return; started = true; if (images.length > 1) prepare(1); schedule(); };
+        sync();
+        if (document.getElementById('page-cover')?.dataset.state === 'ready') start();
+        else window.addEventListener('lingxun:page-ready', start, { once: true });
+
+        const hero = document.querySelector<HTMLElement>('.hero-section');
+        let frame = 0;
+        hero?.addEventListener('pointermove', event => {
+            if (motion.matches || event.pointerType !== 'mouse') return;
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(() => hero.style.setProperty('--hero-shift-x', `${(event.clientX / innerWidth - .5) * 8}px`));
+        });
+        hero?.addEventListener('pointerleave', () => { cancelAnimationFrame(frame); hero.style.setProperty('--hero-shift-x', '0px'); });
     };
 
     const initHero = async () => {
         const photos = await fetchPublic<GalleryPhoto[]>('/api/public/gallery');
-        if (photos) renderManagedHero(photos);
-        initHeroCarousel();
+        await loadSiteContent();
+        if (photos) initHeroCarousel(renderManagedHero(photos) || []);
     };
     initPublicContent('#hero-backdrop, .hero-section__portrait', initHero);
 </script>
 
 <style is:global>
     .hero-section__portrait[hidden] { display: none; }
+    .hero-section__portrait:has([data-image-error])::after { content: '照片暂时无法打开，请刷新重试'; position: absolute; inset: 30% .75rem; display: grid; place-items: center; text-align: center; color: var(--paper-muted); font-size: .85rem; }
+    .hero-section__portrait-image[data-image-error] { visibility: hidden; }
     .hero-section--text-only .hero-section__inner { grid-template-columns: minmax(0, 1fr); }
     .hero-section {
         --gold: #d3a83d;
@@ -117,7 +211,9 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
         inset: 0;
     }
 
-    .hero-section__backdrop { z-index: -2; background: #11161d; }
+    .hero-section__backdrop { z-index: -2; background: #11161d; opacity: 1; transition: opacity 650ms ease; }
+    .hero-section__backdrop[data-media-pending] { opacity: 0; }
+    .hero-section__backdrop[data-public-pending]::after { display: none; }
 
     .hero-section .carousel-img {
         position: absolute;
@@ -126,13 +222,14 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
         height: 100%;
         object-fit: cover;
         opacity: 0;
-        filter: saturate(0.48) contrast(1.05) brightness(0.48);
-        transition: opacity 900ms ease;
+        filter: saturate(.7) contrast(1.02) brightness(.8);
+        transform: translateX(var(--hero-shift-x, 0px)) scale(1.02);
+        transition: opacity 900ms ease, transform 700ms ease-out;
     }
 
     .hero-section .carousel-img.is-active { opacity: 1; }
 
-    .hero-section__veil { z-index: -1; background: rgba(11, 13, 16, 0.7); }
+    .hero-section__veil { z-index: -1; background: linear-gradient(90deg, rgba(11,13,16,.87), rgba(11,13,16,.72) 45%, rgba(11,13,16,.36)), linear-gradient(0deg, rgba(11,13,16,.6), transparent 45%); }
 
     .hero-section__inner {
         display: grid;
@@ -147,9 +244,9 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
     .hero-section__note {
         margin: 1.5rem 0 0;
         color: #c4c5c1;
-        font-family: var(--font-mono);
+        font-family: var(--font-serif);
         font-size: 0.72rem;
-        letter-spacing: 0.08em;
+        letter-spacing: 0;
     }
 
     .hero-section__title {
@@ -187,7 +284,7 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
         justify-self: center;
         width: min(100%, 25rem);
         padding: 0.65rem;
-        border: 1px solid rgba(211, 168, 61, 0.62);
+        border: 1px solid rgba(241, 240, 235, .28);
         background: var(--surface-paper);
         box-shadow: var(--shadow-paper);
     }
@@ -207,6 +304,16 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
     .hero-section .button--quiet { border-color: rgba(241, 240, 235, 0.42); color: #f1f0eb; }
     .hero-section .button--quiet:hover { border-color: #d3a83d; color: #d3a83d; }
 
+    .hero-section__moments { position: absolute; left: max(var(--space-page), calc((100% - 1180px) / 2)); bottom: 1rem; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; width: min(18rem, calc(100% - 16rem)); color: #f1f0eb; }
+    .hero-section__moments[hidden] { display: none; }
+    .hero-section__film-controls { display: flex; align-items: center; justify-content: space-between; }
+    .hero-section__film-controls button { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; color: #f1f0eb; background: transparent; cursor: pointer; }
+    .hero-section__film-controls button:hover { color: #d3a83d; background: #ffffff0a; }
+    .hero-section__film-controls button:disabled { opacity: .35; cursor: default; }
+    #hero-photo-position { min-width: 4.25rem; text-align: center; font-size: .75rem; }
+    .hero-section__film-progress { grid-column: 1 / -1; height: 1px; background: #ffffff30; }
+    .hero-section__film-progress > span { display: block; height: 100%; background: #d3a83d; transform: scaleX(var(--photo-progress, 0)); transform-origin: left; transition: transform 450ms ease; }
+
     .hero-section__scroll { position: absolute; right: var(--space-page); bottom: 1.75rem; display: inline-flex; align-items: center; gap: 0.65rem; color: var(--gold); }
     .hero-section__scroll > span:last-child { font-size: 1.4rem; }
 
@@ -216,9 +323,14 @@ const heroPhoto = allGalleryImages[1] ?? allGalleryImages[0];
     }
 
     @media (max-width: 767px) {
-        .hero-section__inner { padding-bottom: 6rem; }
+        .hero-section__inner { padding-bottom: 10rem; }
         .hero-section__portrait { width: min(74vw, 21rem); margin-top: 0.5rem; }
         .hero-section__body { font-size: 0.98rem; }
         .hero-section__scroll { right: 1.25rem; }
+        .hero-section__moments { left: 1.25rem; bottom: 4rem; width: min(18rem, calc(100% - 2.5rem)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .hero-section .carousel-img { transform: none; transition: none; }
+        .hero-section__film-progress > span { transition: none; }
     }
 </style>

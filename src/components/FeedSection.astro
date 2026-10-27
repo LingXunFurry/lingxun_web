@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import SceneOrnament from './SceneOrnament.astro';
 import { postTagLabel } from '../lib/postLabels';
 
 const allPosts = await getCollection('posts');
@@ -8,6 +9,7 @@ const latestPosts = sortedPosts.slice(0, 3);
 ---
 
 <section class="home-feed-section" aria-labelledby="home-feed-title">
+    <SceneOrnament kind="notice" />
     <div class="site-container home-feed-section__inner">
         <header class="home-feed-section__heading" data-reveal>
             <div>
@@ -36,7 +38,7 @@ const latestPosts = sortedPosts.slice(0, 3);
 </section>
 
 <script>
-    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type PublicPost } from '../lib/publicContent';
+    import { escapeHtml, fetchRequired as fetchPublic, initPublicContent, imageAttributes, type PublicPost } from '../lib/publicContent';
     import { loadSiteContent, siteText } from '../lib/siteContent';
     import { postTagLabel } from '../lib/postLabels';
 
@@ -50,7 +52,7 @@ const latestPosts = sortedPosts.slice(0, 3);
     initPublicContent('#homepage-post-grid', initHomepageFeed);
 
     function renderPostCard(post: PublicPost, index: number) {
-        const cover = post.cover_url ? `<img src="${escapeHtml(toApiUrl(post.cover_url))}" alt="" loading="lazy" decoding="async" />` : '';
+        const cover = post.cover_url ? `<img ${imageAttributes(post.cover_url, post.cover_image, '(min-width: 900px) 30vw, 90vw')} alt="" loading="lazy" decoding="async" />` : '';
         return `
             <a href="/post/?slug=${encodeURIComponent(post.slug)}" class="note-card paper-card paper-enter" style="animation-delay: ${index * 100}ms">
                 ${cover ? `<div class="note-card__cover">${cover}</div>` : ''}

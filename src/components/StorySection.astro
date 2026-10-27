@@ -1,9 +1,11 @@
 ---
 import { Image } from 'astro:assets';
+import SceneOrnament from './SceneOrnament.astro';
 import portrait from '../assets/setting/Image_1777968000555_846.png';
 ---
 
 <section id="story-section" class="story-section" aria-labelledby="story-title" data-public-pending aria-busy="true">
+    <SceneOrnament kind="book" />
     <div class="site-container story-section__inner" data-reveal>
         <header class="story-section__heading">
             <div class="eyebrow">角色故事 / Character Stories</div>
@@ -14,7 +16,7 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
         <div class="story-book" aria-roledescription="轮播" aria-label="角色故事书">
             <div class="story-book__art">
                 <span id="story-folio" class="story-book__bookmark meta" aria-hidden="true">01</span>
-                <Image src={portrait} alt="凌巽角色设定" loading="lazy" decoding="async" />
+                <img width="800" height="1000" alt="角色故事封面" loading="lazy" decoding="async" />
                 <span class="meta">CHARACTER STORIES</span>
             </div>
             <div class="story-book__page">
@@ -40,7 +42,7 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
 </section>
 
 <script>
-    import { fetchPublic, initPublicContent, toApiUrl, type PublicPost, type CharacterProfile } from '../lib/publicContent';
+    import { fetchRequired as fetchPublic, initPublicContent, toApiUrl, setImageSource, type PublicPost, type CharacterProfile } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
     import { renderStoryChapters } from '../lib/storyChapters';
     const localImages = import.meta.glob<{ default: { src: string } }>('../assets/**/*.{png,jpg,jpeg,webp,avif}', { eager: true });
@@ -56,7 +58,11 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
         const link = document.getElementById('story-read') as HTMLAnchorElement;
         const artwork = section?.querySelector<HTMLImageElement>('.story-book__art img');
         if (!section || !page || !link) return;
-        const stories = await fetchPublic<PublicPost[]>('/api/public/stories');
+        const [stories, characters] = await Promise.all([
+            fetchPublic<PublicPost[]>('/api/public/stories'),
+            fetchPublic<CharacterProfile[]>('/api/public/characters'),
+            loadSiteContent(),
+        ]);
         if (!stories) return;
         if (!stories.length) {
             await loadSiteContent();
@@ -66,7 +72,6 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
             if (book) book.hidden = true;
             return;
         }
-        const characters = await fetchPublic<CharacterProfile[]>('/api/public/characters') || [];
         await loadSiteContent();
         // Each story owns its art; never show another character's fixed portrait.
         if (artwork) artwork.addEventListener('error', () => { artwork.hidden = true; });
@@ -76,12 +81,11 @@ import portrait from '../assets/setting/Image_1777968000555_846.png';
         const render = () => {
             const post = stories[current];
             const character = characters.find(item => item.id === post.story_character_id);
-            const imageUrl = resolveStoryImage(post.cover_url || character?.image_url || '');
+            const imageUrl = resolveStoryImage(post.story_cover_url ?? (post.cover_url || character?.image_url || ''));
             if (artwork) {
                 artwork.hidden = !imageUrl;
                 if (imageUrl) {
-                    artwork.removeAttribute('srcset');
-                    artwork.src = imageUrl;
+                    setImageSource(artwork, imageUrl, post.story_image || (post.story_cover_url == null && !post.cover_url ? character?.image : undefined), '(min-width: 900px) 42vw, 90vw');
                     artwork.alt = character?.name || post.title;
                 } else {
                     artwork.removeAttribute('src');

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
+import SceneOrnament from '../components/SceneOrnament.astro';
 import { postTagLabel } from '../lib/postLabels';
 
 const allPosts = await getCollection('posts');
@@ -9,6 +10,7 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
 
 <Layout title="最近手记 | 凌巽的酒馆" titleKey="site.posts_title">
     <main class="archive-page" aria-labelledby="posts-title">
+        <SceneOrnament kind="notice" />
         <header class="site-container archive-page__header" data-reveal>
             <div class="eyebrow">最近手记 / Tavern Notes</div>
             <h1 id="posts-title" class="section-title">公告板上的<em>新消息</em></h1>
@@ -46,13 +48,13 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
 
         <footer class="site-container archive-page__footer" data-reveal style="--reveal-delay: 220ms">
             <span class="meta">NOTES / 记录持续更新</span>
-            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回酒馆入口</a>
+            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回首页</a>
         </footer>
     </main>
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type PublicPost } from '../lib/publicContent';
+    import { escapeHtml, fetchRequired as fetchPublic, initPublicContent, imageAttributes, type PublicPost } from '../lib/publicContent';
 
     import { postTagLabel } from '../lib/postLabels';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
@@ -110,7 +112,7 @@ const sortedPosts = allPosts.sort((a, b) => new Date(b.data.date.replace(/\./g, 
     function renderPostCard(post: PublicPost, index: number) {
         const coverUrl = post.cover_url || post.image_urls?.[0] || '';
         const cover = coverUrl
-            ? `<img src="${escapeHtml(toApiUrl(coverUrl))}" alt="${escapeHtml(post.title)}" loading="lazy" decoding="async" />`
+            ? `<img ${imageAttributes(coverUrl, post.cover_image, '(min-width: 900px) 360px, 90vw')} alt="${escapeHtml(post.title)}" loading="lazy" decoding="async" />`
             : `<span class="post-card__cover-empty">暂未配图</span>`;
         const tag = postTagLabel(post.tag);
         return `

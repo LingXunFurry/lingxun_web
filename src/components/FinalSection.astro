@@ -1,4 +1,5 @@
 ---
+import SceneOrnament from './SceneOrnament.astro';
 const schedules = [
     { id: 'con-01', name: '绒爪兽聚', location: '重庆 · 南岸区', startDate: '2026-05-02', endDate: '2026-05-04', description: '小龙第一次参加兽聚' },
     { id: 'con-02', name: '福瑞八奇物志', location: '成都 · 武侯区', startDate: '2026-07-24', endDate: '2026-07-26', description: '暑期档兽聚，会带着新装备和新物料登场（？' },
@@ -25,6 +26,7 @@ const socialIconPath = (icon: string, name: string) => {
 ---
 
 <section id="final-section" class="final-section" aria-labelledby="schedule-title">
+    <SceneOrnament kind="map" />
     <div class="site-container final-section__inner">
         <div class="final-section__column" data-reveal>
             <div class="eyebrow">未来行程 / On The Road</div>
@@ -44,7 +46,7 @@ const socialIconPath = (icon: string, name: string) => {
         </div>
 
         <div class="final-section__column final-section__contact" data-reveal style="--reveal-delay: 120ms">
-            <div class="eyebrow">酒馆入口 / Find Lingxun</div>
+            <div class="eyebrow">联系凌巽 / Find Lingxun</div>
             <h2 class="section-title">想联系我？</h2>
             <p class="section-copy">如果你想找到我，不妨试试下面的工具</p>
 
@@ -75,7 +77,7 @@ const socialIconPath = (icon: string, name: string) => {
 </section>
 
 <script>
-import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type ScheduleItem, type SocialLink } from '../lib/publicContent';
+import { escapeHtml, fetchRequired as fetchPublic, initPublicContent, toApiUrl, type ScheduleItem, type SocialLink } from '../lib/publicContent';
 import { loadSiteContent, siteFormat, siteText } from '../lib/siteContent';
 
     const initFinalSection = () => {
@@ -198,7 +200,8 @@ import { loadSiteContent, siteFormat, siteText } from '../lib/siteContent';
                     eggSection?.classList.add('is-open');
                     eggSection?.dispatchEvent(new CustomEvent('lingxun:egg-open'));
                 });
-                window.setTimeout(() => eggSection?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+                window.setTimeout(() => eggSection?.scrollIntoView({ behavior, block: 'start' }), 100);
             }
         });
     };

@@ -23,7 +23,7 @@ const socialIconPath = (icon: string) => {
 const currentPath = Astro.url.pathname;
 ---
 
-<nav id="navbar" class="site-nav" aria-label="主导航">
+<nav id="navbar" class:list={['site-nav', currentPath === '/' ? 'is-hero-top' : 'is-page-nav']} aria-label="主导航">
     <div class="site-nav__inner">
         <a href="/" class="site-brand">
             <img src="/logo.png" alt="" />
@@ -40,7 +40,7 @@ const currentPath = Astro.url.pathname;
                 </a>
             ))}
             <div class="site-nav__contact-wrap">
-                <button id="contact-menu-btn" class="site-nav__contact-button site-nav__link" type="button" aria-expanded="false" aria-controls="contact-menu">酒馆入口 <span aria-hidden="true">⌄</span></button>
+                <button id="contact-menu-btn" class="site-nav__contact-button site-nav__link" type="button" aria-expanded="false" aria-controls="contact-menu">联系凌巽 <span aria-hidden="true">⌄</span></button>
                 <div id="contact-menu" class="site-nav__contact-menu" aria-hidden="true" data-public-pending aria-busy="true" inert>
                     <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
                     {fallbackSocials.map((social) => (
@@ -67,7 +67,7 @@ const currentPath = Astro.url.pathname;
             </a>
         ))}
         <div class="site-nav__mobile-group">
-            <button id="mobile-contact-btn" class="site-nav__link site-nav__mobile-parent" type="button" aria-expanded="false" aria-controls="mobile-contact-menu">酒馆入口 <span aria-hidden="true">⌄</span></button>
+            <button id="mobile-contact-btn" class="site-nav__link site-nav__mobile-parent" type="button" aria-expanded="false" aria-controls="mobile-contact-menu">联系凌巽 <span aria-hidden="true">⌄</span></button>
             <div id="mobile-contact-menu" class="site-nav__mobile-submenu" aria-hidden="true" data-public-pending aria-busy="true" inert>
                 <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
                 {fallbackSocials.map((social) => (
@@ -84,7 +84,7 @@ const currentPath = Astro.url.pathname;
 </nav>
 
 <script>
-    import { fetchPublic, getApiBase, initPublicContent, type SocialLink } from '../lib/publicContent';
+    import { fetchRequired as fetchPublic, getApiBase, initPublicContent, type SocialLink } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
     const initNavbar = () => {
         const navbar = document.getElementById('navbar');
@@ -100,6 +100,7 @@ const currentPath = Astro.url.pathname;
         const syncNav = () => {
             const scrollTop = Math.max(window.scrollY, scrollRoot?.scrollTop || 0);
             navbar?.classList.toggle('is-scrolled', scrollTop > 24);
+            navbar?.classList.toggle('is-hero-top', Boolean(document.querySelector('.hero-section')) && scrollTop <= 24);
             navbar?.classList.toggle('is-page-nav', Boolean(document.querySelector('.gallery-page, .friends-page, .archive-page, .dynamic-post-page, .article-page')));
         };
 
@@ -114,6 +115,7 @@ const currentPath = Astro.url.pathname;
         };
 
         const closeContactMenu = () => {
+            navbar?.classList.remove('is-contact-open');
             [contactMenu, mobileContactMenu].forEach((menu) => {
                 menu?.classList.remove('is-open');
                 menu?.setAttribute('aria-hidden', 'true');
@@ -127,6 +129,7 @@ const currentPath = Astro.url.pathname;
             menu?.setAttribute('aria-hidden', String(!isOpen));
             menu?.toggleAttribute('inert', !isOpen);
             button?.setAttribute('aria-expanded', String(isOpen));
+            navbar?.classList.toggle('is-contact-open', Boolean(contactMenu?.classList.contains('is-open') || mobileContactMenu?.classList.contains('is-open')));
         };
 
         const syncTheme = () => {
@@ -167,10 +170,14 @@ const currentPath = Astro.url.pathname;
                     return `<a href="${escapeHtml(social.link)}" target="_blank" rel="noopener noreferrer" title="打开${escapeHtml(social.name)}外部页面">${icon ? `<img src="${escapeHtml(icon)}" alt="" loading="lazy" />` : ''}<span>${escapeHtml(social.name)}</span><span aria-hidden="true">↗</span></a>`;
                 }).join('');
                 [contactMenu, mobileContactMenu].forEach((menu) => {
-                    if (menu) menu.innerHTML = `<span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>${html || '<span class="site-nav__contact-empty">暂无入口</span>'}`;
+                    if (menu) menu.innerHTML = `<span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>${html || '<span class="site-nav__contact-empty">暂无联系方式</span>'}`;
                 });
                 syncContactTitles();
-            } catch { /* keep navigation usable when the API is unavailable */ }
+            } catch {
+                [contactMenu, mobileContactMenu].forEach(menu => {
+                    if (menu) menu.innerHTML = '<span class="site-nav__contact-empty">暂时没能加载联系方式，请刷新重试</span>';
+                });
+            }
         };
 
         menuButton?.addEventListener('click', () => {

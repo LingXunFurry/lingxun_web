@@ -5,8 +5,10 @@ import uuid
 
 from fastapi import HTTPException, UploadFile, status
 from PIL import Image, ImageOps, UnidentifiedImageError
+from starlette.concurrency import run_in_threadpool
 
 from .config import settings
+from .media import IMAGE_LIMIT, save_image
 
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
@@ -37,23 +39,7 @@ def _prepare_webp(image: Image.Image, max_dimension: int) -> Image.Image:
 
 
 def save_optimized_image_content(content: bytes, extension: str, folder: str, max_dimension: int, quality: int) -> str:
-    target_dir = settings.upload_dir / folder
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    image = _open_verified_image(content)
-    if extension == ".gif" or getattr(image, "is_animated", False):
-        if len(content) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="动态图不能超过 5MB，建议上传静态图片。")
-        filename = f"{uuid.uuid4().hex}{extension}"
-        target = target_dir / filename
-        target.write_bytes(content)
-        return f"/uploads/{folder}/{filename}"
-
-    image = _prepare_webp(image, max_dimension)
-    filename = f"{uuid.uuid4().hex}.webp"
-    target = target_dir / filename
-    image.save(target, "WEBP", quality=quality, method=6)
-    return f"/uploads/{folder}/{filename}"
+    return save_image(content, folder, max_dimension, quality)
 
 
 async def save_image_upload(file: UploadFile, folder: str, max_dimension: int = 1280, quality: int = 76) -> str:
@@ -69,11 +55,11 @@ async def save_image_upload(file: UploadFile, folder: str, max_dimension: int = 
     target_dir = settings.upload_dir / folder
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    content = await file.read()
+    content = await file.read(IMAGE_LIMIT + 1)
     if len(content) > 20 * 1024 * 1024:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="图片不能超过 20MB。")
 
-    return save_optimized_image_content(content, extension, folder, max_dimension, quality)
+    return await run_in_threadpool(save_optimized_image_content, content, extension, folder, max_dimension, quality)
 
 
 async def save_attachment_upload(file: UploadFile, folder: str = "post_attachments") -> str:

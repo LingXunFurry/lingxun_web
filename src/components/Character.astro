@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import SceneOrnament from './SceneOrnament.astro';
 import characterPhoto from "../assets/gallery/photo3.webp";
 ---
 
@@ -10,14 +11,15 @@ import characterPhoto from "../assets/gallery/photo3.webp";
   data-public-pending
   aria-busy="true"
 >
+  <SceneOrnament kind="wind" />
   <div class="site-container character-section__inner">
     <div class="character-section__photo paper-card" data-reveal>
       <div class="character-section__photo-label meta">
         FIELD RECORD / 城镇实拍
       </div>
-      <Image
+      <img
         id="character-image"
-        src={characterPhoto}
+        width="600" height="800"
         alt="凌巽在城镇绿荫间的毛毛实拍照片"
         class="character-section__image"
         data-default-src={characterPhoto.src}
@@ -85,8 +87,9 @@ import characterPhoto from "../assets/gallery/photo3.webp";
 <script>
   import {
     escapeHtml,
-    fetchPublic,
+    fetchRequired as fetchPublic,
     initPublicContent,
+    setImageSource,
     type CharacterProfile,
   } from "../lib/publicContent";
   import { loadSiteContent, resolveSiteImage, siteText } from "../lib/siteContent";
@@ -139,7 +142,7 @@ import characterPhoto from "../assets/gallery/photo3.webp";
           image.hidden = true;
           if (status) { status.hidden = false; status.textContent = siteText('character.image_error', '登记照片暂时无法打开'); }
         };
-        if (url) image.src = url;
+        if (url) setImageSource(image, url, item.image, '(min-width: 900px) 40vw, 90vw');
         else image.removeAttribute('src');
         image.alt = `${item.name} 登记照片`;
       }

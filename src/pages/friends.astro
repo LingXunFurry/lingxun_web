@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import SceneOrnament from '../components/SceneOrnament.astro';
 
 const friendsData = [
     { id: '寒曜', avatar: 'https://lingxun.me/logo.png', url: 'https://hanyao.me/', comment: '站主的对象，一只银白色的小狼（头像暂时用本龙的代替）' },
@@ -12,6 +13,7 @@ const friendsData = [
 
 <Layout title="同行者名册 | 凌巽的酒馆" titleKey="site.friends_title">
     <main class="friends-page" aria-labelledby="friends-title">
+        <SceneOrnament kind="guest" />
         <header class="site-container friends-page__header" data-reveal>
             <div class="eyebrow">同行者名册 / Fellow Travellers</div>
             <h1 id="friends-title" class="section-title">酒馆里的<em>常客</em></h1>
@@ -38,13 +40,13 @@ const friendsData = [
 
         <footer class="site-container friends-page__footer" data-reveal style="--reveal-delay: 220ms">
             <span class="meta">FELLOW TRAVELLERS / 旅途中相遇</span>
-            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回酒馆入口</a>
+            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回首页</a>
         </footer>
     </main>
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, initPublicContent, type FriendLink } from '../lib/publicContent';
+    import { escapeHtml, fetchRequired as fetchPublic, initPublicContent, type FriendLink } from '../lib/publicContent';
     import { loadSiteContent, siteText } from '../lib/siteContent';
 
     const initFriendsPage = async () => {

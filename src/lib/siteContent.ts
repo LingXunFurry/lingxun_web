@@ -1,4 +1,5 @@
-import { fetchPublic, toApiUrl } from './publicContent';
+import { fetchRequired as fetchPublic, toApiUrl } from './publicContent';
+import { beginPageTask } from './pageLoad';
 
 type Entry = { key: string; value: string; content_type: string };
 let contentRequest: Promise<Entry[] | null> | undefined;
@@ -78,7 +79,7 @@ const bindings: Record<string, Binding> = {
     'hero.photo_number': ['.hero-section__portrait-caption > span:last-child'],
     'story.art_caption': ['.story-book__art > .meta:not(.story-book__bookmark)'],
     'friends.note': ['.friend-card__note > .meta'],
-    'common.back_home': ['.friends-page__footer a, .archive-page__footer a, .gallery-page__footer a', 'text-node'],
+    'common.back_home': ['.friends-page__footer > a, .archive-page__footer > a, .gallery-page__footer > a', 'text-node'],
     'posts.keyword_label': ['.post-search__field:first-child > span'],
     'posts.date_label': ['.post-search__field:nth-child(2) > span'],
     'posts.reset': ['#post-search-reset'],
@@ -186,16 +187,17 @@ export const siteContentSelectors = [...new Set(Object.values(bindings)
     .map(([selector]) => selector))];
 
 export async function initSiteContent() {
+    const complete = beginPageTask();
     try {
         await applySiteContent();
-    } finally {
         document.documentElement.removeAttribute('data-site-content-pending');
-    }
+        complete();
+    } catch { complete(false); }
 }
 
 async function applySiteContent() {
     const entries = await loadSiteContent();
-    if (!entries) return;
+    if (!entries) throw new Error('Site content unavailable');
     const applied = new WeakMap<Element, Set<string>>();
     const apply = () => {
         for (const entry of entries) {

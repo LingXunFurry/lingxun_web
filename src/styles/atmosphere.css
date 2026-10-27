@@ -1,0 +1,179 @@
+:root {
+    --line: rgba(211, 168, 61, .25);
+    --line-soft: rgba(211, 168, 61, .13);
+    --decor-wind: rgba(211, 168, 61, .3);
+    --decor-rule: rgba(211, 168, 61, .28);
+    --decor-red: rgba(219, 117, 123, .65);
+    --decor-fold: rgba(211, 168, 61, .3);
+    --decor-sail: rgba(82, 105, 130, .17);
+    --decor-metal: rgba(211, 168, 61, .65);
+    --decor-paper: rgba(241, 240, 235, .025);
+    --decor-sheen: linear-gradient(125deg, rgba(151, 108, 35, .12), rgba(242, 217, 156, .28) 48%, rgba(151, 108, 35, .08));
+}
+
+:root[data-theme="light"] {
+    --decor-wind: rgba(82, 105, 130, .25);
+    --decor-rule: rgba(82, 105, 130, .3);
+    --decor-red: rgba(155, 39, 49, .65);
+    --decor-fold: rgba(121, 90, 18, .22);
+    --decor-sail: rgba(82, 105, 130, .085);
+    --decor-metal: rgba(121, 90, 18, .6);
+    --decor-paper: rgba(255, 253, 248, .5);
+    --decor-sheen: none;
+}
+
+.scene-ornament {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+}
+.scene-ornament__sail {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(24%, 25rem);
+    background: var(--decor-sail);
+    clip-path: polygon(78% 0, 100% 0, 100% 100%, 0 100%, 48% 73%, 93% 34%);
+}
+.scene-ornament__wind-lines { position: absolute; inset: 0; background: var(--decor-wind); opacity: var(--wind-opacity, .65); mask: url('/images/decor/tavern-wind.svg') var(--wind-position, center top) / var(--wind-size, 100% auto) no-repeat; clip-path: var(--wind-clip, none); }
+.scene-ornament--photo { --wind-size: 90rem auto; --wind-position: left 6rem; --wind-clip: polygon(0 18rem, 32% 18rem, 32% 100%, 0 100%); --wind-opacity: .8; }
+.scene-ornament--notice { --wind-size: 110rem auto; --wind-position: right top; --wind-clip: polygon(60% 0, 100% 0, 100% 28rem, 60% 28rem); --wind-opacity: .5; }
+.scene-ornament--guest { --wind-size: 95rem auto; --wind-position: left 10rem; --wind-clip: polygon(0 24rem, 35% 24rem, 35% 100%, 0 100%); }
+.scene-ornament--book { --wind-size: 105rem auto; --wind-position: right 14rem; --wind-clip: polygon(72% 0, 100% 0, 100% 100%, 72% 100%); --wind-opacity: .5; }
+.scene-ornament--map { --wind-size: 100% auto; --wind-position: center 16rem; --wind-opacity: .35; }
+.scene-ornament__photo { position: absolute; top: 4rem; right: 3rem; width: 12rem; height: 15rem; border: 1px solid var(--decor-rule); box-shadow: inset 0 0 0 10px var(--decor-paper); transform: rotate(12deg); }
+.scene-ornament__photo::before { content: ''; position: absolute; inset: .7rem .7rem 2.4rem; border: 1px solid var(--decor-rule); }
+.scene-ornament__photo::after { content: ''; position: absolute; bottom: 1.2rem; left: 1rem; width: 42%; border-top: 1px solid var(--decor-rule); }
+.scene-ornament__photo--back { top: 1.5rem; right: 12rem; transform: rotate(-14deg); }
+.scene-ornament__notice { position: absolute; top: 3rem; right: 2rem; width: 14rem; height: 18rem; background: var(--decor-paper); border: 1px solid var(--decor-rule); transform: rotate(6deg); }
+.scene-ornament__notice::before { content: ''; position: absolute; inset: 9rem 1.25rem 2rem; background: repeating-linear-gradient(180deg, transparent 0 1.4rem, var(--decor-rule) 1.4rem calc(1.4rem + 1px)); }
+.scene-ornament__notice::after { content: ''; position: absolute; top: 0; right: 0; width: 1.5rem; height: 1.5rem; border-left: 1px solid var(--decor-rule); border-bottom: 1px solid var(--decor-rule); clip-path: polygon(0 0, 0 100%, 100% 100%); background: var(--decor-fold); }
+.scene-ornament__seal { position: absolute; bottom: -.9rem; left: 2rem; width: 2.5rem; height: 2.5rem; background: var(--decor-red); opacity: .28; clip-path: polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%); }
+.scene-ornament__leaves { position: absolute; bottom: 2rem; left: -5rem; width: 20rem; height: 9rem; border-top: 3px double var(--decor-rule); border-radius: 55% 0 0; transform: rotate(-24deg); }
+.scene-ornament__leaves::before { content: ''; position: absolute; inset: 1rem -1rem auto 0; height: 5rem; border-top: 1px solid var(--decor-rule); border-radius: 55% 0 0; }
+.scene-ornament__calling-card { position: absolute; top: 7rem; right: 1rem; width: 24rem; height: 12rem; border-block: 3px double var(--decor-rule); background: var(--decor-paper); transform: rotate(-5deg); }
+.scene-ornament__calling-card::before { content: ''; position: absolute; inset: .75rem 50% .75rem auto; border-left: 3px double var(--decor-rule); }
+.scene-ornament__signature { position: absolute; inset: 5rem 1.5rem 1rem; background: var(--decor-rule); mask: url('/images/decor/tavern-guest.svg') right top / 50rem auto no-repeat; }
+.scene-ornament__map-fold { position: absolute; inset: 0 0 auto auto; width: 38%; height: 100%; border-inline: 3px double var(--decor-rule); transform: skewX(-10deg); transform-origin: top right; background: linear-gradient(90deg, transparent 49.7%, var(--decor-rule) 50%, transparent 50.3%), var(--decor-paper); opacity: .4; }
+.home-gallery-section .scene-ornament__photo { top: auto; bottom: -4rem; right: -2rem; width: 13rem; height: 17rem; opacity: .5; }
+.home-gallery-section .scene-ornament__photo--back { right: 6rem; bottom: -7rem; }
+.home-feed-section .scene-ornament__notice { top: 1rem; right: 1.5rem; width: 10rem; height: 12rem; opacity: .5; }
+.home-feed-section .scene-ornament__wind-lines { display: none; }
+.final-section .scene-ornament__wind-lines { display: none; }
+.final-section .scene-ornament__map-fold { inset-inline: 0 auto; width: 48%; }
+
+/* Keep the art below content and inside the existing scene geometry. */
+html:root[data-theme] :is(.character-section, .story-section, .home-gallery-section,
+.home-feed-section, .final-section, .gallery-page, .archive-page, .friends-page, .dynamic-post-page) {
+    position: relative;
+    isolation: isolate;
+    background-image: url('/images/decor/paper-grain.svg');
+}
+
+:is(.character-section, .story-section, .home-gallery-section, .home-feed-section,
+.final-section, .gallery-page, .archive-page, .friends-page, .dynamic-post-page)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--decor-wind);
+    background-image: var(--decor-sheen);
+    mask-image: var(--decor-motif, url('/images/decor/tavern-wind.svg'));
+    mask-size: 100% auto;
+    mask-position: center top;
+    mask-repeat: no-repeat;
+}
+
+.character-section::before { mask-position: center center; }
+.home-gallery-section, .gallery-page { --decor-motif: url('/images/decor/tavern-photo.svg'); }
+.story-section, .dynamic-post-page { --decor-motif: url('/images/decor/tavern-book.svg'); }
+.home-feed-section, .archive-page { --decor-motif: url('/images/decor/tavern-notice.svg'); }
+.friends-page { --decor-motif: url('/images/decor/tavern-guest.svg'); }
+.final-section { --decor-motif: url('/images/decor/tavern-map.svg'); }
+.story-section::before { mask-size: 112% auto; }
+.home-feed-section::before { mask-position: center top; }
+.final-section::before { mask-size: 110% auto; clip-path: polygon(0 0, 51% 0, 51% 100%, 0 100%); }
+.dynamic-post-page::before { mask-size: max(100%, 80rem) auto; }
+
+:is(.gallery-page__header, .archive-page__header, .friends-page__header) { position: relative; }
+:is(.gallery-page__header, .archive-page__header, .friends-page__header, .home-gallery-section) .section-title em { display: inline-block; }
+:is(.gallery-page__header, .archive-page__header, .friends-page__header)::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -1.15rem;
+    height: 2px;
+    pointer-events: none;
+    background: linear-gradient(90deg, var(--decor-red) 0 4.5rem, var(--decor-rule) 4.5rem 100%);
+}
+
+.story-book__page { position: relative; }
+.story-book__page::after {
+    content: '';
+    position: absolute;
+    inset: 1rem auto 1rem .4rem;
+    width: 3px;
+    border-inline: 1px solid var(--decor-rule);
+    pointer-events: none;
+}
+
+.note-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(225deg, var(--decor-fold) 0 48%, transparent 50%);
+    pointer-events: none;
+}
+
+.friend-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto auto 1.25rem;
+    width: 3.25rem;
+    height: 3px;
+    background: var(--decor-red);
+    pointer-events: none;
+}
+
+html[data-theme] .post-card__cover { background: var(--ink-blue); }
+html[data-theme] .post-card__cover:has(.post-card__cover-empty) {
+    background-color: var(--surface-paper);
+    background-image: url('/images/decor/paper-grain.svg');
+    border-right: 1px solid var(--line-soft);
+}
+.post-card__cover-empty { color: var(--steel-soft); }
+
+:root[data-theme="light"] .paper-card:not(:hover) { box-shadow: 0 8px 24px rgba(11, 13, 16, .055); }
+
+@media (max-width: 760px) {
+    .scene-ornament__sail { width: 25%; }
+    .scene-ornament__wind-lines { mask-size: 58rem auto; opacity: .5; }
+    .scene-ornament__photo { width: 7rem; height: 9rem; top: 4rem; right: -1rem; opacity: .6; }
+    .scene-ornament__photo--back { top: 2.5rem; right: 4rem; }
+    .scene-ornament__notice { top: 4rem; right: -3rem; width: 10rem; height: 13rem; opacity: .45; }
+    .scene-ornament__notice::before { inset: 6rem 1rem 1rem; }
+    .scene-ornament__calling-card { top: 5rem; right: -4rem; width: 13rem; height: 8rem; opacity: .45; }
+    .scene-ornament__leaves { width: 10rem; height: 8rem; left: -6rem; bottom: -3rem; }
+    .scene-ornament__map-fold { width: 18%; opacity: .3; }
+    .home-gallery-section .scene-ornament__photo { width: 8rem; height: 11rem; }
+    .final-section::before, .final-section .scene-ornament__map-fold { display: none; }
+    :is(.character-section, .story-section, .home-gallery-section, .home-feed-section,
+    .final-section, .gallery-page, .archive-page, .friends-page, .dynamic-post-page)::before {
+        mask-size: 58rem auto;
+        mask-position: 58% top;
+        opacity: .72;
+    }
+    .story-book__page::after { display: none; }
+    html[data-theme] .post-card__cover:has(.post-card__cover-empty) { border-right: 0; border-bottom: 1px solid var(--line-soft); }
+}
+
+@media (forced-colors: active) {
+    :is(.character-section, .story-section, .home-gallery-section, .home-feed-section,
+    .final-section, .gallery-page, .archive-page, .friends-page, .dynamic-post-page)::before,
+    .egg-section__texture, .scene-ornament { display: none; }
+}

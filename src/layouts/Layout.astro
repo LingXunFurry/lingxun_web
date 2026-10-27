@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css'
+import '../styles/atmosphere.css'
 import Navbar from '../components/Navbar.astro'
 import { siteContentSelectors } from '../lib/siteContent';
 
@@ -12,50 +13,116 @@ const { title = '凌巽的酒馆', titleKey = '' } = Astro.props;
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width" />
         <link id="site-favicon" rel="icon" href="/logo.png" />
+        <link rel="stylesheet" href="/fonts/tavern-fonts.css" />
         <meta name="generator" content={Astro.generator} />
         <title data-content-title={titleKey}>{title}</title>
         <style is:inline set:html={`html[data-site-content-pending] :is(${siteContentSelectors.join(',')}) { visibility: hidden !important; }`} />
         <noscript><style is:inline>
+            #page-cover { display: none !important; }
             html [data-public-pending] { pointer-events: auto; }
             html [data-public-pending] > * { visibility: visible !important; }
             html [data-public-pending]::after { display: none; }
         </style></noscript>
         <script is:inline>
             (() => {
+                document.documentElement.classList.add('reveal-ready');
                 document.documentElement.setAttribute('data-site-content-pending', '');
-                const saved = localStorage.getItem('lingxun-theme');
+                let seen = false, saved = null;
+                try { seen = sessionStorage.getItem('lingxun-intro-seen') === '1'; } catch {}
+                try { seen ||= history.state?.lingxunIntroSeen === true; } catch {}
+                try { saved = localStorage.getItem('lingxun-theme'); } catch {}
+                let internal = false;
+                try { internal = Boolean(document.referrer) && new URL(document.referrer).origin === location.origin; } catch {}
+                let navigationType = '';
+                try { navigationType = performance.getEntriesByType('navigation')[0]?.type || ''; } catch {}
+                const directEntry = !internal && (navigationType === 'navigate' || (!navigationType && !seen));
+                // Refreshing the homepage is an explicit replay; internal and history navigation stay quiet.
+                const intro = location.pathname === '/' && (navigationType === 'reload' || directEntry);
+                document.documentElement.dataset.loadMode = intro ? 'intro' : 'inline';
+                if (intro) {
+                    document.documentElement.setAttribute('data-page-loading', '');
+                    const preload = document.createElement('link');
+                    preload.rel = 'preload'; preload.as = 'image';
+                    preload.href = '/images/loading/lingxun-run-32-v5.webp'; preload.fetchPriority = 'high';
+                    document.head.append(preload);
+                }
                 const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
                 document.documentElement.dataset.theme = saved === 'light' || saved === 'dark' ? saved : preferred;
             })();
         </script>
+        <style is:inline>
+            #page-cover { position: fixed; inset: 0; z-index: 10000; display: none; place-items: center; padding: 1.5rem; background: #0b0d10; color: #f1f0eb; transition: opacity .35s ease; }
+            html[data-load-mode="intro"] #page-cover { display: grid; }
+            html[data-theme="light"] #page-cover { background: #f1f0eb; color: #0b0d10; }
+            #page-cover[hidden] { display: none !important; }
+            #page-cover[data-state="ready"] { opacity: 0; pointer-events: none; }
+            .page-cover__inner { width: min(100%, 23rem); text-align: center; }
+            .page-cover__scene { display: grid; place-items: center; position: relative; width: 14rem; max-width: 100%; height: 160px; margin: 0 auto 1.5rem; }
+            .page-cover__scene::after { content: ''; position: absolute; bottom: 4px; left: 15%; right: 15%; height: 1px; background: #52698266; }
+            .page-cover__runner { display: block; width: 160px; height: 160px; background-size: 5120px 160px; background-repeat: repeat-x; image-rendering: pixelated; }
+            html[data-load-mode="intro"] .page-cover__runner { background-image: url('/images/loading/lingxun-run-32-v5.webp'); animation: lingxun-loading-run .84s steps(32) infinite; }
+            .page-cover__title { font-family: "Tavern Serif Core", "Tavern Serif Full", serif; font-size: 1.5rem; font-weight: 400; margin: 0; }
+            .page-cover__rule { position: relative; height: 2px; overflow: hidden; background: #52698255; margin: 1.5rem auto; width: 10rem; }
+            .page-cover__rule::after { content: ''; position: absolute; inset: 0; background: #d3a83d; transform: translateX(-100%); animation: tavern-loading 1.8s ease-in-out infinite; }
+            #page-cover-message { font-size: .88rem; line-height: 1.9; color: #a8a9a6; margin: 0; }
+            html[data-theme="light"] #page-cover-message { color: #4e565b; }
+            #page-cover-retry { margin-top: 1rem; min-height: 44px; padding: .5rem 1.5rem; color: inherit; background: transparent; border: 1px solid #9b2731; font: inherit; cursor: pointer; }
+            #page-cover[data-state="error"] .page-cover__rule::after { animation: none; transform: none; background: #9b2731; }
+            #page-cover[data-state="error"] .page-cover__runner { animation-play-state: paused; }
+            #page-load-status { position: fixed; z-index: 1000; bottom: 1rem; left: 50%; transform: translateX(-50%); width: min(30rem, calc(100% - 2rem)); padding: .8rem 1rem; border: 1px solid var(--line); border-left: 3px solid var(--gold); color: var(--paper); background: var(--surface-card); font-size: .85rem; line-height: 1.7; }
+            #page-load-status[hidden], #page-load-status-retry[hidden] { display: none; }
+            #page-load-status-retry { min-height: 44px; margin-left: .75rem; border: 1px solid var(--line); padding: .3rem .65rem; background: transparent; color: inherit; cursor: pointer; }
+            [data-public-error]::after { animation: none !important; }
+            html[data-page-loading] { overflow: hidden; }
+            html[data-page-loading] .paper-enter, html[data-page-loading] [data-reveal] { animation-play-state: paused !important; }
+            @keyframes tavern-loading { to { transform: translateX(100%); } }
+            @keyframes lingxun-loading-run { to { background-position-x: -5120px; } }
+            @media (prefers-reduced-motion: reduce) { #page-cover { transition: none; } html[data-load-mode="intro"] .page-cover__runner { animation: none; } .page-cover__rule::after { animation: none; transform: none; opacity: .65; } }
+        </style>
 
         <meta name="description" content="欢迎来到凌巽的个人网站,这里展示了我的设定背景,日常动态还有精美照片,以及更多未发现的东西?">
     </head>
     <body>
+        <div id="page-cover" role="status" aria-live="polite" aria-label="页面加载中">
+            <div class="page-cover__inner">
+                <div class="page-cover__scene" aria-hidden="true"><span class="page-cover__runner"></span></div>
+                <p class="page-cover__title">推门之前，稍候片刻</p>
+                <div class="page-cover__rule" aria-hidden="true"></div>
+                <p id="page-cover-message">正在备好照片与手记……</p>
+                <button id="page-cover-retry" type="button" hidden onclick="window.location.reload()">重新加载</button>
+            </div>
+        </div>
+        <div id="page-load-status" role="status" aria-live="polite" hidden><span id="page-load-status-message"></span><button id="page-load-status-retry" type="button" hidden onclick="location.reload()">重新加载</button></div>
+        <script is:inline>
+            // The retry remains usable even if a module cannot be downloaded.
+            window.setTimeout(() => {
+                if (document.getElementById('page-cover').dataset.state === 'error') return;
+                if (!document.documentElement.hasAttribute('data-site-content-pending') && !document.querySelector('[data-public-pending]')) return;
+                const intro = document.documentElement.dataset.loadMode === 'intro';
+                const message = document.getElementById(intro ? 'page-cover-message' : 'page-load-status-message');
+                if (message) message.textContent = '网络有些慢，正在加载，请耐心等候。';
+                if (!intro) document.getElementById('page-load-status').hidden = false;
+            }, 4000);
+            window.setTimeout(() => {
+                if (!document.documentElement.hasAttribute('data-site-content-pending') && !document.querySelector('[data-public-pending]')) return;
+                document.getElementById('page-cover').dataset.state = 'error';
+                const intro = document.documentElement.dataset.loadMode === 'intro';
+                document.getElementById(intro ? 'page-cover-message' : 'page-load-status-message').textContent = '加载仍未完成，请检查网络后重试。';
+                document.getElementById(intro ? 'page-cover-retry' : 'page-load-status-retry').hidden = false;
+                if (!intro) document.getElementById('page-load-status').hidden = false;
+            }, 45000);
+        </script>
         <Navbar />
 
         <slot />
 
         <script>
             import { initSiteContent } from '../lib/siteContent';
+            import { startPageLoad } from '../lib/pageLoad';
+            import { initPageReveals } from '../lib/pageReveal';
+            initPageReveals();
+            startPageLoad();
             initSiteContent();
-            document.documentElement.classList.add('reveal-ready');
-            const revealItems = document.querySelectorAll('[data-reveal]');
-            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            if (reducedMotion || typeof IntersectionObserver === 'undefined') {
-                revealItems.forEach((item) => item.classList.add('is-visible'));
-            } else {
-                const revealObserver = new IntersectionObserver((entries, observer) => {
-                    entries.forEach((entry) => {
-                        if (!entry.isIntersecting) return;
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    });
-                }, { threshold: 0.01, rootMargin: '0px 0px -8% 0px' });
-
-                revealItems.forEach((item) => revealObserver.observe(item));
-            }
         </script>
     </body>
 </html>

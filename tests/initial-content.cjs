@@ -8,10 +8,14 @@ const project = path.resolve(__dirname, '..');
 async function checkRequests() {
     const esbuild = require(path.join(project, 'node_modules/esbuild'));
     const code = esbuild.transformSync(fs.readFileSync(path.join(project, 'src/lib/publicContent.ts'), 'utf8'), {loader:'ts',format:'cjs'}).code;
+    const loaderCode = esbuild.transformSync(fs.readFileSync(path.join(project, 'src/lib/pageLoad.ts'), 'utf8'), {loader:'ts',format:'cjs'}).code;
+    const loader = {module:{exports:{}},window:{setTimeout,clearTimeout},document:{getElementById:()=>null}};
+    vm.runInNewContext(loaderCode, loader);
     let calls = 0, release, options;
     const pending = new Promise(resolve => release = resolve);
     const region = {attributes:new Set(['data-public-pending','aria-busy']),removeAttribute(name){this.attributes.delete(name);}};
-    const context = {module:{exports:{}},AbortController,window:{location:{port:'8123',hostname:'localhost',origin:'http://localhost:8123'},setTimeout,clearTimeout},document:{readyState:'complete',documentElement:{dataset:{}},querySelectorAll:()=>[region]},fetch:async (url, init)=>{calls++;options=init;await pending;return {ok:true,json:async()=>[]};}};
+    const context = {module:{exports:{}},AbortController,window:{location:{port:'8123',hostname:'localhost',origin:'http://localhost:8123'},setTimeout,clearTimeout},document:{readyState:'complete',getElementById:()=>null,documentElement:{dataset:{}},querySelectorAll:()=>[region]},fetch:async (url, init)=>{calls++;options=init;await pending;return {ok:true,json:async()=>[]};}};
+    context.require = name => { if (name === './pageLoad') return loader.module.exports; throw new Error(name); };
     vm.runInNewContext(code, context);
     const api = context.module.exports, first = api.fetchPublic('/api/public/gallery');
     assert.equal(first, api.fetchPublic('/api/public/gallery'));assert.equal(calls,1);assert.equal(options.cache,'no-store');
@@ -23,12 +27,12 @@ async function checkRequests() {
     context.fetch=async()=>{throw new Error('offline');};assert.equal(await api.fetchPublic('/api/public/posts'),null);
     let timeoutRequested;context.window.setTimeout=(fn,ms)=>{timeoutRequested=ms;return setTimeout(fn,0);};
     context.fetch=(url,init)=>new Promise((resolve,reject)=>init.signal.addEventListener('abort',()=>reject(new Error('aborted'))));
-    assert.equal(await api.fetchPublic('/api/public/posts'),null);assert.equal(timeoutRequested,10000);
+    assert.equal(await api.fetchPublic('/api/public/posts'),null);assert.equal(timeoutRequested,20000);
 }
 
 async function checkBrowser() {
     const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-    const root = path.join(project, 'dist'), screenshots = process.env.SCREENSHOT_DIR || path.join(project,'.local-backups/initial-content-screenshots');
+    const root = process.env.DIST_DIR || path.join(project, 'dist'), screenshots = process.env.SCREENSHOT_DIR || path.join(project,'.local-backups/initial-content-screenshots');
     fs.mkdirSync(screenshots,{recursive:true});
     const server = http.createServer((req,res)=>{
         const relative = decodeURIComponent(new URL(req.url,'http://localhost').pathname).replace(/^\/+/,''), file = path.resolve(root,relative||'index.html');
@@ -47,7 +51,7 @@ async function checkBrowser() {
     const regions={'/':['#hero-backdrop','.hero-section__portrait','#homepage-gallery-grid','#homepage-post-grid','#character-section','#story-section','#schedule-list','#social-list'], '/gallery/':['#gallery-grid','.gallery-page__filters'], '/posts/':['#posts-list']};
     let browser;
     try {
-        browser=await chromium.launch({headless:true});
+        browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHANNEL ? {channel:process.env.PLAYWRIGHT_CHANNEL} : {})});
         for(const width of [1440,390])for(const motion of ['reduce','no-preference'])for(const route of Object.keys(regions)){
             const context=await browser.newContext({viewport:{width,height:900},reducedMotion:motion});
             const p=await context.newPage(), errors=[],counts={};p.on('pageerror',e=>errors.push(e.message));
@@ -70,6 +74,7 @@ async function checkBrowser() {
             releaseScripts();await p.waitForFunction(()=>document.documentElement.classList.contains('reveal-ready'));
             await p.waitForTimeout(300);assert(await hidden(),'Old content visible during API delay: '+route);
             releaseApi();await p.waitForFunction(()=>!document.querySelector('[data-public-pending]'));
+            await p.locator('#page-cover').waitFor({state:'hidden'});
             if(route==='/'){
                 assert.equal(counts.gallery,1,'Hero and home gallery should share the pending request');
                 assert((await p.locator('#hero-portrait-image').getAttribute('src')).includes('current=9001'));
@@ -83,6 +88,7 @@ async function checkBrowser() {
             }else if(route==='/gallery/'){
                 assert.equal(await p.locator('.gallery-card').count(),2);
                 await p.locator('[data-gallery-trigger]').first().click();await p.locator('#modal-next').click();
+                await p.locator('#modal-position').waitFor({state:'visible'});
                 assert.equal(await p.locator('#modal-position').innerText(),'02 / 02');
                 await p.keyboard.press('Escape');await p.locator('#lightbox-modal').waitFor({state:'hidden'});
             }else{
@@ -102,9 +108,10 @@ async function checkBrowser() {
             await p.route('**/logo.png?current=*',async r=>{await image;await r.continue();});
             await p.goto(base+'/',{waitUntil:'domcontentloaded'});
             await p.locator('#hero-portrait-image').evaluate(img=>img.loading='eager');
-            await p.waitForFunction(()=>document.querySelector('#hero-portrait-image').naturalWidth>0);
+            assert.equal(await p.locator('#hero-portrait-image').getAttribute('src'),null,'Do not request a stale static portrait');
             releaseApi();await p.waitForFunction(()=>!document.querySelector('[data-public-pending]'));
             const displayed=await p.locator('#hero-portrait-image').evaluate(img=>img.currentSrc);
+            assert(await p.locator('#page-cover').isVisible(),'Cover should wait for the selected current image');
             try { assert(!displayed.includes('/_astro/'),'Cached old portrait bitmap is still displayed while the current image loads'); }
             finally { releaseImage(); }
             await p.waitForFunction(()=>document.querySelector('#hero-portrait-image').currentSrc.includes('current=9001'));
@@ -118,16 +125,28 @@ async function checkBrowser() {
                 if(mode==='timeout'){await pending;if(p.isClosed())return;}
                 await r.fulfill({status:mode==='failure'?503:200,json:mode==='empty'?[]:{}});
             });
-            await p.goto(base+route);
-            await p.waitForFunction(()=>!document.querySelector('[data-public-pending]'),null,{timeout:15000});
-            const count=await p.locator(route==='/'?'#homepage-post-grid .note-card':route==='/gallery/'?'.gallery-card':'[data-post-card]').count();
-            assert(mode==='empty'?count===0:count>0,`${mode} fallback/empty: ${route}`);
+            await p.goto(base+route,{waitUntil:'domcontentloaded'});
+            if(mode==='empty') {
+                await p.waitForFunction(()=>!document.querySelector('[data-public-pending]'),null,{timeout:15000});
+                const count=await p.locator(route==='/'?'#homepage-post-grid .note-card':route==='/gallery/'?'.gallery-card':'[data-post-card]').count();
+                assert.equal(count,0,`${mode} authoritative empty: ${route}`);
+            } else {
+                await p.waitForFunction(()=>document.getElementById('page-cover').dataset.state==='error',null,{timeout:25000});
+                if(route==='/') {
+                    assert(await p.locator('#page-cover').isVisible(),'Failed initial entry stays covered');
+                    assert(await p.locator('#page-cover-retry').isVisible(),'Initial failures offer retry');
+                } else {
+                    assert(await p.locator('#page-cover').isHidden(),'Subpages do not show the intro cover');
+                    assert(await p.locator('#page-load-status-retry').isVisible(),'Subpage failures offer nonblocking retry');
+                    assert(await p.evaluate(()=>Array.from(document.querySelectorAll('[data-public-pending]')).every(root=>Array.from(root.children).every(child=>getComputedStyle(child).visibility==='hidden'))),'Failed regions must not reveal old content');
+                }
+            }
             if(mode==='empty'&&route==='/')assert(await p.locator('.hero-section__portrait').isHidden());
             await context.close();release();
         }
         const nojs=await browser.newContext({javaScriptEnabled:false});const p=await nojs.newPage();await p.goto(base+'/posts/');
         assert(await p.locator('[data-post-card]').first().isVisible(),'No-JS static fallback');await nojs.close();
-        console.log('PASS 12 delayed first-render cases, 7 empty/failure/timeout cases, managed text, cached portrait, no-JS fallback, carousel, lightbox, search and layout.');
+        console.log('PASS 12 delayed first-render cases, 7 empty/failure/timeout cases, managed text, cover waits for current portrait, no-JS fallback, carousel, lightbox, search and layout.');
     } finally {if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 }
 

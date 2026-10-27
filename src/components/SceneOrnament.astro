@@ -1,0 +1,16 @@
+---
+interface Props {
+    kind?: 'wind' | 'book' | 'photo' | 'notice' | 'guest' | 'map';
+}
+const { kind = 'wind' } = Astro.props;
+---
+
+<div class:list={['scene-ornament', `scene-ornament--${kind}`]} aria-hidden="true">
+    {kind !== 'wind' && <span class="scene-ornament__wind-lines"></span>}
+    {kind === 'wind' && <span class="scene-ornament__sail"></span>}
+    {kind === 'book' && <span class="scene-ornament__leaves"></span>}
+    {kind === 'photo' && <><span class="scene-ornament__photo scene-ornament__photo--back"></span><span class="scene-ornament__photo"></span></>}
+    {kind === 'notice' && <span class="scene-ornament__notice"><span class="scene-ornament__seal"></span></span>}
+    {kind === 'guest' && <span class="scene-ornament__calling-card"><span class="scene-ornament__signature"></span></span>}
+    {kind === 'map' && <span class="scene-ornament__map-fold"></span>}
+</div>

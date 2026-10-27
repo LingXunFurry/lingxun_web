@@ -47,6 +47,7 @@ class Post(Base):
     is_character_story: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     story_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     story_summary: Mapped[str] = mapped_column(Text, default="")
+    story_cover_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     story_character_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("character_profiles.id", ondelete="SET NULL"),

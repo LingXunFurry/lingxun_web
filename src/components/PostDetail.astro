@@ -1,10 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import SceneOrnament from './SceneOrnament.astro';
 const { slug = '' } = Astro.props;
 ---
 
 <Layout title="动态详情 | 凌巽的酒馆">
     <main data-post-slug={slug} class="dynamic-post-page" aria-labelledby="post-title">
+        <SceneOrnament kind="book" />
         <div class="site-container dynamic-post-page__inner">
             <a href="/posts/" class="dynamic-post-page__back"><span aria-hidden="true">←</span> 返回最近手记</a>
             <div id="dynamic-post-loading" class="dynamic-state">正在打开这张手记……</div>
@@ -56,6 +58,9 @@ const { slug = '' } = Astro.props;
     import {
         escapeHtml,
         fetchPublic,
+        fetchRequired,
+        initPublicContent,
+        imageAttributes,
         markdownToHtml,
         postPublic,
         submitPublicForm,
@@ -77,7 +82,7 @@ const { slug = '' } = Astro.props;
         await loadSiteContent();
         loading.textContent = siteText('post.loading', '正在打开这张手记……');
 
-        const post = await fetchPublic<PublicPost>(`/api/public/posts/${encodeURIComponent(slug)}`);
+        const post = await fetchRequired<PublicPost>(`/api/public/posts/${encodeURIComponent(slug)}`);
         if (!post) {
             loading.textContent = siteText('post.not_found', '这张手记暂时找不到。');
             return;
@@ -137,8 +142,7 @@ const { slug = '' } = Astro.props;
         setupCommentForm();
         await loadComments();
     };
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPostPage, { once: true });
-    else initPostPage();
+    initPublicContent('.dynamic-post-page', initPostPage);
 
     function setText(id: string, value: string) {
         const element = document.getElementById(id);
@@ -150,7 +154,7 @@ const { slug = '' } = Astro.props;
         const resources = document.getElementById('post-resources');
         const imageUrls = [post.cover_url, ...(post.image_urls || [])].filter((url, index, values): url is string => Boolean(url) && values.indexOf(url) === index);
         if (media && imageUrls.length) {
-            media.innerHTML = imageUrls.map((url, index) => `<figure><img src="${escapeHtml(toApiUrl(url))}" alt="${escapeHtml(`${post.title} ${index + 1}`)}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" /><figcaption>${escapeHtml(siteFormat('post.media_caption', '旅途记录 {index} / {count}', { index: String(index + 1).padStart(2, '0'), count: imageUrls.length }))}</figcaption></figure>`).join('');
+            media.innerHTML = imageUrls.map((url, index) => `<figure><img ${imageAttributes(url, url === post.cover_url ? post.cover_image : post.image_assets?.[url], '(min-width: 900px) 880px, 92vw')} alt="${escapeHtml(`${post.title} ${index + 1}`)}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async" /><figcaption>${escapeHtml(siteFormat('post.media_caption', '旅途记录 {index} / {count}', { index: String(index + 1).padStart(2, '0'), count: imageUrls.length }))}</figcaption></figure>`).join('');
             media.classList.remove('hidden');
         }
         const attachments = (post.attachments || []).filter(Boolean);

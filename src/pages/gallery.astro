@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import SceneOrnament from '../components/SceneOrnament.astro';
 import { Image } from 'astro:assets';
 import settingOne from '../assets/setting/Image_1774261272205_454.png';
 import settingTwo from '../assets/setting/Image_1777968000555_846.png';
@@ -19,6 +20,7 @@ const filters = [...galleryCategories, '后台档案'];
 
 <Layout title="旅途留影 | 凌巽的酒馆" titleKey="site.gallery_title">
     <main class="gallery-page" aria-labelledby="gallery-title">
+        <SceneOrnament kind="photo" />
         <header class="site-container gallery-page__header" data-reveal>
             <div class="eyebrow">旅途留影 / Visual Archive</div>
             <div class="gallery-page__heading">
@@ -44,7 +46,7 @@ const filters = [...galleryCategories, '后台档案'];
                 {localEntries.map((entry, index) => (
                     <article class="gallery-card paper-card" data-gallery-item data-index={index} data-category={entry.category} data-character-ids={(entry.character_ids ?? []).join(',')} data-src={entry.image.src} data-title={entry.title} data-date={entry.date ?? ''} data-location={entry.location ?? ''} data-description={entry.description ?? ''}>
                         <button type="button" class="gallery-card__button" data-gallery-trigger data-index={index} aria-label={`打开${entry.title}`}>
-                            <Image src={entry.image} alt={entry.title} loading="lazy" decoding="async" />
+                            <img width={entry.image.width} height={entry.image.height} alt={entry.title} loading="lazy" decoding="async" />
                             <span class="gallery-card__open" aria-hidden="true">打开记录 ↗</span>
                         </button>
                         <div class="gallery-card__details">
@@ -60,7 +62,7 @@ const filters = [...galleryCategories, '后台档案'];
         </section>
 
         <div class="site-container gallery-page__footer" data-reveal style="--reveal-delay: 220ms">
-            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回酒馆入口</a>
+            <a href="/" class="button button--quiet"><span aria-hidden="true">←</span> 返回首页</a>
             <span class="meta">PHOTO WALL / 旅途档案持续整理</span>
         </div>
     </main>
@@ -94,7 +96,7 @@ const filters = [...galleryCategories, '后台档案'];
 </Layout>
 
 <script>
-    import { escapeHtml, fetchPublic, initPublicContent, toApiUrl, type CharacterProfile, type GalleryPhoto } from '../lib/publicContent';
+    import { escapeHtml, fetchRequired as fetchPublic, initPublicContent, toApiUrl, imageAttributes, type ImageAsset, type CharacterProfile, type GalleryPhoto } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
 
     const initGalleryPage = async () => {
@@ -122,7 +124,7 @@ const filters = [...galleryCategories, '后台档案'];
             items: readLocalItems(), visible: [], current: 0, filter: '全部', characterFilter: [], lastTrigger: null,
         };
 
-        type GalleryItem = { src: string; title: string; category: string; date: string; location: string; description: string; character_ids: number[] };
+        type GalleryItem = { src: string; image?: ImageAsset | null; original?: string; title: string; category: string; date: string; location: string; description: string; character_ids: number[] };
 
         function readLocalItems(): GalleryItem[] {
             return Array.from(grid.querySelectorAll<HTMLElement>('[data-gallery-item]')).map((item) => ({
@@ -135,7 +137,7 @@ const filters = [...galleryCategories, '后台档案'];
             grid.innerHTML = state.visible.map((item) => `
                 <article class="gallery-card paper-card" data-gallery-item data-index="${item._index}">
                     <button type="button" class="gallery-card__button" data-gallery-trigger data-index="${item._index}" aria-label="${escapeHtml(siteFormat('gallery.open_label', '打开{title}', { title: item.title }))}">
-                        <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" />
+                        <img ${imageAttributes(item.src, item.image, '(min-width: 1100px) 30vw, (min-width: 600px) 45vw, 90vw')} alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" />
                         <span class="gallery-card__open" aria-hidden="true">打开记录 ↗</span>
                     </button>
                     <div class="gallery-card__details"><div class="gallery-card__line"><span class="tag">${escapeHtml(item.category)}</span><span class="meta">${String(item._index + 1).padStart(2, '0')}</span></div><h2>${escapeHtml(item.title)}</h2><p>${escapeHtml(item.location || '凌巽的旅途')}</p></div>
@@ -219,7 +221,7 @@ const filters = [...galleryCategories, '后台档案'];
             if (!modalThumbs) return;
             modalThumbs.innerHTML = state.visible.map((item) => {
                 const originalIndex = (item as GalleryItem & { _index?: number })._index ?? state.items.indexOf(item);
-                return `<button type="button" class="lightbox-modal__thumb ${originalIndex === state.current ? 'is-active' : ''}" data-thumb-index="${originalIndex}" aria-label="${escapeHtml(siteFormat('gallery.thumb_label', '查看{title}', { title: item.title }))}"><img src="${escapeHtml(item.src)}" alt="" loading="lazy" /></button>`;
+                return `<button type="button" class="lightbox-modal__thumb ${originalIndex === state.current ? 'is-active' : ''}" data-thumb-index="${originalIndex}" aria-label="${escapeHtml(siteFormat('gallery.thumb_label', '查看{title}', { title: item.title }))}"><img ${imageAttributes(item.src, item.image, '80px')} alt="" loading="lazy" /></button>`;
             }).join('');
         }
 
@@ -297,12 +299,14 @@ const filters = [...galleryCategories, '后台档案'];
             (downloadButton as HTMLButtonElement).disabled = true;
             downloadButton.textContent = siteText('gallery.saving', '准备保存……');
             try {
-                const response = await fetch(item.src);
+                const originalUrl = item.original || item.src;
+                const response = await fetch(originalUrl);
                 if (!response.ok) throw new Error('download failed');
                 const blob = await response.blob();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `${item.title || 'lingxun-photo'}.webp`;
+                const extension = new URL(originalUrl, window.location.href).pathname.split('.').pop() || 'webp';
+                link.download = `${item.title || 'lingxun-photo'}.${extension}`;
                 link.click();
                 URL.revokeObjectURL(link.href);
             } catch { if (modalStatus) { modalStatus.textContent = siteText('gallery.save_error', '保存失败，请直接长按图片保存。'); modalStatus.classList.remove('is-hidden'); } }
@@ -315,7 +319,7 @@ const filters = [...galleryCategories, '后台档案'];
         ]);
         if (backendPhotos) {
             // An empty successful response is authoritative; only failed requests use local fallback.
-            state.items = backendPhotos.map((photo) => ({ src: toApiUrl(photo.file_url), title: photo.title || photo.original_filename || siteText('gallery.default_title', '旅途留影'), category: photo.category || siteText('gallery.uncategorized', '未分类'), date: photo.date || '', location: photo.location || '', description: photo.description || '', character_ids: photo.character_ids || [] }));
+            state.items = backendPhotos.map((photo) => ({ src: toApiUrl(photo.image?.src || photo.file_url), image: photo.image, original: toApiUrl(photo.image?.original_url || photo.file_url), title: photo.title || photo.original_filename || siteText('gallery.default_title', '旅途留影'), category: photo.category || siteText('gallery.uncategorized', '未分类'), date: photo.date || '', location: photo.location || '', description: photo.description || '', character_ids: photo.character_ids || [] }));
             const categories = ['全部', ...new Set(state.items.map(item => item.category).filter(category => category !== '全部'))];
             const filters = document.querySelector('.gallery-filter-list');
             if (filters) filters.innerHTML = categories.map(category => `<button type="button" class="gallery-filter ${category === '全部' ? 'is-active' : ''}" data-filter="${escapeHtml(category)}" aria-pressed="${category === '全部'}">${escapeHtml(category)}</button>`).join('');

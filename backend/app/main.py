@@ -41,6 +41,10 @@ def create_app() -> FastAPI:
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         elif path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
+        elif response.headers.get('content-type', '').startswith('text/html'):
+            response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+        elif path.startswith('/fonts/'):
+            response.headers['Cache-Control'] = 'public, max-age=604800'
         return response
 
     app.add_middleware(
@@ -89,6 +93,7 @@ def create_app() -> FastAPI:
             if "posts" not in existing_tables:
                 seed_posts(db)
             ensure_site_content(db)
+            migrate_contact_copy(db)
             if initialize_stories:
                 migrate_character_story(db)
 
@@ -151,6 +156,7 @@ def ensure_database_schema() -> bool:
             "story_order": "INT NOT NULL DEFAULT 0",
             "story_summary": "TEXT NOT NULL DEFAULT ''",
             "story_character_id": "INT NULL",
+            "story_cover_url": "VARCHAR(500) NULL",
         }.items():
             if column_name not in table_columns.get("posts", set()):
                 if engine.dialect.name == "mysql" and column_name == "story_summary":
@@ -227,6 +233,30 @@ def ensure_site_content(db) -> None:
     if missing:
         db.add_all(missing)
         db.commit()
+
+
+def migrate_contact_copy(db) -> int:
+    # Only replace shipped defaults. Owner-written copy must survive upgrades.
+    defaults = {
+        "navbar.contact": ("酒馆入口", "联系凌巽", "联系方式菜单名称", "联系凌巽菜单名称"),
+        "final.contact_eyebrow": ("酒馆入口 / Find Lingxun", "联系凌巽 / Find Lingxun", "联系眉题", "联系凌巽眉题"),
+        "navbar.empty": ("暂无入口", "暂无联系方式", None, None),
+        "common.back_home": ("返回酒馆入口", "返回首页", None, None),
+    }
+    changed = 0
+    for row in db.scalars(select(SiteContent).where(SiteContent.key.in_(defaults))):
+        old, new, old_label, new_label = defaults[row.key]
+        updated = False
+        if row.value == old:
+            row.value = new
+            updated = True
+        if old_label and row.label == old_label:
+            row.label = new_label
+            updated = True
+        changed += int(updated)
+    if changed:
+        db.commit()
+    return changed
 
 
 def migrate_character_story(db) -> None:

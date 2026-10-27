@@ -1,3 +1,11 @@
+import { beginPageTask } from './pageLoad';
+
+export type ImageAsset = {
+    src: string; width: number; height: number; bytes: number;
+    original_url?: string; original_bytes?: number;
+    variants: { src: string; width: number; height: number; bytes: number }[];
+};
+
 export type GalleryPhoto = {
     id: number;
     title: string;
@@ -15,6 +23,7 @@ export type GalleryPhoto = {
     is_home_portrait?: boolean;
     is_home_gallery?: boolean;
     home_order?: number;
+    image?: ImageAsset | null;
 };
 
 export type PublicPost = {
@@ -36,6 +45,10 @@ export type PublicPost = {
     story_order?: number;
     story_summary?: string;
     story_character_id?: number | null;
+    story_cover_url?: string | null;
+    story_image?: ImageAsset | null;
+    cover_image?: ImageAsset | null;
+    image_assets?: Record<string, ImageAsset | null>;
 };
 
 export type CharacterProfile = {
@@ -52,6 +65,7 @@ export type CharacterProfile = {
     details?: string;
     custom_fields?: { label?: string; value?: string }[] | null;
     image_url: string;
+    image?: ImageAsset | null;
     sort_order: number;
     is_visible: boolean;
 };
@@ -147,7 +161,7 @@ export function fetchPublic<T>(path: string): Promise<T | null> {
     if (pending) return pending as Promise<T | null>;
     const request = (async () => {
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 10000);
+        const timeout = window.setTimeout(() => controller.abort(), 20000);
         try {
             const response = await fetch(url, {
                 headers: { Accept: "application/json" },
@@ -167,20 +181,51 @@ export function fetchPublic<T>(path: string): Promise<T | null> {
     return request;
 }
 
+export async function fetchRequired<T>(path: string): Promise<T> {
+    const data = await fetchPublic<T>(path);
+    if (data === null) throw new Error(`Latest content unavailable: ${path}`);
+    return data;
+}
+
 export function initPublicContent(selector: string, initialize: () => Promise<void>) {
+    const complete = beginPageTask();
     const start = async () => {
         const regions = document.querySelectorAll<HTMLElement>(selector);
+        let success = false;
         try {
             await initialize();
+            success = true;
+        } catch {
+            complete(false);
+            return;
         } finally {
             regions.forEach(region => {
-                region.removeAttribute('data-public-pending');
-                region.removeAttribute('aria-busy');
+                if (success) {
+                    region.removeAttribute('data-public-pending');
+                    region.removeAttribute('aria-busy');
+                } else region.setAttribute('data-public-error', '');
             });
+            complete();
         }
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
     else void start();
+}
+
+export function imageAttributes(url: string, image?: ImageAsset | null, sizes = '100vw') {
+    const src = image?.src || url;
+    const variants = image?.variants || [];
+    return `src="${escapeHtml(toApiUrl(src))}"${variants.length ? ` srcset="${variants.map(item => `${escapeHtml(toApiUrl(item.src))} ${item.width}w`).join(', ')}" sizes="${escapeHtml(sizes)}"` : ''}${image?.width ? ` width="${image.width}" height="${image.height}"` : ''}`;
+}
+
+export function setImageSource(element: HTMLImageElement, url: string, image?: ImageAsset | null, sizes = '100vw') {
+    element.removeAttribute('srcset');
+    element.removeAttribute('sizes');
+    if (image?.variants?.length) {
+        element.sizes = sizes;
+        element.srcset = image.variants.map(item => `${toApiUrl(item.src)} ${item.width}w`).join(', ');
+    }
+    element.src = toApiUrl(image?.src || url);
 }
 
 export async function postPublic<T>(path: string): Promise<T | null> {
