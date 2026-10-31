@@ -6,8 +6,10 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   // 在这里添加你的域名配置
   site: 'https://lingxun.me', 
+  cacheDir: '.astro/cache',
   
   vite: {
+    cacheDir: '.astro/vite',
     plugins: [tailwindcss()]
   }
 });

@@ -1,0 +1,14 @@
+---
+import sun from '../assets/icons/sun.svg?raw';
+import moon from '../assets/icons/moon.svg?raw';
+---
+<span class="theme-icon" aria-hidden="true"><span class="theme-icon__sun" set:html={sun} /><span class="theme-icon__moon" set:html={moon} /></span>
+<style is:global>
+    .theme-icon { display: inline-grid; width: 20px; height: 20px; flex: 0 0 20px; align-self: center; }
+    .theme-icon > span { grid-area: 1 / 1; display: block; transition: opacity .2s ease, transform .25s ease; }
+    .theme-icon svg { display: block; width: 20px; height: 20px; stroke-width: 1.6; }
+    .theme-icon__moon { opacity: 0; transform: rotate(-25deg) scale(.8); }
+    html[data-theme='light'] .theme-icon__moon { opacity: 1; transform: none; }
+    html[data-theme='light'] .theme-icon__sun { opacity: 0; transform: rotate(25deg) scale(.8); }
+    @media (prefers-reduced-motion: reduce) { .theme-icon > span { transition: none; } }
+</style>

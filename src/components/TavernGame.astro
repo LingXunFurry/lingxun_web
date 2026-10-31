@@ -1,0 +1,40 @@
+---
+import '../styles/tavern-game.css';
+import pauseIcon from '../assets/icons/pause.svg?raw';
+import jumpIcon from '../assets/icons/arrow-up.svg?raw';
+import { DRINKS } from '../lib/runnerRewards.mjs';
+const { intro = '等都等了，跑两步？' } = Astro.props;
+---
+
+<details class="tavern-game" id="tavern-game">
+    <summary><span><small>{intro}</small><strong>要不要跟凌巽一起玩游戏？</strong></span><span class="tavern-game__expand" aria-hidden="true">＋</span></summary>
+    <div class="tavern-game__body">
+        <div class="tavern-game__screen" data-game-state="loading">
+            <div id="lingxun-runner" class="tavern-game__stage" tabindex="0" role="group" aria-label="凌巽跑酷。空格或上方向键跳跃，空中再按一次踏风二段跳，P 暂停，Enter 开始。"><span class="icon-offline" hidden></span></div>
+            <div class="tavern-game__hud"><span class="tavern-game__score">积分 <output id="game-score">00000</output><small>最佳 <output id="game-best">00000</output></small></span><span class="tavern-game__order">送酒 <output id="game-order">0/3</output> · 路况 <output id="game-level">1</output></span></div>
+            <div class="tavern-game__status-row">
+                <div class="tavern-game__shield" id="game-shield" hidden aria-label="护盾可抵挡一次碰撞"><img data-shield-icon src="/images/game-fx/shield-snoopeth.png" alt="" width="32" height="32" loading="lazy" /><span>护盾 ×1</span><output id="game-shield-time">7s</output></div>
+                <div class="tavern-game__buff" id="game-buff" hidden role="status"></div>
+            </div>
+            <div class="tavern-game__toast" id="game-toast" aria-live="polite"></div>
+            <div class="tavern-game__overlay"><p id="game-status" role="status" aria-live="polite">正在准备……</p><button type="button" id="game-start" disabled>出发</button></div>
+            <section class="tavern-game__tips" id="game-tips" role="dialog" aria-modal="true" aria-label="游戏玩法" hidden>
+                <header><span>出城前 / Tips</span><output id="tip-count">1 / 3</output></header>
+                <div data-tip-slide><h2>替酒馆跑一趟</h2><p>酒放在障碍之间的空档，沿地面跑过即可收下。每带回 3 杯就完成一单，额外获得 25 分。</p><p>路况 3 出现高箱、长连箱；4、5 加快并穿插双箱组合。2 分半后封顶，暂停不升级。</p></div>
+                <div data-tip-slide hidden><h2>风龙，自然会踏风</h2><p>空中再点 ↑ 踏风二段跳。高箱要提前起跳、尽早踏风；双箭头长连箱要到中段再踏风，延长滞空。</p><p>双箱之间可以调整起跳节奏。电脑也可按空格或 ↑，落地恢复两次机会。</p></div>
+                <div data-tip-slide hidden><h2>今天带哪一杯？</h2><dl>{Object.entries(DRINKS).map(([kind, drink]) => <div><dt class:list={{ 'tavern-game__shield-tip': kind === 'magic' }}>{kind === 'magic' && <img data-shield-icon src="/images/game-fx/shield-snoopeth.png" alt="" width="24" height="24" loading="lazy" />}{drink.name} · {drink.vessel}</dt><dd>{drink.description}</dd></div>)}</dl></div>
+                <footer><button type="button" id="tip-skip">跳过</button><button type="button" id="tip-next">下一条 →</button></footer>
+            </section>
+            <button type="button" class="tavern-game__help" id="game-help" aria-label="查看玩法和酒单" title="玩法与酒单">?</button>
+            <button type="button" class="tavern-game__pause" id="game-pause" aria-label="暂停游戏" title="暂停游戏" disabled set:html={pauseIcon} />
+            <button type="button" class="tavern-game__jump" id="game-jump" aria-label="跳跃，可空中踏风二段跳" title="跳跃 / 二段踏风 · 空格 / 上方向键" disabled><Fragment set:html={jumpIcon} /><span id="game-jump-count" aria-hidden="true">••</span></button>
+        </div>
+        <a class="tavern-game__credits" href="/images/game-fx/ATTRIBUTION.txt" target="_blank" rel="noopener">游戏特效素材鸣谢 ↗</a>
+        <noscript><p>小游戏需要启用 JavaScript。你仍然可以返回首页或翻阅手记。</p></noscript>
+    </div>
+</details>
+
+<script>
+    import { initTavernRunner } from '../lib/tavernRunner';
+    initTavernRunner();
+</script>

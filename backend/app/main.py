@@ -1,9 +1,11 @@
 from pathlib import Path
 import re
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, select, text
 
@@ -26,6 +28,31 @@ def create_app() -> FastAPI:
         openapi_url=None,
     )
 
+    def browser_error(request: Request, code: int):
+        if (request.method not in {'GET', 'HEAD'} or 'text/html' not in request.headers.get('accept', '')
+                or request.url.path.startswith(('/api/', '/uploads/', '/_astro/', '/admin/assets/'))):
+            return None
+        page = code if code in {403, 404, 500, 503} else 500 if code >= 500 else 404
+        for path in (settings.dist_dir / f'{page}.html', settings.dist_dir / str(page) / 'index.html'):
+            if path.is_file():
+                return FileResponse(path, status_code=code, headers={'Cache-Control': 'no-store'})
+        return None
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_error(request: Request, exc: StarletteHTTPException):
+        response = browser_error(request, exc.status_code)
+        if response:
+            response.headers.update(exc.headers or {})
+            return response
+        return await http_exception_handler(request, exc)
+
+    @app.exception_handler(Exception)
+    async def internal_error(request: Request, exc: Exception):
+        return browser_error(request, 500) or JSONResponse(
+            {'detail': '服务暂时出现问题，请稍后重试。'}, status_code=500,
+            headers={'Cache-Control': 'no-store'},
+        )
+
     @app.middleware("http")
     async def add_security_headers(request, call_next):
         response = await call_next(request)
@@ -35,14 +62,16 @@ def create_app() -> FastAPI:
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         response.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
-        if path.startswith("/admin") or path.startswith("/api/admin"):
+        if response.status_code >= 400:
+            response.headers['Cache-Control'] = 'no-store'
+        elif path.startswith("/admin") or path.startswith("/api/admin"):
             response.headers["Cache-Control"] = "no-store"
         elif path.startswith("/_astro") or path.startswith("/uploads"):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
         elif path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
         elif response.headers.get('content-type', '').startswith('text/html'):
-            response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+            response.headers.setdefault('Cache-Control', 'no-cache, must-revalidate')
         elif path.startswith('/fonts/'):
             response.headers['Cache-Control'] = 'public, max-age=604800'
         return response

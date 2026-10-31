@@ -1,41 +1,22 @@
 from pathlib import Path
-from io import BytesIO
 import re
 import uuid
+import tempfile
 
 from fastapi import HTTPException, UploadFile, status
-from PIL import Image, ImageOps, UnidentifiedImageError
 from starlette.concurrency import run_in_threadpool
 
 from .config import settings
-from .media import IMAGE_LIMIT, save_image
+from .media import IMAGE_LIMIT, save_image, save_staged_image, staging_directory, upload_path, inspect_image, compress_image, image_worker
 
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 ALLOWED_ATTACHMENT_EXTENSIONS = {".pdf", ".txt", ".md", ".zip", ".rar", ".7z", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"}
-Image.MAX_IMAGE_PIXELS = 36_000_000
 
 
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9_-]+", "-", value.strip().lower()).strip("-")
     return slug[:120] or f"post-{uuid.uuid4().hex[:10]}"
-
-
-def _open_verified_image(content: bytes) -> Image.Image:
-    try:
-        image = Image.open(BytesIO(content))
-        image.verify()
-        image = Image.open(BytesIO(content))
-        return ImageOps.exif_transpose(image)
-    except UnidentifiedImageError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="无法识别图片文件。") from exc
-
-
-def _prepare_webp(image: Image.Image, max_dimension: int) -> Image.Image:
-    image.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS, reducing_gap=2.0)
-    if image.mode not in ("RGB", "RGBA", "L"):
-        image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
-    return image
 
 
 def save_optimized_image_content(content: bytes, extension: str, folder: str, max_dimension: int, quality: int) -> str:
@@ -52,14 +33,18 @@ async def save_image_upload(file: UploadFile, folder: str, max_dimension: int = 
     if file.content_type and not file.content_type.startswith("image/"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="上传文件必须是图片。")
 
-    target_dir = settings.upload_dir / folder
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    content = await file.read(IMAGE_LIMIT + 1)
-    if len(content) > 20 * 1024 * 1024:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="图片不能超过 20MB。")
-
-    return await run_in_threadpool(save_optimized_image_content, content, extension, folder, max_dimension, quality)
+    with tempfile.TemporaryDirectory(dir=staging_directory()) as temporary:
+        staged = Path(temporary) / 'original'
+        total = 0
+        with staged.open('wb') as output:
+            while chunk := await file.read(min(1024 * 1024, IMAGE_LIMIT + 1 - total)):
+                total += len(chunk)
+                if total > IMAGE_LIMIT:
+                    raise HTTPException(400, '原图不能超过 50MB，上传后会自动压缩。')
+                await run_in_threadpool(output.write, chunk)
+        if not total:
+            raise HTTPException(400, '请选择非空图片。')
+        return await run_in_threadpool(save_staged_image, staged, folder, max_dimension, quality)
 
 
 async def save_attachment_upload(file: UploadFile, folder: str = "post_attachments") -> str:
@@ -77,29 +62,27 @@ async def save_attachment_upload(file: UploadFile, folder: str = "post_attachmen
 
 
 def optimize_existing_upload_url(url: str | None, max_dimension: int = 1280, quality: int = 76) -> str | None:
-    if not url or not url.startswith("/uploads/"):
-        return None
-
-    relative_path = url.removeprefix("/uploads/").lstrip("/")
-    source = settings.upload_dir / relative_path
-    if not source.exists() or not source.is_file():
+    source = upload_path(url or '')
+    if not source or not source.is_file():
         return None
 
     extension = source.suffix.lower()
     if extension not in ALLOWED_IMAGE_EXTENSIONS:
         return None
 
-    content = source.read_bytes()
-    image = _open_verified_image(content)
-    if extension == ".gif" or getattr(image, "is_animated", False):
-        return None
-
-    image = _prepare_webp(image, max_dimension)
-    target = source.with_name(f"{source.stem}-{uuid.uuid4().hex[:8]}.webp")
-    image.save(target, "WEBP", quality=quality, method=6)
-
-    if target.stat().st_size >= source.stat().st_size and extension == ".webp":
-        target.unlink(missing_ok=True)
-        return None
-
-    return f"/uploads/{target.relative_to(settings.upload_dir).as_posix()}"
+    if source.stat().st_size > IMAGE_LIMIT:
+        raise HTTPException(400, '原图不能超过 50MB。')
+    with image_worker:
+        _, animated = inspect_image(source)
+        if extension == '.gif' or animated:
+            return None
+        target = source.with_name(f'{source.stem}-{uuid.uuid4().hex[:8]}.webp')
+        try:
+            compress_image(source, target, max_dimension, quality)
+            if target.stat().st_size >= source.stat().st_size and extension == '.webp':
+                target.unlink(missing_ok=True)
+                return None
+            return f'/uploads/{target.relative_to(settings.upload_dir).as_posix()}'
+        except Exception:
+            target.unlink(missing_ok=True)
+            raise

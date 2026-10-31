@@ -84,6 +84,7 @@
     --footer-bg: #080a0d;
     --nav-bg: transparent;
     --nav-text: var(--paper);
+    --radius-control: 16px;
 }
 
 :root[data-theme="light"] {
@@ -475,6 +476,7 @@ img { max-width: 100%; height: auto; }
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: .75rem;
     width: min(1400px, calc(100% - 1.5rem));
     min-height: 76px;
     margin-inline: auto;
@@ -586,8 +588,10 @@ img { max-width: 100%; height: auto; }
 
 .site-nav__contact-wrap { position: relative; }
 .site-nav__contact-button { border: 0; background: transparent; color: inherit; cursor: pointer; }
-.site-nav__contact-button span,
-.site-nav__mobile-parent span { margin-left: 0.35rem; color: var(--gold); font-size: 0.8em; }
+.contact-chevron { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; height: 16px; margin-left: .35rem; color: var(--gold); transition: transform .2s ease; }
+.contact-chevron svg { display: block; width: 16px; height: 16px; stroke-width: 1.8; }
+[aria-expanded="true"] > .contact-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .contact-chevron { transition: none; } }
 .site-nav__contact-menu { position: absolute; top: calc(100% + 0.45rem); right: 0; display: grid; min-width: 15rem; padding: 0.45rem; border: 1px solid var(--line); background: var(--ink-soft); color: var(--paper); box-shadow: var(--shadow-paper); opacity: 0; pointer-events: none; transform: translateY(-0.35rem); transition: opacity 180ms ease, transform 180ms ease; }
 .site-nav__contact-menu.is-open { opacity: 1; pointer-events: auto; transform: translateY(0); }
 .site-nav__contact-menu a { display: grid; grid-template-columns: 1.65rem minmax(0, 1fr) auto; align-items: center; gap: 0.55rem; min-height: 44px; padding: 0.5rem 0.65rem; color: var(--paper-muted); }
@@ -596,9 +600,12 @@ img { max-width: 100%; height: auto; }
 .site-nav__contact-menu a:hover { background: var(--ink-blue); color: var(--paper); }
 .site-nav__contact-note { padding: 0.45rem 0.65rem 0.55rem; border-bottom: 1px solid var(--line-soft); color: var(--steel-soft); font-size: 0.72rem; line-height: 1.5; }
 .site-nav__contact-empty { padding: 0.5rem 0.65rem; color: var(--paper-muted); font-size: 0.78rem; }
-.site-nav__theme-button { display: inline-flex; align-items: center; gap: 0.35rem; min-height: 44px; padding: 0 0.55rem; border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
+.site-nav__theme-button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: 0 .85rem; border: 1px solid var(--line); border-radius: var(--radius-control); background: transparent; color: inherit; cursor: pointer; }
+.site-nav__menu-button { border-radius: var(--radius-control); }
+.site-nav__mobile-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; margin-left: auto; color: var(--paper); }
+.site-nav__mobile-actions .site-nav__theme-button { width: 44px; height: 44px; padding: 0; }
 .site-nav__theme-button:hover { border-color: var(--gold); color: var(--gold); }
-.site-nav__mobile-group, .site-nav__mobile-theme { display: none; }
+.site-nav__mobile-group { display: none; }
 
 :root[data-theme="light"] .site-nav__mobile,
 :root[data-theme="light"] .site-nav__contact-menu { background: var(--ink-soft); }
@@ -607,9 +614,9 @@ img { max-width: 100%; height: auto; }
     .site-nav__links { gap: 1rem; }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 767px) {
     .site-nav__links { display: none; }
-    .site-nav__mobile-group, .site-nav__mobile-theme { display: block; }
+    .site-nav__mobile-group { display: block; }
     .site-nav__mobile-parent { width: 100%; justify-content: space-between; border: 0; background: transparent; color: inherit; cursor: pointer; }
     .site-nav__mobile-submenu { display: grid; max-height: 0; overflow: hidden; padding-left: 1rem; opacity: 0; transition: max-height 220ms ease, opacity 180ms ease; }
     .site-nav__mobile-submenu.is-open { max-height: 24rem; opacity: 1; }
@@ -666,6 +673,7 @@ img { max-width: 100%; height: auto; }
     min-height: 46px;
     padding: 0.7rem 1.1rem;
     border: 1px solid var(--line);
+    border-radius: var(--radius-control);
     background: transparent;
     color: var(--paper);
     font-size: 0.92rem;
@@ -802,6 +810,7 @@ html.reveal-ready [data-reveal].is-visible {
 }
 
 @media (min-width: 768px) {
+    .site-nav__mobile-actions,
     .site-nav__menu-button,
     .site-nav__mobile { display: none; }
 }

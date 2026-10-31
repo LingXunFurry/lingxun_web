@@ -35,6 +35,7 @@
 .egg-section::after { content: ''; position: absolute; inset: 1.2rem; border-block: 1px solid var(--egg-line); pointer-events: none; }
 .egg-dashboard { position: relative; width: min(1240px,100%); margin-inline: auto; opacity: 0; pointer-events: none; transition: opacity 600ms ease; }
 .egg-dashboard.is-ready { opacity: 1; pointer-events: auto; }
+.egg-game { margin-top: 2.5rem; }
 
 .egg-header { display: flex; justify-content: space-between; align-items: center; gap: 2rem; padding-bottom: 2.5rem; border-bottom: 3px double var(--egg-line); }
 .egg-header__copy { max-width: 44rem; }

@@ -1,4 +1,6 @@
 ---
+import ThemeIcon from './ThemeIcon.astro';
+import chevron from '../assets/icons/chevron-down.svg?raw';
 const links = [
     { href: '/', label: '首页' },
     { href: '/gallery/', label: '旅途留影' },
@@ -40,7 +42,7 @@ const currentPath = Astro.url.pathname;
                 </a>
             ))}
             <div class="site-nav__contact-wrap">
-                <button id="contact-menu-btn" class="site-nav__contact-button site-nav__link" type="button" aria-expanded="false" aria-controls="contact-menu">联系凌巽 <span aria-hidden="true">⌄</span></button>
+                <button id="contact-menu-btn" class="site-nav__contact-button site-nav__link" type="button" aria-expanded="false" aria-controls="contact-menu">联系凌巽 <span class="contact-chevron" aria-hidden="true" set:html={chevron} /></button>
                 <div id="contact-menu" class="site-nav__contact-menu" aria-hidden="true" data-public-pending aria-busy="true" inert>
                     <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
                     {fallbackSocials.map((social) => (
@@ -52,12 +54,15 @@ const currentPath = Astro.url.pathname;
                     ))}
                 </div>
             </div>
-            <button id="theme-toggle" class="site-nav__theme-button" type="button" aria-label="切换昼夜主题" aria-pressed="false"><span aria-hidden="true">◐</span><span class="theme-toggle__label">昼夜</span></button>
+            <button id="theme-toggle" class="site-nav__theme-button" type="button" aria-label="切换昼夜主题" title="切换昼夜主题" aria-pressed="false"><ThemeIcon /><span class="theme-toggle__label">昼夜</span></button>
         </div>
 
-        <button id="mobile-menu-btn" class="site-nav__menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="打开导航菜单">
-            <span aria-hidden="true">☰</span>
-        </button>
+        <div class="site-nav__mobile-actions">
+            <button id="mobile-theme-toggle" class="site-nav__theme-button" type="button" aria-label="切换昼夜主题" title="切换昼夜主题" aria-pressed="false"><ThemeIcon /></button>
+            <button id="mobile-menu-btn" class="site-nav__menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="打开导航菜单">
+                <span aria-hidden="true">☰</span>
+            </button>
+        </div>
     </div>
 
     <div id="mobile-menu" class="site-nav__mobile" aria-hidden="true" inert>
@@ -67,7 +72,7 @@ const currentPath = Astro.url.pathname;
             </a>
         ))}
         <div class="site-nav__mobile-group">
-            <button id="mobile-contact-btn" class="site-nav__link site-nav__mobile-parent" type="button" aria-expanded="false" aria-controls="mobile-contact-menu">联系凌巽 <span aria-hidden="true">⌄</span></button>
+            <button id="mobile-contact-btn" class="site-nav__link site-nav__mobile-parent" type="button" aria-expanded="false" aria-controls="mobile-contact-menu">联系凌巽 <span class="contact-chevron" aria-hidden="true" set:html={chevron} /></button>
             <div id="mobile-contact-menu" class="site-nav__mobile-submenu" aria-hidden="true" data-public-pending aria-busy="true" inert>
                 <span class="site-nav__contact-note">点开名片，将在新标签页打开外部页面</span>
                 {fallbackSocials.map((social) => (
@@ -79,7 +84,6 @@ const currentPath = Astro.url.pathname;
                 ))}
             </div>
         </div>
-        <button id="mobile-theme-toggle" class="site-nav__link site-nav__mobile-theme" type="button"><span aria-hidden="true">◐</span> 昼夜主题</button>
     </div>
 </nav>
 
@@ -138,6 +142,8 @@ const currentPath = Astro.url.pathname;
                 button.setAttribute('aria-pressed', String(theme === 'light'));
                 const label = button.querySelector('.theme-toggle__label');
                 if (label) label.textContent = theme === 'light' ? siteText('navbar.to_dark', '夜间') : siteText('navbar.to_light', '白天');
+                button.setAttribute('aria-label', theme === 'light' ? '切换至夜间模式' : '切换至白天模式');
+                button.setAttribute('title', button.getAttribute('aria-label')!);
             });
         };
         const syncContactTitles = () => {
@@ -149,14 +155,13 @@ const currentPath = Astro.url.pathname;
             syncTheme();
             menuButton?.setAttribute('aria-label', mobileMenu?.classList.contains('is-open')
                 ? siteText('navbar.menu_close', '关闭导航菜单') : siteText('navbar.menu_open', '打开导航菜单'));
-            document.getElementById('theme-toggle')?.setAttribute('aria-label', siteText('navbar.theme', '昼夜主题'));
             syncContactTitles();
         });
 
         const toggleTheme = () => {
             const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
             document.documentElement.dataset.theme = next;
-            localStorage.setItem('lingxun-theme', next);
+            try { localStorage.setItem('lingxun-theme', next); } catch {}
             syncTheme();
         };
 

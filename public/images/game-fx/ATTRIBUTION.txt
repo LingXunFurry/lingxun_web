@@ -1,0 +1,49 @@
+Lingxun tavern runner - effect artwork credits
+
+Shields 2 CC0, by SnoopethDuckDuck
+Source: https://opengameart.org/content/shields-2-cc0
+Original archive: snoopeths_shields_2.zip, 1px/5.png (32 x 32)
+Local: shield-snoopeth.png
+License: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+Changes: source file unchanged. Runtime mapping to four pale-blue colors and
+hard alpha edges, nearest-neighbour display, contour glow and pixel glints.
+Used at the character centre, and for the matching HUD and Tips icons.
+
+Shield Spell, by Clint Bellanger
+Source: https://opengameart.org/content/shield-spell
+Original: shield.png (512 x 128, four 128 x 128 frames)
+Local: shield-spell-clint.png
+License: Creative Commons Attribution 3.0 Unported (CC BY 3.0)
+https://creativecommons.org/licenses/by/3.0/
+Changes: source file unchanged. Retained previous-version asset; not loaded by
+the current game. Earlier runtime versions sampled/recolored these frames.
+
+Whirlwind - Arne16, by zwonky (Spring Spring original bendy version credited upstream)
+Source: https://opengameart.org/content/whirlwind-arne16
+Original: tornado_wobbly_0.png (64 x 16, four 16 x 16 frames)
+Local: whirlwind-zwonky.png
+License: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+Changes: runtime scaling, frame playback, theme tint and fading.
+
+Clouds and Gust, by UrieW
+Source: https://opengameart.org/content/clouds-and-gust
+Original: gust_32x32.gif (32 x 32)
+Local: gust-uriew.gif
+License: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+Changes: runtime scaling, theme tint and fading.
+
+Kite shield tile, Dungeon Crawl Stone Soup / RLTiles
+Source: https://github.com/crawl/tiles/tree/a6ea1655db5c044829d9eea19a232fa6fcac87b0
+Original: releases/Nov-2015/item/armour/shields/shield1.png (32 x 32)
+Local: kite-shield-rltiles.png
+License: CC0 1.0 Universal; selected from Crawl's curated CC0 export, not
+the mixed-license game repository. Upstream notice is retained in
+docs/licenses/crawl-tiles-CC0-README.md.
+https://creativecommons.org/publicdomain/zero/1.0/
+Changes: none; retained as a previous-version asset, not used by the current game.
+
+All source images are distributed locally, not loaded from external services.
+No generative AI was used for these effects.

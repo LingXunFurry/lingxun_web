@@ -17,7 +17,7 @@ from app.config import settings
 from app.database import Base
 from app.database import get_db
 from app.auth import require_admin
-from app.media import image_info, optimize_uploaded_url, save_image, upload_path
+from app.media import IMAGE_LIMIT, image_info, optimize_uploaded_url, save_image, upload_path
 from app.models import GalleryPhoto, CharacterProfile, SiteContent
 from app.routers.admin import create_post, save_homepage_media, update_post
 from app.schemas import GalleryPhotoOut, HomepageMediaIn, PostIn, PostOut, PostPatch
@@ -88,10 +88,10 @@ class MediaTests(unittest.TestCase):
             save_image(b'invalid', 'gallery', 1920, 80)
 
     def test_upload_reads_bounded_bytes(self):
-        upload = UploadFile(filename='big.jpg', file=io.BytesIO(b'x' * (20 * 1024 * 1024 + 100)))
+        upload = UploadFile(filename='big.jpg', file=io.BytesIO(b'x' * (IMAGE_LIMIT + 100)))
         with self.assertRaises(HTTPException):
             asyncio.run(save_image_upload(upload, 'gallery'))
-        self.assertEqual(upload.file.tell(), 20 * 1024 * 1024 + 1)
+        self.assertEqual(upload.file.tell(), IMAGE_LIMIT + 1)
 
 
 class HomepageAdminTests(unittest.TestCase):

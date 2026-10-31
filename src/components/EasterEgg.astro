@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import '../styles/tavern-room.css';
 import settingOne from '../assets/setting/Image_1774261272205_454.png';
+import TavernGame from './TavernGame.astro';
 ---
 
 <section id="easter-egg-section" class="egg-section hidden" aria-labelledby="egg-title" aria-hidden="true">
@@ -92,6 +93,9 @@ import settingOne from '../assets/setting/Image_1774261272205_454.png';
                     <button id="quest-draw-button" class="button button--accent metal-glint" type="button">从任务板抽一张 <span aria-hidden="true">✦</span></button>
                 </div>
             </section>
+        </div>
+        <div class="egg-game">
+            <TavernGame intro="收工之后，再跑一趟。" />
         </div>
     </div>
 </section>

@@ -1,0 +1,51 @@
+---
+import '../styles/global.css';
+import '../styles/error-page.css';
+import Navbar from './Navbar.astro';
+import TavernGame from './TavernGame.astro';
+const { code = 404 } = Astro.props;
+const messages: Record<number, [string, string, string]> = {
+    404: ['走错门了？', '这个地址没有对应的页面。回酒馆看看，照片和手记还在老地方。', '……你是不是把门牌号记错了？'],
+    403: ['这扇门，还没有打开。', '这里暂时不对访客开放。你可以返回首页，或去看看公开的手记。', '凌巽收好钥匙，给你指了另一条路。'],
+    500: ['酒馆里，出了点小状况。', '这次请求没能完成，不是你的问题。稍后再来，或者先去别处逛逛。', '凌巽正在收拾柜台，请稍候片刻。'],
+    503: ['稍歇片刻，再出发。', '酒馆暂时忙不过来。请过一会儿再试，你的旅途不必在这里结束。', '凌巽挂起了休息的木牌。很快回来。'],
+};
+const [heading, description, reply] = messages[code] || messages[500];
+---
+<!doctype html>
+<html lang="zh" data-api-base={import.meta.env.PUBLIC_API_BASE ?? ''}>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>{code} · 凌巽的酒馆</title>
+    <link rel="icon" href="/logo.png" />
+    <link rel="stylesheet" href="/fonts/tavern-fonts.css" />
+    <script is:inline>
+        try { document.documentElement.dataset.theme = localStorage.getItem('lingxun-theme') || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); } catch {}
+    </script>
+</head>
+<body>
+    <Navbar />
+    <main class="lost-page" data-error-code={code}>
+        <div class="site-container lost-page__inner">
+            <div class="lost-page__folio"><span>凌巽的酒馆</span><span>{code === 404 ? '此处没有这块门牌' : '暂时不能推门'}</span></div>
+            <section class="lost-page__story" aria-labelledby="lost-title">
+                <div class="lost-page__copy">
+                    <p class="lost-page__number" aria-label={`错误 ${code}`}>{code}<span>{code === 404 ? '查无此页' : '暂时止步'}</span></p>
+                    <h1 id="lost-title">{heading}</h1>
+                    <p class="lost-page__description">{description}</p>
+                    <div class="lost-page__actions"><a class="button button--accent" href="/">返回首页 <span aria-hidden="true">↗</span></a><a class="button" href="/posts/">翻阅手记 <span aria-hidden="true">→</span></a></div>
+                </div>
+                <figure class="lost-page__portrait">
+                    <div class="lost-page__door" aria-hidden="true"><span>凌巽 / 留一盏灯</span></div>
+                    <div class="lost-page__image"><img src="/images/errors/lingxun-expression.png" width="462" height="426" alt="凌巽探出头看着你" fetchpriority="high" /></div>
+                    <figcaption><p>{reply}</p></figcaption>
+                </figure>
+            </section>
+            <TavernGame />
+            <footer class="lost-page__footer"><span>也可以从这里继续逛</span><nav aria-label="错误页快捷入口"><a href="/gallery/">旅途留影 ↗</a><a href="/friends/">同行者 ↗</a><a href="/posts/">最近手记 ↗</a></nav></footer>
+        </div>
+    </main>
+</body>
+</html>
