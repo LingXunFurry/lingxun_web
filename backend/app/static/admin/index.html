@@ -700,8 +700,9 @@
                 <span class="nav-group-label">前台内容</span>
                 <button class="nav-btn active" data-tab="home">首页编排</button>
                 <button class="nav-btn" data-tab="gallery">旅途留影 · 照片库</button>
-                <button class="nav-btn" data-tab="characters">冒险者登记簿</button>
-                <button class="nav-btn" data-tab="posts">手记与角色故事</button>
+                <button class="nav-btn" data-tab="characters">角色介绍</button>
+                <button class="nav-btn" data-tab="posts">动态管理</button>
+                <button class="nav-btn" data-tab="stories">故事管理</button>
                 <button class="nav-btn" data-tab="comments">评论</button>
                 <button class="nav-btn" data-tab="bonus">酒馆暗门 · 纪念日</button>
                 <button class="nav-btn" data-tab="final">行程 / 联系凌巽</button>
@@ -772,50 +773,68 @@
             </section>
 
             <section id="charactersTab" class="tab-view hidden">
-                <div class="context-bar"><span>前台位置：首页第二幕 · 冒险者登记簿。这里的照片不会覆盖单独设置的故事封面。</span><a href="/#character-section" target="_blank" rel="noopener">查看前台 ↗</a></div>
+                <div class="context-bar"><span>前台位置：角色介绍。主展示照片与圆形选择头像独立设置；圆形头像同时用于故事集，取景在下方调整。</span><a href="/#character-section" target="_blank" rel="noopener">查看前台 ↗</a></div>
                 <div class="panel-grid">
                     <form id="characterForm" class="panel form-grid">
-                        <h3 id="characterFormTitle">新建冒险者登记</h3>
+                        <h3 id="characterFormTitle">新建角色</h3>
                         <input type="hidden" name="id" />
                         <div class="two">
                             <label>姓名 <input name="name" required /></label>
                             <label>英文名 / 别名 <input name="alias" /></label>
                         </div>
                         <div class="two">
-                            <label>种族 <input name="species" value="龙族" /></label>
-                            <label>身份 <input name="role" value="冒险者" /></label>
+                            <label>物种 <input name="species" value="龙族" /></label>
+                            <label>职业 <input name="role" value="冒险者" /></label>
                         </div>
                         <label>活动区域 <input name="region" value="人类城镇" /></label>
                         <label>主要工作 <input name="work" value="冒险者公会委托" /></label>
                         <label>常去地点 <input name="places" value="公会 / 酒馆 / 家中" /></label>
                         <label>当前状态 <input name="status" value="可接受委托" /></label>
                         <label>介绍 <textarea name="introduction" style="min-height:130px"></textarea></label>
-                        <label>详细介绍 <textarea name="details" style="min-height:140px" placeholder="前台登记簿正文；每段之间空一行"></textarea></label>
+                        <label>详细介绍 <textarea name="details" style="min-height:140px" placeholder="角色介绍正文；每段之间空一行"></textarea></label>
                         <label>自定义资料项 <textarea name="custom_fields" style="min-height:110px" placeholder="每行一项，格式：标签 | 内容&#10;例如：常用武器 | 长柄法杖、短剑"></textarea></label>
                         <div class="two">
-                            <label>照片地址 <input name="image_url" placeholder="/uploads/... 或 /src/assets/gallery/..." /></label>
-                            <label>上传照片 <input id="characterImageFile" name="image_file" type="file" accept="image/*" /></label>
+                            <label>右侧主展示图地址 <input name="image_url" placeholder="/uploads/... 或 /src/assets/gallery/..." /></label>
+                            <label>上传主展示图 <input id="characterImageFile" name="image_file" type="file" accept="image/*" /></label>
                         </div>
                         <img id="characterImagePreview" class="upload-preview hidden" alt="角色照片预览" />
+                        <fieldset class="avatar-editor">
+                            <legend>角色选择头像 · 角色介绍 / 故事集</legend>
+                            <div class="two">
+                                <label>独立头像地址 <input name="avatar_url" placeholder="留空使用姓名占位，与主照片独立" /></label>
+                                <label>上传头像 <input id="characterAvatarFile" type="file" accept="image/*" /></label>
+                            </div>
+                            <div class="avatar-editor__crop">
+                                <div id="characterAvatarCrop" class="avatar-crop" aria-label="拖动调整头像取景">
+                                    <span aria-hidden="true">头像</span><img id="characterAvatarPreview" class="hidden" alt="圆形头像取景预览" draggable="false" />
+                                </div>
+                                <div class="form-grid">
+                                    <label>水平取景 <input name="avatar_x" type="range" min="0" max="100" value="50" /></label>
+                                    <label>垂直取景 <input name="avatar_y" type="range" min="0" max="100" value="50" /></label>
+                                    <label>放大 <input name="avatar_zoom" type="range" min="100" max="300" value="100" /></label>
+                                    <button id="resetAvatarCropBtn" type="button" class="btn ghost mini">重置取景</button>
+                                </div>
+                            </div>
+                        </fieldset>
                         <div class="two">
                             <label>排序 <input name="sort_order" type="number" value="0" /></label>
                             <label class="checkbox-row"><input name="is_visible" type="checkbox" checked /> 前台显示</label>
                         </div>
                         <div class="actions">
-                            <button class="btn" type="submit">◆ 保存登记</button>
+                            <button class="btn" type="submit">◆ 保存角色</button>
                             <button class="btn ghost" type="button" id="resetCharacterBtn">清空</button>
                         </div>
                     </form>
                     <div class="panel">
-                        <h3>冒险者列表</h3>
+                        <h3>角色列表</h3>
                         <div id="characterList" class="table-wrap" style="margin-top:16px"></div>
                     </div>
                 </div>
             </section>
 
             <section id="postsTab" class="tab-view hidden">
-                <div class="context-bar"><span>前台位置：最近手记 / 文章详情 / 首页角色故事。动态封面与故事封面可以分别设置。</span><a href="/#story-section" target="_blank" rel="noopener">查看角色故事 ↗</a></div>
-                <div class="panel-grid">
+                <div class="context-bar"><span>前台位置：最近手记 / 动态详情</span><a href="/posts/" target="_blank" rel="noopener">查看动态 ↗</a></div>
+                <div class="panel-grid" id="postEditorGrid">
                     <form id="postForm" class="panel form-grid">
                         <h3 id="postFormTitle">新建动态</h3>
                         <input type="hidden" name="id" />
@@ -826,7 +845,7 @@
                         </div>
                         <label>链接名 <input name="slug" placeholder="自动生成，可留空" /></label>
                         <label>摘要 <textarea name="desc" style="min-height:96px"></textarea></label>
-                        <label>正文 <textarea name="content" placeholder="支持基础 Markdown"></textarea></label>
+                        <label><span id="postContentLabel">正文</span><textarea name="content" placeholder="支持基础 Markdown"></textarea></label>
                         <div class="two">
                             <label>封面地址 <input name="cover_url" placeholder="/uploads/post_covers/..." /></label>
                             <label>上传配图 <input id="coverFile" type="file" accept="image/*" multiple /></label>
@@ -840,29 +859,40 @@
                             <label class="checkbox-row"><input name="is_pinned" type="checkbox" /> 置顶动态</label>
                             <label>置顶顺序 <input name="pin_order" type="number" value="0" /></label>
                         </div>
+                        <div id="storyPostFields" class="form-grid hidden">
                         <div class="two">
-                            <label class="checkbox-row"><input name="is_character_story" type="checkbox" /> 展示为首页角色故事</label>
+                            <label class="checkbox-row hidden"><input name="is_character_story" type="checkbox" /> 角色故事</label>
                             <label>故事顺序 <input name="story_order" type="number" value="0" /></label>
+                            <label>连载状态<select name="story_status"><option value="standalone">整篇收录</option><option value="serial">连载中</option><option value="completed">已完结</option></select></label>
                         </div>
                         <label>所属角色 <select name="story_character_id"><option value="">不关联角色</option></select></label>
-                        <label>书页简介 <textarea name="story_summary" rows="3" placeholder="留空使用动态摘要"></textarea></label>
-                        <fieldset class="story-cover-editor">
-                            <legend>首页角色故事 · 独立封面</legend>
+                        <label>首页故事书简介 <textarea name="story_summary" rows="3" placeholder="建议 60–100 字，概述故事起点与主线；留空使用动态摘要"></textarea></label>
+                        <details class="story-cover-editor"><summary>原有故事封面（保留）</summary>
                             <label>图片来源<select name="story_cover_mode"><option value="independent">使用独立图片</option><option value="inherit">沿用原规则（动态封面 → 登记簿照片）</option><option value="none">不展示图片</option></select></label>
                             <label>独立图片地址<input name="story_cover_url" placeholder="选择照片库或直接上传，不影响登记簿" /></label>
                             <img id="storyCoverPreview" class="story-cover-preview" alt="角色故事封面预览" hidden />
                             <div class="two"><label>上传独立封面<input id="storyCoverFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif" /></label><button type="button" id="chooseStoryCover" class="btn secondary">从照片库选择</button></div>
-                        </fieldset>
+                        </details>
+                        </div>
                         <div class="actions">
                             <button class="btn" type="submit">◆ 保存</button>
                             <button class="btn ghost" type="button" id="resetPostBtn">清空</button>
                         </div>
                     </form>
                     <div class="panel">
-                        <h3>动态列表</h3>
+                        <h3 id="postListTitle">动态列表</h3>
                         <div id="postList" class="table-wrap" style="margin-top:16px"></div>
                     </div>
                 </div>
+            </section>
+
+            <section id="storiesTab" class="tab-view hidden">
+                <div class="context-bar"><span>前台位置：首页角色故事 / 故事目录 / 章节阅读。每部故事在动态列表中只有一项。</span><a href="/#story-section" target="_blank" rel="noopener">查看故事书架 ↗</a></div>
+                <div id="storyEditorHost"></div>
+                <section class="panel" style="margin-top:24px" aria-labelledby="chapterManagerTitle">
+                    <div class="picker-heading"><h3 id="chapterManagerTitle">章节目录</h3><button type="button" id="newChapterBtn" class="btn" disabled>添加章节</button></div>
+                    <div id="chapterList" class="table-wrap"><p class="empty">选择或保存一部故事。</p></div>
+                </section>
             </section>
 
             <section id="bonusTab" class="tab-view hidden">
@@ -1024,12 +1054,29 @@
     </section>
 
     <div id="status" class="status" role="status" aria-live="polite"></div>
+    <div id="uploadStatus" class="admin-upload-status" role="status" aria-live="polite" hidden>
+        <strong id="uploadStatusTitle"></strong><span id="uploadStatusDetail"></span>
+        <progress id="uploadStatusProgress" aria-label="文件上传与处理进度"></progress>
+    </div>
     <dialog id="mediaPicker" aria-labelledby="mediaPickerTitle">
         <div class="picker-heading"><h3 id="mediaPickerTitle">选择照片</h3><button class="btn ghost" id="closeMediaPicker" type="button" aria-label="关闭照片选择">×</button></div>
         <label class="picker-search">搜索照片<input id="mediaPickerSearch" type="search" placeholder="标题、分类或原文件名" /></label>
         <div id="mediaPickerGrid" class="picker-grid"></div>
     </dialog>
+    <script src="/admin/assets/admin-uploads.js"></script>
     <script src="/admin/assets/admin-media.js"></script>
+    <dialog id="chapterEditor" aria-labelledby="chapterEditorTitle" style="width:min(760px,calc(100% - 24px));max-height:88svh;overflow-y:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);padding:24px">
+        <form id="chapterForm" class="form-grid">
+            <div class="picker-heading"><h3 id="chapterEditorTitle">添加章节</h3><button type="button" id="closeChapterBtn" class="btn ghost" aria-label="关闭章节编辑">×</button></div>
+            <input name="id" type="hidden" />
+            <div class="two"><label>章节标识<input name="label" maxlength="80" placeholder="序章 / 第一章 / 番外" /></label><label>章节标题<input name="title" maxlength="220" required /></label></div>
+            <div class="two"><label>目录顺序<input name="sort_order" type="number" min="0" max="100000" value="0" required /></label><label>链接名<input name="slug" maxlength="180" placeholder="自动生成，保存后保持不变" /></label></div>
+            <label>章节正文<textarea name="content" rows="16" placeholder="Markdown 正文"></textarea></label>
+            <label class="checkbox-row"><input name="is_published" type="checkbox" /> 公开本章</label>
+            <p id="chapterError" role="alert" style="color:var(--red);margin:0"></p>
+            <button class="btn" type="submit">保存章节</button>
+        </form>
+    </dialog>
 
     <script>
         const API = window.location.origin;
@@ -1153,7 +1200,14 @@
             showStatus.timer = window.setTimeout(() => statusBox.classList.remove("show"), 2600);
         }
 
-        async function request(path, options = {}) {
+        function request(path, options = {}) {
+            if (options.body instanceof FormData && [...options.body.values()].some(value => value instanceof File && value.size > 0)) {
+                return withAdminUpload(path, options, () => sendRequest(path, options));
+            }
+            return sendRequest(path, options);
+        }
+
+        async function sendRequest(path, options = {}) {
             const response = await fetch(`${API}${path}`, options);
             if (response.status === 401) {
                 clearSession();
@@ -1237,7 +1291,7 @@
             if (state.tab === "content") await loadSiteContent();
             if (state.tab === "gallery") await loadGallery();
             if (state.tab === "characters") await loadCharacters();
-            if (state.tab === "posts") await loadPosts();
+            if (["posts", "stories"].includes(state.tab)) await loadPosts();
             if (state.tab === "comments") await loadComments();
             if (state.tab === "bonus") await loadBonus();
             if (state.tab === "final") await loadFinal();
@@ -1247,6 +1301,14 @@
         function setTab(tab) {
             if (state.tab === tab) return;
             state.tab = tab;
+            if (['posts', 'stories'].includes(tab)) {
+                $(tab === 'stories' ? '#storyEditorHost' : '#postsTab').append($('#postEditorGrid'));
+                $('#storyPostFields').classList.toggle('hidden', tab !== 'stories');
+                $('#postContentLabel').textContent = tab === 'stories' ? '故事介绍 / 原有整篇正文' : '正文';
+                $('#postListTitle').textContent = tab === 'stories' ? '故事列表' : '动态列表';
+                fillPostForm(null);
+                renderPosts();
+            }
             document.querySelectorAll(".nav-btn[data-tab]").forEach((btn) => {
                 btn.classList.toggle("active", btn.dataset.tab === tab);
             });
@@ -1256,8 +1318,9 @@
                 home: "首页<span>编排</span>",
                 media: "图片<span>优化</span>",
                 gallery: "画廊<span>管理</span>",
-                characters: "登记簿<span>管理</span>",
+                characters: "角色<span>介绍</span>",
                 posts: "动态<span>编辑</span>",
+                stories: "故事<span>管理</span>",
                 comments: "评论<span>审核</span>",
                 bonus: "Bonus<span>文案</span>",
                 final: "行程<span>联系凌巽</span>",
@@ -1428,7 +1491,7 @@
         function renderCharacters() {
             const target = $("#characterList");
             if (!state.characters.length) {
-                target.innerHTML = `<div class="empty">暂无登记簿记录</div>`;
+                target.innerHTML = `<div class="empty">暂无角色</div>`;
                 return;
             }
             target.innerHTML = `
@@ -1457,15 +1520,16 @@
 
         function renderPosts() {
             const target = $("#postList");
-            if (!state.posts.length) {
-                target.innerHTML = `<div class="empty">暂无后台动态</div>`;
+            const entries = state.posts.filter(post => Boolean(post.is_character_story) === (state.tab === 'stories'));
+            if (!entries.length) {
+                target.innerHTML = `<div class="empty">${state.tab === 'stories' ? '暂无故事' : '暂无动态'}</div>`;
                 return;
             }
             target.innerHTML = `
                 <table>
                     <thead><tr><th>日期</th><th>手记</th><th>分类</th><th>展示位置</th><th>操作</th></tr></thead>
                     <tbody>
-                        ${state.posts.map((post) => `
+                        ${entries.map((post) => `
                             <tr>
                                 <td>${escapeHtml(post.date)}</td>
                                 <td>
@@ -1677,15 +1741,76 @@
             form.elements.is_published.checked = post?.is_published ?? true;
             form.elements.is_pinned.checked = post?.is_pinned ?? false;
             form.elements.pin_order.value = post?.pin_order ?? 0;
-            form.elements.is_character_story.checked = post?.is_character_story ?? false;
+            form.elements.is_character_story.checked = post?.is_character_story ?? state.tab === 'stories';
+            form.elements.story_status.value = post?.story_status || (state.tab === 'stories' ? 'serial' : 'standalone');
             form.elements.story_order.value = post?.story_order ?? 0;
             form.elements.story_summary.value = post?.story_summary || "";
             form.elements.story_character_id.value = post?.story_character_id ?? "";
             form.elements.story_cover_url.value = post?.story_cover_url || '';
             form.elements.story_cover_mode.value = post?.story_cover_url == null ? (post ? 'inherit' : 'independent') : post.story_cover_url ? 'independent' : 'none';
             updateStoryCoverPreview();
-            $("#postFormTitle").textContent = post ? "编辑动态" : "新建动态";
+            $("#postFormTitle").textContent = state.tab === 'stories' ? (post ? '编辑故事' : '新建故事') : (post ? "编辑动态" : "新建动态");
+            if (state.tab === 'stories') loadChapters(post).catch(error => showStatus(error.message, true));
         }
+
+        let chapterRows = [], chapterRevision = 0;
+        async function loadChapters(post) {
+            const revision = ++chapterRevision;
+            $('#newChapterBtn').disabled = !post?.id;
+            $('#chapterManagerTitle').textContent = post ? `${post.title} · 章节目录` : '章节目录';
+            chapterRows = [];
+            if (!post?.id) { $('#chapterList').innerHTML = '<p class="empty">选择或保存一部故事。</p>'; return; }
+            $('#chapterList').textContent = '正在打开目录……';
+            let rows;
+            try { rows = await request(`/api/admin/posts/${post.id}/chapters`, { headers: authHeaders() }); }
+            catch (error) {
+                if (revision === chapterRevision) $('#chapterList').textContent = '目录暂时无法读取，请重新选择故事或刷新。';
+                throw error;
+            }
+            if (revision !== chapterRevision || $('#postForm').elements.id.value !== String(post.id)) return;
+            chapterRows = rows;
+            $('#chapterList').innerHTML = rows.length ? `<table><thead><tr><th>顺序</th><th>章节</th><th>状态</th><th>操作</th></tr></thead><tbody>${rows.map(chapter => `<tr><td data-column="顺序">${escapeHtml(chapter.sort_order)}</td><td data-column="章节"><strong>${escapeHtml([chapter.label !== chapter.title ? chapter.label : '', chapter.title].filter(Boolean).join(' · '))}</strong></td><td data-column="状态">${visibilityBadge(chapter.is_published && post.is_published)}</td><td data-column="操作"><div class="actions"><button type="button" class="btn secondary mini" data-chapter-edit="${chapter.id}">编辑</button>${chapter.is_published && post.is_published ? `<a class="btn ghost mini" href="/post/?slug=${encodeURIComponent(post.slug)}&chapter=${encodeURIComponent(chapter.slug)}" target="_blank" rel="noopener">查看公开页</a>` : ''}<button type="button" class="btn danger mini" data-chapter-delete="${chapter.id}">删除</button></div></td></tr>`).join('')}</tbody></table>` : '<p class="empty">尚无独立章节，原有整篇正文仍保留。</p>';
+        }
+        function editChapter(chapter) {
+            const form = $('#chapterForm');
+            form.reset(); form.elements.id.value = chapter?.id || '';
+            $('#chapterError').textContent = '';
+            for (const key of ['label', 'title', 'content', 'slug']) form.elements[key].value = chapter?.[key] || '';
+            form.elements.slug.readOnly = Boolean(chapter);
+            form.elements.sort_order.value = chapter?.sort_order ?? (chapterRows.length ? Math.max(...chapterRows.map(item => item.sort_order)) + 10 : 0);
+            form.elements.is_published.checked = chapter?.is_published ?? false;
+            $('#chapterEditorTitle').textContent = chapter ? '编辑章节' : '添加章节';
+            $('#chapterForm').dataset.postId = $('#postForm').elements.id.value;
+            $('#chapterEditor').showModal();
+        }
+        $('#newChapterBtn').addEventListener('click', () => editChapter(null));
+        $('#closeChapterBtn').addEventListener('click', () => $('#chapterEditor').close());
+        $('#chapterForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const form = event.currentTarget, postId = form.dataset.postId, id = form.elements.id.value;
+            const submit = form.querySelector('[type="submit"]'); submit.disabled = true;
+            try {
+                const payload = Object.fromEntries(['label', 'title', 'content'].map(key => [key, form.elements[key].value]));
+                Object.assign(payload, { slug: form.elements.slug.value.trim() || null, sort_order: Number(form.elements.sort_order.value), is_published: form.elements.is_published.checked });
+                await request(`/api/admin/posts/${postId}/chapters${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(payload) });
+                $('#chapterEditor').close();
+                await loadPosts();
+                if ($('#postForm').elements.id.value === postId) await loadChapters(state.posts.find(post => String(post.id) === postId));
+                showStatus('章节已保存');
+            } catch (error) { $('#chapterError').textContent = error.message; showStatus(error.message, true); }
+            finally { submit.disabled = false; }
+        });
+        $('#chapterList').addEventListener('click', async event => {
+            const button = event.target.closest('button'); if (!button) return;
+            const id = button.dataset.chapterEdit || button.dataset.chapterDelete;
+            if (button.dataset.chapterEdit) { editChapter(chapterRows.find(item => String(item.id) === id)); return; }
+            if (!button.dataset.chapterDelete || !confirm('确认删除这一章？原有故事正文不受影响。')) return;
+            try {
+                const postId = $('#postForm').elements.id.value;
+                await request(`/api/admin/posts/${postId}/chapters/${id}`, { method: 'DELETE', headers: authHeaders() });
+                await loadPosts(); await loadChapters(state.posts.find(post => String(post.id) === postId)); showStatus('章节已删除');
+            } catch (error) { showStatus(error.message, true); }
+        });
 
         function fillCommentForm(item) {
             const form = $("#commentForm");
@@ -1848,7 +1973,12 @@
             form.elements.sort_order.value = item?.sort_order ?? 0;
             form.elements.is_visible.checked = item?.is_visible ?? true;
             setPreview($("#characterImagePreview"), item?.image_url || "");
-            $("#characterFormTitle").textContent = item ? `编辑登记 #${item.id}` : "新建冒险者登记";
+            form.elements.avatar_url.value = item?.avatar_url || "";
+            form.elements.avatar_x.value = item?.avatar_x ?? 50;
+            form.elements.avatar_y.value = item?.avatar_y ?? 50;
+            form.elements.avatar_zoom.value = item?.avatar_zoom ?? 100;
+            refreshAvatarPreview();
+            $("#characterFormTitle").textContent = item ? `编辑角色 #${item.id}` : "新建角色";
         }
 
         function escapeHtml(value) {
@@ -2045,23 +2175,19 @@
                 is_character_story: form.elements.is_character_story.checked,
                 story_order: Number(form.elements.story_order.value || 0),
                 story_summary: form.elements.story_summary.value,
+                story_status: form.elements.story_status.value,
                 story_character_id: form.elements.story_character_id.value ? Number(form.elements.story_character_id.value) : null,
                 story_cover_url: form.elements.story_cover_mode.value === 'inherit' ? null : form.elements.story_cover_mode.value === 'none' ? '' : form.elements.story_cover_url.value.trim(),
             };
-            if (form.elements.story_cover_mode.value === 'independent' && form.elements.is_character_story.checked && !payload.story_cover_url) {
-                showStatus('请选择或上传角色故事独立封面，也可以将图片来源设为“不展示图片”。', true);
-                form.elements.story_cover_url.focus();
-                return;
-            }
             try {
-                await request(id ? `/api/admin/posts/${id}` : "/api/admin/posts", {
+                const saved = await request(id ? `/api/admin/posts/${id}` : "/api/admin/posts", {
                     method: id ? "PATCH" : "POST",
                     headers: authHeaders({ "Content-Type": "application/json" }),
                     body: JSON.stringify(payload),
                 });
-                fillPostForm(null);
                 await loadPosts();
-                showStatus("动态已保存");
+                fillPostForm(state.tab === 'stories' ? saved : null);
+                showStatus(state.tab === 'stories' ? '故事已保存' : "动态已保存");
             } catch (error) {
                 showStatus(error.message, true);
             }
@@ -2086,6 +2212,10 @@
                 details: form.elements.details.value,
                 custom_fields: parseCustomFields(form.elements.custom_fields.value),
                 image_url: form.elements.image_url.value,
+                avatar_url: form.elements.avatar_url.value.trim(),
+                avatar_x: Number(form.elements.avatar_x.value),
+                avatar_y: Number(form.elements.avatar_y.value),
+                avatar_zoom: Number(form.elements.avatar_zoom.value),
                 sort_order: Number(form.elements.sort_order.value || 0),
                 is_visible: form.elements.is_visible.checked,
             };
@@ -2097,13 +2227,65 @@
                 });
                 fillCharacterForm(null);
                 await loadCharacters();
-                showStatus("登记簿已保存");
+                showStatus("角色介绍已保存");
             } catch (error) {
                 showStatus(error.message, true);
             }
         });
 
         $("#resetCharacterBtn").addEventListener("click", () => fillCharacterForm(null));
+
+        function updateAvatarCrop() {
+            const form = $("#characterForm"), image = $("#characterAvatarPreview");
+            const focus = `${form.elements.avatar_x.value}% ${form.elements.avatar_y.value}%`;
+            image.style.objectPosition = image.style.transformOrigin = focus;
+            image.style.transform = `scale(${Number(form.elements.avatar_zoom.value) / 100})`;
+        }
+        function refreshAvatarPreview() {
+            const existing = $(".avatar-editor [data-preview-status]");
+            if (existing) $("#characterAvatarPreview").after(existing);
+            setPreview($("#characterAvatarPreview"), $("#characterForm").elements.avatar_url.value);
+            const status = $("#characterAvatarPreview").nextElementSibling;
+            if (status?.hasAttribute('data-preview-status')) $(".avatar-editor").append(status);
+            updateAvatarCrop();
+        }
+        ['avatar_x', 'avatar_y', 'avatar_zoom'].forEach(name => $("#characterForm").elements[name].addEventListener('input', updateAvatarCrop));
+        $("#characterForm").elements.avatar_url.addEventListener('change', refreshAvatarPreview);
+        $("#resetAvatarCropBtn").addEventListener('click', () => {
+            const form = $("#characterForm");
+            form.elements.avatar_x.value = form.elements.avatar_y.value = 50; form.elements.avatar_zoom.value = 100;
+            updateAvatarCrop();
+        });
+        let avatarDrag;
+        $("#characterAvatarCrop").addEventListener('pointerdown', event => {
+            const image = $("#characterAvatarPreview");
+            if (!image.naturalWidth || image.classList.contains('hidden')) return;
+            const form = $("#characterForm"), size = event.currentTarget.clientWidth;
+            const scale = Math.max(size / image.naturalWidth, size / image.naturalHeight) * Number(form.elements.avatar_zoom.value) / 100;
+            avatarDrag = { pointer: event.pointerId, x: event.clientX, y: event.clientY, focusX: Number(form.elements.avatar_x.value), focusY: Number(form.elements.avatar_y.value), overflowX: image.naturalWidth * scale - size, overflowY: image.naturalHeight * scale - size };
+            event.currentTarget.setPointerCapture(event.pointerId);
+        });
+        $("#characterAvatarCrop").addEventListener('pointermove', event => {
+            if (!avatarDrag || event.pointerId !== avatarDrag.pointer) return;
+            const form = $("#characterForm"), clamp = value => Math.round(Math.max(0, Math.min(100, value)));
+            if (avatarDrag.overflowX > 1) form.elements.avatar_x.value = clamp(avatarDrag.focusX - (event.clientX - avatarDrag.x) / avatarDrag.overflowX * 100);
+            if (avatarDrag.overflowY > 1) form.elements.avatar_y.value = clamp(avatarDrag.focusY - (event.clientY - avatarDrag.y) / avatarDrag.overflowY * 100);
+            updateAvatarCrop();
+        });
+        ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => $("#characterAvatarCrop").addEventListener(type, () => { avatarDrag = undefined; }));
+        $("#characterAvatarFile").addEventListener('change', async event => {
+            const file = event.target.files?.[0]; if (!file) return;
+            const form = $("#characterForm"), id = form.elements.id.value, submit = form.querySelector('[type=submit]');
+            const data = new FormData(); data.append('file', file); submit.disabled = true;
+            try {
+                const result = await request('/api/admin/characters/upload-image', { method: 'POST', headers: authHeaders(), body: data });
+                if (form.elements.id.value !== id) return;
+                form.elements.avatar_url.value = result.file_url;
+                form.elements.avatar_x.value = form.elements.avatar_y.value = 50; form.elements.avatar_zoom.value = 100;
+                refreshAvatarPreview(); showStatus('头像已上传，请调整取景后保存角色');
+            } catch (error) { showStatus(error.message, true); }
+            finally { submit.disabled = false; event.target.value = ''; }
+        });
 
         $("#characterImageFile").addEventListener("change", async (event) => {
             const file = event.target.files?.[0];
@@ -2128,11 +2310,11 @@
                 fillCharacterForm(state.characters.find((item) => String(item.id) === editId));
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }
-            if (deleteId && confirm("确认删除这条登记簿记录？已绑定照片会保留，但解除绑定后不再属于该角色。")) {
+            if (deleteId && confirm("确认删除这个角色？已绑定照片会保留，但解除绑定后不再属于该角色。")) {
                 try {
                     await request(`/api/admin/characters/${deleteId}`, { method: "DELETE", headers: authHeaders() });
                     await loadCharacters();
-                    showStatus("登记簿记录已删除");
+                    showStatus("角色已删除");
                 } catch (error) {
                     showStatus(error.message, true);
                 }

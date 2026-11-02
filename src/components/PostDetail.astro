@@ -24,7 +24,10 @@ const { slug = '' } = Astro.props;
                         <ol id="story-chapter-links"></ol>
                     </details>
                 </nav>
+                <nav id="chapter-nav-top" class="chapter-navigation hidden" aria-label="章节切换"></nav>
+                <header id="chapter-heading" class="chapter-heading hidden"><span id="chapter-progress" class="meta"></span><h2 id="chapter-title"></h2></header>
                 <div id="post-content" class="markdown-body dynamic-post-page__body" data-reveal style="--reveal-delay: 120ms"></div>
+                <nav id="chapter-nav-bottom" class="chapter-navigation hidden" aria-label="文末章节切换"></nav>
                 <aside id="post-resources" class="dynamic-post-page__resources hidden"></aside>
             </article>
 
@@ -67,6 +70,7 @@ const { slug = '' } = Astro.props;
         toApiUrl,
         type PostComment,
         type PublicPost,
+        type StoryChapter,
     } from '../lib/publicContent';
     import { loadSiteContent, siteText, siteFormat } from '../lib/siteContent';
 
@@ -95,8 +99,16 @@ const { slug = '' } = Astro.props;
         setText('post-desc', post.desc);
 
         const content = document.getElementById('post-content');
+        const chapterSlug = new URLSearchParams(location.search).get('chapter');
+        const chapters = post.is_character_story ? post.chapters || [] : [];
+        // An existing story's base URL must continue to show its original full text.
+        const hasParentText = Boolean(post.content?.trim());
+        const chapterIndex = chapterSlug ? chapters.findIndex(chapter => chapter.slug === chapterSlug) : hasParentText ? -1 : 0;
+        if (chapterSlug && chapterIndex < 0) { loading.textContent = '这一章不存在或尚未公开。'; return; }
+        const chapter = chapters[chapterIndex];
+        const currentChapter = chapter ? await fetchRequired<StoryChapter>(`/api/public/posts/${encodeURIComponent(slug)}/chapters/${encodeURIComponent(chapter.slug)}`) : null;
         if (content) {
-            const source = post.content || post.desc || '';
+            const source = currentChapter?.content || post.content || post.desc || '';
             const isStory = post.is_character_story || post.slug === 'post-lingxun-s_story';
             content.innerHTML = isStory ? renderStoryChapters(source) : markdownToHtml(source);
             if (isStory) {
@@ -108,8 +120,14 @@ const { slug = '' } = Astro.props;
                     heading.id = `story-chapter-${index + 1}`;
                     heading.setAttribute('tabindex', '-1');
                 });
-                if (links && headings.length) {
-                    links.replaceChildren(...headings.map(heading => {
+                if (links && (headings.length || chapters.length)) {
+                    links.replaceChildren(...(chapters.length ? chapters.map((chapter, index) => {
+                        const item = document.createElement('li'), anchor = document.createElement('a');
+                        anchor.href = `/post/?slug=${encodeURIComponent(slug)}&chapter=${encodeURIComponent(chapter.slug)}`;
+                        anchor.textContent = [chapter.label !== chapter.title ? chapter.label : '', chapter.title].filter(Boolean).join(' · ');
+                        if (index === chapterIndex) anchor.setAttribute('aria-current', 'page');
+                        item.append(anchor); return item;
+                    }) : headings.map(heading => {
                         const item = document.createElement('li');
                         const anchor = document.createElement('a');
                         anchor.href = `#${heading.id}`;
@@ -117,8 +135,15 @@ const { slug = '' } = Astro.props;
                         anchor.addEventListener('click', () => heading.focus({ preventScroll: true }));
                         item.append(anchor);
                         return item;
-                    }));
-                    document.getElementById('story-chapter-count')!.textContent = siteFormat('post.chapters_count', '{count} 节', { count: headings.length });
+                    })));
+                    if (chapters.length && hasParentText) {
+                        const item = document.createElement('li'), anchor = document.createElement('a');
+                        anchor.href = `/post/?slug=${encodeURIComponent(slug)}`;
+                        anchor.textContent = '故事介绍 / 原有全文';
+                        if (!currentChapter) anchor.setAttribute('aria-current', 'page');
+                        item.append(anchor); links.prepend(item);
+                    }
+                    document.getElementById('story-chapter-count')!.textContent = siteFormat('post.chapters_count', '{count} 节', { count: chapters.length || headings.length });
                     contents?.classList.remove('hidden');
                 }
                 content.querySelectorAll('p').forEach(paragraph => {
@@ -127,12 +152,41 @@ const { slug = '' } = Astro.props;
             }
         }
 
-        renderPostResources(post);
+        if (currentChapter) {
+            const title = [currentChapter.label !== currentChapter.title ? currentChapter.label : '', currentChapter.title].filter(Boolean).join(' · ');
+            setText('chapter-title', title);
+            setText('chapter-progress', `${chapterIndex + 1} / ${chapters.length} · ${post.story_status === 'completed' ? '已完结' : '连载中'}`);
+            document.getElementById('chapter-heading')!.classList.remove('hidden');
+            document.title = `${title} | ${post.title}`;
+            for (const id of ['chapter-nav-top', 'chapter-nav-bottom']) {
+                const nav = document.getElementById(id)!;
+                nav.classList.remove('hidden');
+                nav.replaceChildren(...[-1, 0, 1].map(direction => {
+                    const target = direction ? chapters[chapterIndex + direction] : null;
+                    const item = document.createElement(direction === 0 || target ? 'a' : 'span');
+                    const label = document.createElement('small'), name = document.createElement('strong');
+                    label.textContent = direction < 0 ? '← 上一章' : direction > 0 ? '下一章 →' : '故事目录';
+                    name.textContent = target ? [target.label !== target.title ? target.label : '', target.title].filter(Boolean).join(' · ') : direction === 0 ? `${chapterIndex + 1} / ${chapters.length}` : direction < 0 ? '已是开篇' : post.story_status === 'completed' ? '全篇完结' : '待续';
+                    if (item instanceof HTMLAnchorElement) item.href = target ? `/post/?slug=${encodeURIComponent(slug)}&chapter=${encodeURIComponent(target.slug)}` : '#story-contents';
+                    else item.setAttribute('aria-disabled', 'true');
+                    item.append(label, name); return item;
+                }));
+            }
+        } else {
+            renderPostResources(post);
+            if (chapters.length) {
+                const nav = document.getElementById('chapter-nav-bottom')!, anchor = document.createElement('a');
+                const label = document.createElement('small'), name = document.createElement('strong');
+                label.textContent = '从开篇开始 →'; name.textContent = chapters[0].title;
+                anchor.href = `/post/?slug=${encodeURIComponent(slug)}&chapter=${encodeURIComponent(chapters[0].slug)}`;
+                anchor.append(label, name); nav.replaceChildren(anchor); nav.classList.remove('hidden');
+            }
+        }
 
         loading.classList.add('hidden');
         article.classList.remove('hidden');
         const chapterId = window.location.hash.slice(1);
-        if (/^story-chapter-\d+$/.test(chapterId)) {
+        if (/^story-chapter-\d+$/.test(chapterId) || chapterId === 'story-contents') {
             await document.fonts.ready;
             document.getElementById(chapterId)?.scrollIntoView({ block: 'start', behavior: 'instant' });
         }
@@ -308,6 +362,18 @@ const { slug = '' } = Astro.props;
 </script>
 
 <style is:global>
+    .chapter-navigation.hidden, .chapter-heading.hidden { display: none; }
+    .chapter-navigation { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 1rem; max-width: 700px; margin: 2rem auto; border-block: 1px solid var(--line); padding-block: 1rem; }
+    .chapter-navigation > * { display: grid; align-content: start; gap: .35rem; min-width: 0; min-height: 48px; }
+    .chapter-navigation > :last-child { text-align: right; }
+    .chapter-navigation small { color: var(--steel-soft); font-size: .75rem; }
+    .chapter-navigation strong { color: var(--paper); font: 500 1rem/1.6 var(--font-serif); overflow-wrap: anywhere; }
+    .chapter-navigation [aria-disabled] { opacity: .45; }
+    .chapter-navigation a:hover strong, .story-contents [aria-current='page'] { color: var(--gold); }
+    .chapter-heading { max-width: 700px; margin: 3rem auto 0; }
+    .chapter-heading h2 { font: 500 2rem/1.5 var(--font-serif); overflow-wrap: anywhere; }
+    .chapter-heading + .dynamic-post-page__body { margin-top: 1.5rem; }
+    @media (max-width: 540px) { .chapter-navigation { gap: .6rem; } .chapter-navigation strong { font-size: .9rem; } .chapter-heading h2 { font-size: 1.6rem; } }
     .story-contents { margin: 2rem auto 0; max-width: 700px; padding-block: 1.2rem; border-block: 1px solid var(--line); }
     .story-contents summary { cursor: pointer; color: var(--paper); font-family: var(--font-serif); font-size: 1.25rem; }
     .story-contents summary .meta { margin-left: 1rem; color: var(--steel-soft); font-size: .75rem; }

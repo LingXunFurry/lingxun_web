@@ -123,6 +123,7 @@ def create_app() -> FastAPI:
                 seed_posts(db)
             ensure_site_content(db)
             migrate_contact_copy(db)
+            migrate_multi_character_copy(db)
             if initialize_stories:
                 migrate_character_story(db)
 
@@ -183,6 +184,7 @@ def ensure_database_schema() -> bool:
             "pin_order": "INT NOT NULL DEFAULT 0",
             "is_character_story": "BOOLEAN NOT NULL DEFAULT FALSE",
             "story_order": "INT NOT NULL DEFAULT 0",
+            "story_status": "VARCHAR(16) NOT NULL DEFAULT 'standalone'",
             "story_summary": "TEXT NOT NULL DEFAULT ''",
             "story_character_id": "INT NULL",
             "story_cover_url": "VARCHAR(500) NULL",
@@ -194,6 +196,10 @@ def ensure_database_schema() -> bool:
         for column_name, column_type in {
             "details": "TEXT NOT NULL DEFAULT ''",
             "custom_fields": "JSON NULL",
+            "avatar_url": "VARCHAR(500) NOT NULL DEFAULT ''",
+            "avatar_x": "INT NOT NULL DEFAULT 50",
+            "avatar_y": "INT NOT NULL DEFAULT 50",
+            "avatar_zoom": "INT NOT NULL DEFAULT 100",
         }.items():
             if column_name not in table_columns.get("character_profiles", set()):
                 if engine.dialect.name == "mysql" and column_name == "details":
@@ -283,6 +289,33 @@ def migrate_contact_copy(db) -> int:
             row.label = new_label
             updated = True
         changed += int(updated)
+    if changed:
+        db.commit()
+    return changed
+
+
+def migrate_multi_character_copy(db) -> int:
+    replacements = {
+        'hero.note': ('人类城镇 · 冒险者公会登记', '个人设定 · 故事与日常'),
+        'hero.subtitle': ('一条龙在人类城镇的生活记录', '凌巽的角色设定、故事与生活记录'),
+        'hero.body': ('这里收着凌巽的旅途留影、最近手记和仍在准备中的委托。推门进来，先在柜台边坐一会儿。', '这里收着我的角色设定、旅途留影和最近手记。不同角色的故事，也在这间酒馆里慢慢续写。'),
+        'hero.primary_action': ('查看冒险者登记簿', '认识这里的角色'),
+        'character.eyebrow': ('冒险者登记簿', '角色介绍'),
+        'character.field_species': ('种族', '物种'),
+        'character.field_role': ('身份', '职业'),
+        'character.no_photo': ('暂未放入登记照片', '暂未放入角色照片'),
+        'character.image_error': ('登记照片暂时无法打开', '角色照片暂时无法打开'),
+        'hero.scroll_label': ('向下查看角色登记簿', '向下查看角色介绍'),
+        'story.title_main': ('翻开一页', '故事'),
+        'story.title_accent': ('角色故事', '集'),
+        'story.intro': ('公会登记只能写下眼前的样子，更早的风、旅途与选择，都收在这些篇章里。', '不同的来处，各自的旅途。故事从这里继续。'),
+    }
+    changed = 0
+    for row in db.scalars(select(SiteContent).where(SiteContent.key.in_(replacements))):
+        old, new = replacements[row.key]
+        if row.value == old or (row.key == 'character.eyebrow' and row.value == '冒险者登记簿 / Current Record'):
+            row.value = new
+            changed += 1
     if changed:
         db.commit()
     return changed

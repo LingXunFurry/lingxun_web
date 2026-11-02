@@ -1,5 +1,5 @@
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
 
@@ -47,6 +47,7 @@ class Post(Base):
     is_character_story: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     story_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     story_summary: Mapped[str] = mapped_column(Text, default="")
+    story_status: Mapped[str] = mapped_column(String(16), default="standalone", server_default="standalone")
     story_cover_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     story_character_id: Mapped[int | None] = mapped_column(
         Integer,
@@ -56,6 +57,29 @@ class Post(Base):
     )
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    chapters: Mapped[list['StoryChapter']] = relationship(back_populates='story', cascade='all, delete-orphan', lazy='selectin', order_by='(StoryChapter.sort_order, StoryChapter.id)')
+
+    @property
+    def published_chapters(self):
+        return [chapter for chapter in self.chapters if chapter.is_published] if self.is_character_story else []
+
+
+class StoryChapter(Base):
+    __tablename__ = 'story_chapters'
+    __table_args__ = (UniqueConstraint('post_id', 'slug', name='uq_story_chapter_slug'),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    post_id: Mapped[int] = mapped_column(ForeignKey('posts.id', ondelete='CASCADE'), index=True)
+    slug: Mapped[str] = mapped_column(String(180), nullable=False)
+    label: Mapped[str] = mapped_column(String(80), default='')
+    title: Mapped[str] = mapped_column(String(220), nullable=False)
+    content: Mapped[str] = mapped_column(Text, default='')
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    is_published: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    story: Mapped['Post'] = relationship(back_populates='chapters')
 
 
 class PostComment(Base):
@@ -174,6 +198,10 @@ class CharacterProfile(Base):
     details: Mapped[str] = mapped_column(Text, default="")
     custom_fields: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True, default=list)
     image_url: Mapped[str] = mapped_column(String(500), default="")
+    avatar_url: Mapped[str] = mapped_column(String(500), default="", server_default="")
+    avatar_x: Mapped[int] = mapped_column(Integer, default=50, server_default="50")
+    avatar_y: Mapped[int] = mapped_column(Integer, default=50, server_default="50")
+    avatar_zoom: Mapped[int] = mapped_column(Integer, default=100, server_default="100")
     sort_order: Mapped[int] = mapped_column(Integer, default=0, index=True)
     is_visible: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[str] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -1,14 +1,16 @@
 import json
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy import case, select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from starlette.concurrency import run_in_threadpool
 
 from ..auth import authenticate_admin, change_admin_password, create_access_token, require_admin
 from ..config import settings
 from ..database import get_db
-from ..models import AdminAccount, BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteContent, SocialLink
+from ..models import AdminAccount, BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteContent, SocialLink, StoryChapter
 from ..schemas import (
     BonusContentIn,
     BonusContentOut,
@@ -29,6 +31,8 @@ from ..schemas import (
     PostIn,
     PostOut,
     PostPatch,
+    ChapterIn,
+    ChapterOut,
     ScheduleItemIn,
     ScheduleItemOut,
     ScheduleItemPatch,
@@ -160,7 +164,8 @@ def list_media(_: str = Depends(require_admin), db: Session = Depends(get_db)):
         for url in post.image_urls or []:
             add(url, post.title, '动态配图')
     for character in db.scalars(select(CharacterProfile)).all():
-        add(character.image_url, character.name, '冒险者登记簿')
+        add(character.image_url, character.name, '角色介绍主图')
+        add(character.avatar_url, character.name, '角色选择头像')
     for item in db.scalars(select(SiteContent).where(SiteContent.content_type == 'image')).all():
         add(item.value, item.label, '站点图片')
     return list(records.values())
@@ -298,6 +303,7 @@ def create_post(payload: PostIn, _: str = Depends(require_admin), db: Session = 
         is_character_story=payload.is_character_story,
         story_order=payload.story_order,
         story_summary=payload.story_summary,
+        story_status=payload.story_status,
         story_character_id=payload.story_character_id,
         story_cover_url=payload.story_cover_url,
     )
@@ -313,6 +319,8 @@ def update_post(post_id: int, payload: PostPatch, _: str = Depends(require_admin
     if not post:
         raise HTTPException(status_code=404, detail="动态不存在。")
     data = payload.model_dump(exclude_unset=True)
+    if data.get('is_character_story') is False and post.chapters:
+        raise HTTPException(422, '已有章节的故事不能转为普通动态。')
     if any(value is None for field, value in data.items() if field not in {"cover_url", "story_cover_url", "story_character_id", "image_urls", "attachments", "links"}):
         raise HTTPException(status_code=422, detail="动态文本、状态和排序字段不能为 null。")
     if any(field in data and not data[field].strip() for field in ("title", "date", "slug")):
@@ -336,6 +344,65 @@ def delete_post(post_id: int, _: str = Depends(require_admin), db: Session = Dep
     db.delete(post)
     db.commit()
     return {"ok": True}
+
+
+def chapter_story(db: Session, post_id: int):
+    post = db.get(Post, post_id)
+    if not post or not post.is_character_story:
+        raise HTTPException(404, '故事不存在。')
+    return post
+
+
+@router.get('/posts/{post_id}/chapters', response_model=list[ChapterOut])
+def admin_list_chapters(post_id: int, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    return chapter_story(db, post_id).chapters
+
+
+def save_chapter(db: Session, story: Post, payload: ChapterIn, chapter: StoryChapter | None = None):
+    if payload.is_published and not payload.content.strip():
+        raise HTTPException(422, '发布章节前请填写正文。')
+    data = payload.model_dump()
+    data['slug'] = payload.slug or (chapter.slug if chapter else 'chapter-' + uuid4().hex[:12])
+    existing = db.scalar(select(StoryChapter).where(StoryChapter.post_id == story.id, StoryChapter.slug == data['slug']))
+    if existing and (not chapter or existing.id != chapter.id):
+        raise HTTPException(409, '该故事已有相同的章节链接名。')
+    if chapter is None:
+        chapter = StoryChapter(post_id=story.id)
+        db.add(chapter)
+    for name, value in data.items():
+        setattr(chapter, name, value)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, '章节链接名已存在，请换一个名称。')
+    db.refresh(chapter)
+    return chapter
+
+
+@router.post('/posts/{post_id}/chapters', response_model=ChapterOut, status_code=201)
+def create_chapter(post_id: int, payload: ChapterIn, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    return save_chapter(db, chapter_story(db, post_id), payload)
+
+
+@router.put('/posts/{post_id}/chapters/{chapter_id}', response_model=ChapterOut)
+def update_chapter(post_id: int, chapter_id: int, payload: ChapterIn, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    story = chapter_story(db, post_id)
+    chapter = db.get(StoryChapter, chapter_id)
+    if not chapter or chapter.post_id != post_id:
+        raise HTTPException(404, '章节不存在。')
+    return save_chapter(db, story, payload, chapter)
+
+
+@router.delete('/posts/{post_id}/chapters/{chapter_id}')
+def delete_chapter(post_id: int, chapter_id: int, _: str = Depends(require_admin), db: Session = Depends(get_db)):
+    chapter_story(db, post_id)
+    chapter = db.get(StoryChapter, chapter_id)
+    if not chapter or chapter.post_id != post_id:
+        raise HTTPException(404, '章节不存在。')
+    db.delete(chapter)
+    db.commit()
+    return {'ok': True}
 
 
 @router.post("/posts/upload-cover")

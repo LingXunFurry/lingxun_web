@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from ..database import get_db
-from ..models import BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteContent, SiteStats, SocialLink
+from ..models import BonusContent, CharacterProfile, FriendLink, GalleryPhoto, Post, PostComment, ScheduleItem, SiteContent, SiteStats, SocialLink, StoryChapter
 from ..schemas import (
     BonusContentOut,
     FriendLinkOut,
@@ -14,6 +14,8 @@ from ..schemas import (
     CharacterProfileOut,
     PostCommentOut,
     PostOut,
+    ChapterOutline,
+    ChapterOut,
     ScheduleItemOut,
     SiteContentOut,
     SiteStatsOut,
@@ -93,6 +95,27 @@ def get_post(slug: str, db: Session = Depends(get_db)):
     if not post:
         raise HTTPException(status_code=404, detail="动态不存在或未发布。")
     return post
+
+
+def public_story(slug: str, db: Session):
+    post = db.scalar(select(Post).where(Post.slug == slug, Post.is_published.is_(True), Post.is_character_story.is_(True)))
+    if not post:
+        raise HTTPException(404, '故事不存在或未发布。')
+    return post
+
+
+@router.get('/posts/{slug}/chapters', response_model=list[ChapterOutline])
+def list_chapters(slug: str, db: Session = Depends(get_db)):
+    return public_story(slug, db).published_chapters
+
+
+@router.get('/posts/{slug}/chapters/{chapter_slug}', response_model=ChapterOut)
+def get_chapter(slug: str, chapter_slug: str, db: Session = Depends(get_db)):
+    story = public_story(slug, db)
+    chapter = db.scalar(select(StoryChapter).where(StoryChapter.post_id == story.id, StoryChapter.slug == chapter_slug, StoryChapter.is_published.is_(True)))
+    if not chapter:
+        raise HTTPException(404, '章节不存在或未发布。')
+    return chapter
 
 
 @router.get("/posts/{slug}/comments", response_model=list[PostCommentOut])

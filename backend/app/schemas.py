@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
@@ -91,6 +92,7 @@ class PostIn(BaseModel):
     is_character_story: bool = False
     story_order: int = 0
     story_summary: str = ""
+    story_status: Literal['standalone', 'serial', 'completed'] = 'standalone'
     story_character_id: int | None = None
     story_cover_url: str | None = Field(default=None, max_length=500)
 
@@ -112,12 +114,38 @@ class PostPatch(BaseModel):
     is_character_story: bool | None = None
     story_order: int | None = None
     story_summary: str | None = None
+    story_status: Literal['standalone', 'serial', 'completed'] | None = None
     story_character_id: int | None = None
     story_cover_url: str | None = Field(default=None, max_length=500)
 
 
-class PostOut(BaseModel):
+class ChapterOutline(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+    id: int
+    slug: str
+    label: str = ''
+    title: str
+    sort_order: int = 0
+    created_at: datetime | None = None
+
+
+class ChapterOut(ChapterOutline):
+    content: str = ''
+    is_published: bool = False
+
+
+class ChapterIn(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+    slug: str | None = Field(default=None, min_length=1, max_length=180, pattern=r'^[\w-]+$')
+    label: str = Field(default='', max_length=80)
+    title: str = Field(..., min_length=1, max_length=220)
+    content: str = ''
+    sort_order: int = Field(default=0, ge=0, le=100000)
+    is_published: bool = False
+
+
+class PostOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     id: int
     slug: str
@@ -136,6 +164,8 @@ class PostOut(BaseModel):
     is_character_story: bool = False
     story_order: int = 0
     story_summary: str = ""
+    story_status: str = 'standalone'
+    chapters: list[ChapterOutline] = Field(default_factory=list, validation_alias='published_chapters')
     story_character_id: int | None = None
     story_cover_url: str | None = None
 
@@ -298,6 +328,10 @@ class CharacterProfileIn(BaseModel):
     details: str = ""
     custom_fields: list[dict[str, str]] | None = None
     image_url: str = ""
+    avatar_url: str = Field(default="", max_length=500)
+    avatar_x: int = Field(default=50, ge=0, le=100)
+    avatar_y: int = Field(default=50, ge=0, le=100)
+    avatar_zoom: int = Field(default=100, ge=100, le=300)
     sort_order: int = 0
     is_visible: bool = True
 
@@ -315,6 +349,10 @@ class CharacterProfilePatch(BaseModel):
     details: str | None = None
     custom_fields: list[dict[str, str]] | None = None
     image_url: str | None = None
+    avatar_url: str = Field(default="", max_length=500)
+    avatar_x: int = Field(default=50, ge=0, le=100)
+    avatar_y: int = Field(default=50, ge=0, le=100)
+    avatar_zoom: int = Field(default=100, ge=100, le=300)
     sort_order: int | None = None
     is_visible: bool | None = None
 
@@ -328,6 +366,11 @@ class CharacterProfileOut(CharacterProfileIn):
     @property
     def image(self) -> dict | None:
         return image_info(self.image_url)
+
+    @computed_field
+    @property
+    def avatar(self) -> dict | None:
+        return image_info(self.avatar_url)
 
 
 class SiteContentPatch(BaseModel):

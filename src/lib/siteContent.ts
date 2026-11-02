@@ -112,7 +112,7 @@ const bindings: Record<string, Binding> = {
     'character.photo_label': ['.character-section__photo-label'],
     'character.photo_caption': ['.character-section__photo-caption > span:first-child'],
     'character.photo_category': ['.character-section__photo-caption > span:last-child'],
-    'character.eyebrow': ['#character-profile .eyebrow'],
+    'character.eyebrow': ['.character-selection .eyebrow'],
     'story.eyebrow': ['.story-section__heading .eyebrow'],
     'story.title_main': ['#story-title-main'],
     'story.title_accent': ['#story-title-accent'],

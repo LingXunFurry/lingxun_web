@@ -112,6 +112,7 @@
 }
 
 * { box-sizing: border-box; }
+.home-page { overflow-anchor: none; }
 
 html {
     min-width: 320px;

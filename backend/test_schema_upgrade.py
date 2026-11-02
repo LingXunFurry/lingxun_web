@@ -23,6 +23,7 @@ class SchemaUpgradeTests(unittest.TestCase):
                     self.assertEqual(connection.scalar(text(f'SELECT original FROM {table} WHERE id=1')), 'unchanged')
                 self.assertEqual(connection.scalar(text('SELECT story_summary FROM posts WHERE id=1')), '')
                 self.assertEqual(connection.scalar(text('SELECT details FROM character_profiles WHERE id=1')), '')
+                self.assertEqual(connection.execute(text('SELECT avatar_url, avatar_x, avatar_y, avatar_zoom FROM character_profiles WHERE id=1')).one(), ('', 50, 50, 100))
                 self.assertEqual(connection.scalar(text('SELECT is_home_hero FROM gallery_photos WHERE id=1')), 0)
             self.assertIn('story_order', {c['name'] for c in inspect(engine).get_columns('posts')})
         finally:

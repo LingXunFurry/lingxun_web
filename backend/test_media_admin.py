@@ -180,6 +180,29 @@ class MediaApiTests(unittest.TestCase):
         self.assertEqual(self.client.post('/api/admin/media/optimize', json={'url': '/uploads/test.jpg'}).status_code, 401)
         self.assertEqual(self.client.put('/api/admin/homepage/media', json={}).status_code, 401)
 
+    def test_independent_character_avatar_crop_roundtrip_and_validation(self):
+        image = io.BytesIO()
+        Image.new('RGB', (900, 600), 'blue').save(image, 'JPEG')
+        uploaded = self.client.post('/api/admin/characters/upload-image', files={'file': ('avatar.jpg', image.getvalue(), 'image/jpeg')})
+        self.assertEqual(uploaded.status_code, 200, uploaded.text)
+        url = uploaded.json()['file_url']
+        created = self.client.post('/api/admin/characters', json={'name': 'Avatar test', 'image_url': '/uploads/main.webp', 'avatar_url': url, 'avatar_x': 25, 'avatar_y': 70, 'avatar_zoom': 180})
+        self.assertEqual(created.status_code, 200, created.text)
+        item = created.json()
+        self.assertEqual(item['avatar']['src'], url)
+        public_item = self.client.get('/api/public/characters').json()[0]
+        self.assertEqual([public_item[k] for k in ('avatar_url', 'avatar_x', 'avatar_y', 'avatar_zoom')], [url, 25, 70, 180])
+        route = f"/api/admin/characters/{item['id']}"
+        for payload in ({'avatar_x': -1}, {'avatar_y': 101}, {'avatar_zoom': 99}, {'avatar_zoom': 301}, {'avatar_x': None}, {'avatar_url': None}):
+            self.assertEqual(self.client.patch(route, json=payload).status_code, 422)
+        updated = self.client.patch(route, json={'name': 'Renamed'}).json()
+        self.assertEqual(updated['avatar_x'], 25, 'partial updates preserve crop')
+        self.assertEqual(updated['image_url'], '/uploads/main.webp')
+        cleared = self.client.patch(route, json={'avatar_url': ''}).json()
+        self.assertEqual(cleared['avatar_url'], '')
+        self.assertIsNone(cleared['avatar'])
+        self.assertEqual(cleared['image_url'], '/uploads/main.webp')
+
 
 if __name__ == '__main__':
     unittest.main()

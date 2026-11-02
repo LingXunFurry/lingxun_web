@@ -44,11 +44,18 @@ export type PublicPost = {
     is_character_story?: boolean;
     story_order?: number;
     story_summary?: string;
+    story_status?: 'standalone' | 'serial' | 'completed';
+    chapters?: StoryChapter[];
     story_character_id?: number | null;
     story_cover_url?: string | null;
     story_image?: ImageAsset | null;
     cover_image?: ImageAsset | null;
     image_assets?: Record<string, ImageAsset | null>;
+};
+
+export type StoryChapter = {
+    id: number; slug: string; label: string; title: string; sort_order: number;
+    content?: string; created_at?: string;
 };
 
 export type CharacterProfile = {
@@ -65,6 +72,11 @@ export type CharacterProfile = {
     details?: string;
     custom_fields?: { label?: string; value?: string }[] | null;
     image_url: string;
+    avatar_url?: string;
+    avatar_x?: number;
+    avatar_y?: number;
+    avatar_zoom?: number;
+    avatar?: ImageAsset | null;
     image?: ImageAsset | null;
     sort_order: number;
     is_visible: boolean;
