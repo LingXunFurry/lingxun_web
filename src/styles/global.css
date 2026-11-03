@@ -203,7 +203,6 @@ img { max-width: 100%; height: auto; }
     .home-page.is-stage-controlled .character-section__inner {
         gap: clamp(2rem, 5vw, 5rem);
     }
-    .home-page.is-stage-controlled .character-section__inner,
     .home-page.is-stage-controlled .final-section__inner {
         min-height: 0;
         max-height: 100%;

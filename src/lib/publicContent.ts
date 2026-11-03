@@ -276,31 +276,4 @@ export function escapeHtml(value: string | number | null | undefined) {
         .replaceAll("'", "&#039;");
 }
 
-export function markdownToHtml(markdown: string) {
-    const blocks = markdown.replace(/\r\n/g, "\n").split(/\n{2,}/);
-    return blocks
-        .map((block) => {
-            const trimmed = block.trim();
-            if (!trimmed) return "";
-            if (trimmed.startsWith("### ")) return `<h3>${inlineMarkdown(trimmed.slice(4))}</h3>`;
-            if (trimmed.startsWith("## ")) return `<h2>${inlineMarkdown(trimmed.slice(3))}</h2>`;
-            if (trimmed.startsWith("# ")) return `<h1>${inlineMarkdown(trimmed.slice(2))}</h1>`;
-            if (trimmed.startsWith("> ")) return `<blockquote>${inlineMarkdown(trimmed.replace(/^> /gm, ""))}</blockquote>`;
-            if (/^[-*] /.test(trimmed)) {
-                const items = trimmed
-                    .split("\n")
-                    .filter((line) => /^[-*] /.test(line))
-                    .map((line) => `<li>${inlineMarkdown(line.replace(/^[-*] /, ""))}</li>`)
-                    .join("");
-                return `<ul>${items}</ul>`;
-            }
-            return `<p>${inlineMarkdown(trimmed).replaceAll("\n", "<br>")}</p>`;
-        })
-        .join("");
-}
-
-function inlineMarkdown(value: string) {
-    return escapeHtml(value)
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        .replace(/`(.+?)`/g, "<code>$1</code>");
-}
+export { markdownToHtml } from './markdown';

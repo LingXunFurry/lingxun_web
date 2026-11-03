@@ -7,7 +7,7 @@ import '../styles/record-switch.css';
     <div class="character-diagonal" aria-hidden="true"></div>
     <figure class="character-visual"><div class="character-visual__entry" data-reveal style="--reveal-delay: 110ms"><div id="character-visual-content" class="character-visual__content"></div></div></figure>
     <div class="site-container character-section__inner">
-        <header class="character-selection" data-reveal><div class="eyebrow">角色介绍</div><span class="meta">CHARACTERS <span id="character-total"></span></span></header>
+        <header class="character-selection" data-reveal><div class="eyebrow">角色介绍</div><span class="meta">CHARACTERS</span></header>
         <nav class="character-roster" aria-label="角色切换" data-reveal style="--reveal-delay: 240ms">
             <button id="character-prev" type="button" aria-label="上一个角色" title="上一个角色">↖</button>
             <div id="character-tabs" class="record-tabs" aria-label="选择角色"></div>
@@ -24,7 +24,6 @@ import '../styles/record-switch.css';
         const [characters] = await Promise.all([fetchRequired<CharacterProfile[]>('/api/public/characters'), loadSiteContent()]);
         const profile = document.getElementById('character-profile')!, visual = document.getElementById('character-visual-content')!;
         if (!characters.length) { document.getElementById('character-section')!.hidden = true; return; }
-        document.getElementById('character-total')!.textContent = String(characters.length).padStart(2, '0');
         let activate: (index: number) => void, current = 0;
         const portraits = new Map<number, Promise<HTMLElement>>();
         const prepare = (index: number) => {
@@ -52,7 +51,7 @@ import '../styles/record-switch.css';
             current = index;
             const item = characters[index];
             const facts = [['species', '物种', item.species], ['role', '职业', item.role], ['region', '活动区域', item.region], ['work', '主要工作', item.work], ['places', '常去地点', item.places], ['status', '当前状态', item.status]]
-                .filter(([, , value]) => value?.trim()).map(([key, label, value]) => `<div><dt>${escapeHtml(siteText(`character.field_${key}`, label))}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
+                .filter(([, , value]) => value?.trim()).map(([key, label, value]) => `<div data-field="${key}"><dt>${escapeHtml(siteText(`character.field_${key}`, label))}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
             const custom = (item.custom_fields || []).filter(field => field.label?.trim() && field.value?.trim()).map(field => `<div><dt>${escapeHtml(field.label)}</dt><dd>${escapeHtml(field.value)}</dd></div>`).join('');
             const paragraphs = (item.details || '').split(/\n{2,}/).filter(Boolean).map(paragraph => `<p>${escapeHtml(paragraph).replaceAll('\n', '<br>')}</p>`).join('');
             profile.innerHTML = `<header class="dossier-heading"><h2 id="character-title">${escapeHtml(item.name)}<em>${escapeHtml(item.alias || '')}</em></h2>${item.introduction ? `<p class="dossier-lead">${escapeHtml(item.introduction)}</p>` : ''}</header><dl class="dossier-facts">${facts}${custom}</dl>${paragraphs ? `<div class="dossier-notes">${paragraphs}</div>` : ''}`;
@@ -88,10 +87,9 @@ import '../styles/record-switch.css';
     .character-section::before { display: block; mask-position: center center; }
     .character-section .character-section__inner { display: grid; gap: 1.5rem; }
     .character-selection { display: flex; gap: 1.5rem; align-items: baseline; }
-    .character-selection .eyebrow { font: 500 1.35rem var(--font-serif); color: var(--paper); }
+    .character-selection .eyebrow { font: 700 .85rem/1.5 var(--font-sans); color: var(--gold); letter-spacing: 0; }
     .character-selection .eyebrow::before { width: 28px; background: var(--red-soft); }
     .character-selection > .meta { color: var(--steel-soft); font-size: .65rem; }
-    #character-total { color: var(--gold); margin-left: .7rem; }
     .character-visual { min-width: 0; margin: 0; background: var(--surface-card); position: relative; overflow: hidden; }
     .character-visual__entry, .character-visual__content, .character-visual__frame { width: 100%; height: 100%; }
     .character-visual img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
@@ -107,14 +105,16 @@ import '../styles/record-switch.css';
     .character-roster > button { transition: transform .2s, color .2s; }
     @media (hover: hover) { .character-roster > button:not(:disabled):hover { transform: translateY(-3px); color: color-mix(in srgb, var(--gold) 65%, var(--paper)); } }
     #character-profile, .character-stage { min-width: 0; }
-    .dossier-heading h2 { margin: 0; font: 500 4.4rem/1.15 var(--font-serif); overflow-wrap: anywhere; }
-    .dossier-heading h2 em { display: block; margin-top: .25rem; color: var(--steel-soft); font: italic 400 2.3rem/1.1 var(--font-display); }
-    .dossier-lead { margin: 1.2rem 0 0; font: 400 1.05rem/1.85 var(--font-serif); }
+    .dossier-heading h2 { margin: 0; font: 700 3.8rem/1.2 var(--font-serif); overflow-wrap: anywhere; }
+    .dossier-heading h2 em { display: block; margin-top: .35rem; color: var(--red-soft); font: italic 600 2.1rem/1.2 var(--font-display); }
+    .dossier-lead { margin: 1.25rem 0 0; color: var(--paper-muted); font: 400 1rem/1.85 var(--font-sans); }
     .dossier-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem 1.5rem; margin: 1.25rem 0 0; }
     .dossier-facts div { border-left: 2px solid var(--line); padding-left: .8rem; }
-    .dossier-facts dt { color: var(--steel-soft); font-size: .72rem; }
-    .dossier-facts dd { margin: .25rem 0 0; font: 500 1rem/1.6 var(--font-serif); overflow-wrap: anywhere; }
-    .dossier-notes { margin-top: 1rem; color: var(--paper-muted); font-size: .85rem; line-height: 1.8; }
+    .dossier-facts dt { color: var(--steel-soft); font-size: .78rem; }
+    .dossier-facts dd { margin: .3rem 0 0; font: 700 1rem/1.6 var(--font-sans); overflow-wrap: anywhere; }
+    .dossier-facts [data-field='species'], .dossier-facts [data-field='role'] { border-color: var(--gold); }
+    .dossier-facts [data-field='status'] dd { color: var(--red-soft); }
+    .dossier-notes { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line-soft); color: var(--paper-muted); font-size: 1rem; line-height: 1.85; }
     .dossier-notes p { margin: 0 0 .5rem; }
     .dossier-notes p:last-child { margin-bottom: 0; }
     @media (min-width: 900px) {
@@ -123,21 +123,21 @@ import '../styles/record-switch.css';
         .character-visual .dossier-portrait__empty { padding-left: 35%; }
         .character-diagonal { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--gold); opacity: .55; clip-path: polygon(47.9% 0, 48.05% 0, 67.85% 100%, 67.7% 100%); }
         .character-stage, .character-selection { position: relative; z-index: 1; width: 45%; }
-        .character-section .character-section__inner { height: 650px; grid-template-rows: 32px minmax(0, 1fr); align-content: stretch; }
-        .character-stage { height: 100%; overflow: auto; overflow-x: clip; overscroll-behavior-y: contain; scrollbar-width: thin; }
+        .character-section .character-section__inner { min-height: 650px; grid-template-rows: auto auto; align-content: center; }
+        .character-stage { height: auto; overflow: visible; }
         .character-roster { position: absolute; top: 50%; left: calc(57.9% - 107px); translate: 0 -50%; z-index: 2; display: grid; justify-items: center; }
         #character-tabs { position: relative; display: grid; gap: .7rem; }
         #character-tabs .record-tab, .character-roster > button { translate: var(--roster-shift, 0px) 0; }
-        .home-page.is-stage-controlled .character-section .character-section__inner { height: calc(100svh - 126px); max-height: 100%; overflow: visible; gap: 1.5rem; }
-        .home-page.is-stage-controlled .character-stage { max-height: none; overflow-x: clip; overflow-y: auto; overscroll-behavior-y: contain; scrollbar-width: thin; }
-        .home-page.is-stage-controlled .character-section { padding-block: 1.5rem; }
+        .home-page.is-stage-controlled .character-section .character-section__inner { height: min(760px, calc(100svh - 76px - clamp(4rem, 10svh, 8rem))); min-height: 0; grid-template-rows: auto minmax(0, 1fr); max-height: 100%; overflow: visible; gap: 1.5rem; }
+        .home-page.is-stage-controlled .character-stage { display: grid; align-content: safe center; height: 100%; min-height: 0; overflow-x: clip; overflow-y: auto; overscroll-behavior-y: auto; scrollbar-width: thin; }
+        .home-page.is-stage-controlled .character-section { padding-block: clamp(2rem, 5svh, 4rem); }
     }
-    @media (min-width: 900px) and (max-height: 740px) {
+    @media (min-width: 900px) and (pointer: fine) and (max-height: 740px) {
         .home-page.is-stage-controlled .character-section .character-section__inner { gap: .7rem; }
         .dossier-heading h2 { font-size: 2.7rem; } .dossier-heading h2 em { font-size: 1.7rem; }
         .dossier-lead { margin-top: .7rem; font-size: .95rem; line-height: 1.65; }
         .dossier-facts { margin-top: .8rem; gap: .55rem 1rem; } .dossier-facts dd { font-size: .9rem; line-height: 1.45; }
-        .dossier-notes { margin-top: .7rem; font-size: .8rem; line-height: 1.6; }
+        .dossier-notes { margin-top: .7rem; padding-top: .7rem; font-size: .9rem; line-height: 1.7; }
     }
     @media (max-width: 899px) {
         .character-stage { overflow: clip; }
@@ -147,6 +147,10 @@ import '../styles/record-switch.css';
         #character-tabs { display: flex; flex: 1; justify-content: center; gap: .5rem; }
         .character-roster > button { flex: 0 0 44px; }
         .dossier-heading h2 { font-size: 3rem; } .dossier-heading h2 em { display: inline; margin-left: 1rem; font-size: 1.9rem; }
+    }
+    @media (min-width: 900px) and (pointer: coarse) {
+        .character-section .character-section__inner { min-height: 0; }
+        .character-stage { max-height: none; overflow: visible; overscroll-behavior-y: auto; }
     }
     @media (prefers-reduced-motion: reduce) { .character-roster > button { transition: none; } .character-roster > button:not(:disabled):hover { transform: none; } }
 </style>
